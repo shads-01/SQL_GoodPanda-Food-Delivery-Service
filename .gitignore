@@ -1,23 +1,55 @@
-/.phpunit.cache
-/node_modules
-/public/build
-/public/hot
-/public/storage
+# ─────────────────────────────────────────
+# Laravel / PHP
+# ─────────────────────────────────────────
+/vendor/
+/node_modules/
+/public/build/
+/public/hot/
+/public/storage/
 /storage/*.key
-/storage/pail
-/vendor
+/storage/app/public/
+/storage/framework/cache/data/
+/storage/framework/sessions/
+/storage/framework/testing/
+/storage/framework/views/
+/storage/logs/
+/bootstrap/cache/*.php
+/bootstrap/ssr/
+
+# ─────────────────────────────────────────
+# Environment — NEVER commit .env
+# ─────────────────────────────────────────
 .env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/auth.json
-/.fleet
-/.idea
-/.nova
-/.vscode
-/.zed
+.env.*
+!.env.example
+
+# ─────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────
+docker/volumes/
+
+# ─────────────────────────────────────────
+# IDE / OS
+# ─────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────
+# Testing
+# ─────────────────────────────────────────
+/.phpunit.cache/
+/coverage/
+
+# ─────────────────────────────────────────
+# Compiled assets
+# ─────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
