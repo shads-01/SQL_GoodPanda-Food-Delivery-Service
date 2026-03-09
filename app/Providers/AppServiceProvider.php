@@ -15,9 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if ($this->app->environment('testing')) {
-            \Illuminate\Support\Facades\Vite::useBuildDirectory('nonexistent');
-        }
+        //
     }
 
     /**
