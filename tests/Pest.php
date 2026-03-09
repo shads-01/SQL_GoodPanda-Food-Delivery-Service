@@ -29,6 +29,9 @@ pest()->extend(Tests\TestCase::class)
 | to assert different things. Of course, you may extend the Expectation API at any time.
 |
 */
+beforeEach(function () {
+    $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+})->in('Feature/Auth');
 
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);

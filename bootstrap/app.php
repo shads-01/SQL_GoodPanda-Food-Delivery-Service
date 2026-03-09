@@ -11,9 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        if (($_ENV['APP_ENV'] ?? null) === 'testing') {
-            $middleware->validateCsrfTokens(except: ['*']);
-        }
+        //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
