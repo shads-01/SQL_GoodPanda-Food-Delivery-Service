@@ -21,6 +21,12 @@ jobs:
     strategy:
       matrix:
         php-version: ['8.4']
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ":memory:"
+      SESSION_DRIVER: array
+      CACHE_DRIVER: array
+      MAIL_MAILER: array
 
     steps:
       - name: Checkout code
