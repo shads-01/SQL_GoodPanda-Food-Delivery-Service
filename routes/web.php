@@ -4,17 +4,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
 
-/* LOGIN & REGISTER PAGE */
+/* ROLE-SPECIFIC LOGIN & REGISTER PAGES (Fortify handles the main /login and /register routes) */
 
-Route::view('/login', 'auth.login')->name('login');
-Route::view('/register','auth.register');
+Route::view('/customer/login', 'auth.login');
+Route::view('/owner/login', 'auth.login');
 
-Route::view('/customer/login','auth.login');
-Route::view('/owner/login','auth.login');
-
-Route::view('/customer/register','auth.register');
-Route::view('/owner/register','auth.register');
-
+Route::view('/customer/register', 'auth.register');
+Route::view('/owner/register', 'auth.register');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
