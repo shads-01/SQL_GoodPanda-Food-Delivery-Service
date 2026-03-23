@@ -30,6 +30,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          extensions: pdo_sqlite, sqlite3
           tools: composer:v2
           coverage: xdebug
 
@@ -55,6 +56,9 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+
+      - name: Create Database
+        run: touch database/database.sqlite
 
       - name: Run Tests
         run: ./vendor/bin/pest
