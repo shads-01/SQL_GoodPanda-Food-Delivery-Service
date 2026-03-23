@@ -11,6 +11,8 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        $this->withoutVite();
+
         // Disable CSRF verification for all tests — Fortify's POST routes use
         // the 'web' middleware group which includes CSRF, causing 419s in tests.
         $this->withoutMiddleware(VerifyCsrfToken::class);
