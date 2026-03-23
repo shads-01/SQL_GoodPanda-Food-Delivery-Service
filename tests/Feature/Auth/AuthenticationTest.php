@@ -4,6 +4,7 @@ use App\Models\User;
 use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function () {
+    $this->withoutExceptionHandling();
     $response = $this->get(route('login'));
 
     $response->assertOk();
