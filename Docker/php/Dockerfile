@@ -60,7 +60,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # ─────────────────────────────────────────
 # Entrypoint script — runs on every container start
 # ─────────────────────────────────────────
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY Docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /var/www/html
