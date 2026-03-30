@@ -30,11 +30,10 @@
 
         <!-- Dropdown -->
         <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded">
-            <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
+            <a href="{{ route('customer_profile') }}" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
             <a href="#" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
         </div>
     </div>
-
 </nav>
 
 <script>
