@@ -79,6 +79,17 @@ Register
     <form method="POST" action="/login">
       @csrf
 
+      @if($errors->any())
+        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm text-left">
+            <strong>Whoops! Something went wrong.</strong>
+            <ul class="list-disc pl-5 mt-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+      @endif
+
       <!-- EMAIL -->
       <div class="mb-3">
         <label class="text-sm text-gray-600">Email Address</label>
