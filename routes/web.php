@@ -15,8 +15,6 @@ Route::view('/owner/login','auth.login');
 Route::view('/customer/register','auth.register');
 Route::view('/owner/register','auth.register');
 
-Route::view('/customer/profile', 'customer.profile')->name('customer_profile');
-
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
