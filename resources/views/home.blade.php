@@ -167,29 +167,39 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Explore Cuisines -->
         <h2 class="text-2xl font-semibold mb-4">Explore Cuisines</h2>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
-        @for($i=1;$i<=5;$i++)
+        @forelse($cuisines as $cuisine)
             <div class="bg-white p-6 rounded-2xl shadow-lg text-center hover:scale-105 transform transition">
-                <div class="h-20 w-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3">
-                    <img src="" alt="" class="h-10">
+                <div class="h-20 w-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3 text-orange-500">
+                    <i data-feather="grid" class="h-8 w-8"></i>
                 </div>
-                <h3 class="font-bold text-lg">Cuisine {{ $i }}</h3>
+                <h3 class="font-bold text-lg">{{ $cuisine->cuisine_name }}</h3>
             </div>
-        @endfor
+        @empty
+            <p class="text-gray-500">No cuisines found.</p>
+        @endforelse
         </div>
 
         <!-- Top Restaurants -->
         <h2 class="text-2xl font-semibold mb-4">Top Restaurants</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        @for($i=1;$i<=6;$i++)
+        @forelse($restaurants as $restaurant)
             <div class="bg-white rounded-2xl shadow p-4 hover:shadow-xl transition">
-                <div class="h-40 bg-gray-200 rounded mb-4"></div>
-                <h3 class="font-bold text-lg">Restaurant {{ $i }}</h3>
-                <p class="text-gray-500 text-sm mb-2">Cuisine Type</p>
-                <button class="mt-2 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
+                <div class="h-40 bg-gray-200 rounded mb-4 overflow-hidden flex items-center justify-center relative">
+                    @if(isset($restaurant->cover_image) && $restaurant->cover_image)
+                        <img src="{{ $restaurant->cover_image }}" alt="Cover" class="w-full h-full object-cover">
+                    @else
+                        <i data-feather="image" class="text-gray-400 w-10 h-10"></i>
+                    @endif
+                </div>
+                <h3 class="font-bold text-lg">{{ $restaurant->name }}</h3>
+                <p class="text-gray-500 text-sm mb-2 text-ellipsis overflow-hidden whitespace-nowrap"><i data-feather="map-pin" class="inline w-3 h-3"></i> {{ $restaurant->location }}</p>
+                <button class="mt-2 text-sm bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
                     Order Now
                 </button>
             </div>
-        @endfor
+        @empty
+            <p class="text-gray-500">No restaurants found.</p>
+        @endforelse
         </div>
 
     </div>
