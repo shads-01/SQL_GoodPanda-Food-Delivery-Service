@@ -96,7 +96,7 @@ docker compose exec app composer install
 docker compose exec app php artisan key:generate
 ```
 
-### 6. Create the database
+### 6. Connect the database
 
 Open SSMS and use these connection details:
 
@@ -110,18 +110,11 @@ Open SSMS and use these connection details:
 | Encrypt                  | Optional                  |
 | Trust server certificate | ✅ Check this box         |
 
-open a New Query and run:
-
-```sql
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'goodpanda_db')
-    CREATE DATABASE goodpanda_db;
-```
+````
 
 ### 7. Run migrations
 
-```bash
-docker compose exec app php artisan migrate
-```
+Run schema and seed sql files from database/sql using SSMS
 
 ### 8. Open the app
 
@@ -140,7 +133,7 @@ npm run dev
 
 # Stop everything
 docker compose down
-```
+````
 
 ---
 

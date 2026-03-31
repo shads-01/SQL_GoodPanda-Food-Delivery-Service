@@ -25,6 +25,12 @@ if [ ! -f "$INIT_FLAG_FILE" ]; then
   echo "==> Clearing Laravel caches..."
   php artisan config:clear
   php artisan cache:clear
+#echo "==> Running migrations..."
+#php artisan migrate --force
+
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
   echo "==> Running migrations..."
   php artisan migrate --force
