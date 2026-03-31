@@ -18,8 +18,15 @@ Route::view('/owner/register','auth.register');
 Route::view('/customer/profile', 'customer.profile')->name('customer_profile');
 
 
-Route::middleware(['auth', 'verified'])->group(function () {
+use App\Http\Controllers\AuthController;
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::middleware(['custom.auth'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('/customer/profile', 'customer.profile')->name('customer_profile');
 });
 
 require __DIR__.'/settings.php';
