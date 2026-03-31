@@ -66,37 +66,49 @@
     <div class="w-full max-w-md">
     <form method="POST" action="/register">
       @csrf
+      <input type="hidden" name="role" value="{{ $role ?? 'customer' }}">
+
+      @if($errors->any())
+        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm text-left">
+            <strong>Whoops! Something went wrong.</strong>
+            <ul class="list-disc pl-5 mt-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+      @endif
 
       <!-- NAME -->
-      <div class="mb-3">
+      <div class="mb-3 text-left">
         <label class="text-sm text-gray-600">Full Name</label>
-        <input type="text" name="name"
+        <input type="text" name="name" value="{{ old('name') }}"
                class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
       </div>
 
       <!-- EMAIL -->
-      <div class="mb-3">
+      <div class="mb-3 text-left">
         <label class="text-sm text-gray-600">Email Address</label>
-        <input type="email" name="email"
+        <input type="email" name="email" value="{{ old('email') }}"
                class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
       </div>
 
       <!-- PHONE NUMBER -->
-      <div class="mb-3">
+      <div class="mb-3 text-left">
         <label class="text-sm text-gray-600">Phone Number</label>
-        <input type="text" name="number"
+        <input type="text" name="number" value="{{ old('number') }}"
                class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
       </div>
 
       <!-- ADDRESS-->
-      <div class="mb-3">
+      <div class="mb-3 text-left">
         <label class="text-sm text-gray-600">Address</label>
-        <input type="text" name="address"
+        <input type="text" name="address" value="{{ old('address') }}"
                class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
       </div>
 
       <!-- PASSWORD -->
-      <div class="mb-6">
+      <div class="mb-6 text-left">
         <label class="text-sm text-gray-600">Password</label>
         <input type="password" name="password"
                class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">

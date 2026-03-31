@@ -3,12 +3,14 @@ GO
 
 -- 1. SEED USERS (Customers, Owners, Admins)
 -- Passwords are dummy strings (in a real app, these would be Bcrypt hashes)
+-- Use password: customer123 for login
 INSERT INTO users (name, email, phone_number, password, is_active, created_at)
 VALUES 
-('Shahadat Hasan', 'shahadat@example.com', '01711000001', 'hashed_pass', 1, GETDATE()),
-('Lab Instructor', 'instructor@aust.edu', '01711000002', 'hashed_pass', 1, GETDATE()),
-('John Doe', 'john@example.com', '01811000003', 'hashed_pass', 1, GETDATE()),
-('Jane Smith', 'jane@example.com', '01911000004', 'hashed_pass', 1, GETDATE());
+('Shahadat Hasan', 'shahadat@example.com', '01711000001', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
+('Lab Instructor', 'instructor@aust.edu', '01711000002', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
+('John Doe', 'john@example.com', '01811000003', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
+('Jane Smith', 'jane@example.com', '01911000004', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE());
+
 
 -- 2. SEED CUSTOMER ADDRESSES
 INSERT INTO customer_addresses (customer_id, label, address_line, city, is_default)
@@ -73,6 +75,7 @@ INSERT INTO delivery_partners (name, phone_number, vehicle_type, is_available, a
 VALUES 
 ('Rahim Delivery', '01511999991', 'Bike', 1, 4.80),
 ('Karim Logistics', '01511999992', 'Cycle', 1, 4.50);
+
 
 -- 11. SEED CART & CART ITEMS
 -- Customer 1 has a cart at Restaurant 1

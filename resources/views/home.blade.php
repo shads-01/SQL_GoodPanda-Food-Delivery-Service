@@ -23,19 +23,52 @@
     </div>
 
     <!-- Right: Profile -->
-    <div class="relative">
-        <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
-            <i data-feather="user" class="text-orange-500"></i>
-        </button>
+    <div class="relative z-50 flex items-center gap-4">
+        @php
+            $isOwner = false;
+            if(Session::has('user_id')) {
+                $isOwner = \Illuminate\Support\Facades\DB::table('restaurants')->where('owner_id', Session::get('user_id'))->exists();
+            }
+        @endphp
 
-        <!-- Dropdown -->
-        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded">
-            <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-100">Login</a>
-            <a href="#" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
-        </div>
+        @if(Session::has('user_id') && !$isOwner)
+            <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
+                <i data-feather="user" class="text-orange-500"></i>
+            </button>
+
+            <!-- Dropdown -->
+            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded overflow-hidden">
+                <a href="{{ route('customer_profile') }}" class="block px-4 py-2 hover:bg-gray-100 text-gray-800">Profile</a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-red-50 text-red-600">Logout</button>
+                </form>
+            </div>
+        @elseif(Session::has('user_id') && $isOwner)
+            {{-- Owner views simple logout button similar to unauthenticated login button --}}
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Logout</button>
+            </form>
+        @else
+            {{-- Guests --}}
+            <a href="{{ route('login') }}" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Login</a>
+        @endif
     </div>
-
 </nav>
+
+<!-- Flash Message -->
+@if(session('success'))
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm" role="alert">
+    <span class="block sm:inline font-medium">{{ session('success') }}</span>
+</div>
+@endif
+
+@if(session('error'))
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm" role="alert">
+    <span class="block sm:inline font-medium">{{ session('error') }}</span>
+</div>
+@endif
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -154,29 +187,39 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Explore Cuisines -->
         <h2 class="text-2xl font-semibold mb-4">Explore Cuisines</h2>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
-        @for($i=1;$i<=5;$i++)
+        @forelse($cuisines as $cuisine)
             <div class="bg-white p-6 rounded-2xl shadow-lg text-center hover:scale-105 transform transition">
-                <div class="h-20 w-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3">
-                    <img src="" alt="" class="h-10">
+                <div class="h-20 w-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3 text-orange-500">
+                    <i data-feather="grid" class="h-8 w-8"></i>
                 </div>
-                <h3 class="font-bold text-lg">Cuisine {{ $i }}</h3>
+                <h3 class="font-bold text-lg">{{ $cuisine->cuisine_name }}</h3>
             </div>
-        @endfor
+        @empty
+            <p class="text-gray-500">No cuisines found.</p>
+        @endforelse
         </div>
 
         <!-- Top Restaurants -->
         <h2 class="text-2xl font-semibold mb-4">Top Restaurants</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        @for($i=1;$i<=6;$i++)
+        @forelse($restaurants as $restaurant)
             <div class="bg-white rounded-2xl shadow p-4 hover:shadow-xl transition">
-                <div class="h-40 bg-gray-200 rounded mb-4"></div>
-                <h3 class="font-bold text-lg">Restaurant {{ $i }}</h3>
-                <p class="text-gray-500 text-sm mb-2">Cuisine Type</p>
-                <button class="mt-2 bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
+                <div class="h-40 bg-gray-200 rounded mb-4 overflow-hidden flex items-center justify-center relative">
+                    @if(isset($restaurant->cover_image) && $restaurant->cover_image)
+                        <img src="{{ $restaurant->cover_image }}" alt="Cover" class="w-full h-full object-cover">
+                    @else
+                        <i data-feather="image" class="text-gray-400 w-10 h-10"></i>
+                    @endif
+                </div>
+                <h3 class="font-bold text-lg">{{ $restaurant->name }}</h3>
+                <p class="text-gray-500 text-sm mb-2 text-ellipsis overflow-hidden whitespace-nowrap"><i data-feather="map-pin" class="inline w-3 h-3"></i> {{ $restaurant->location }}</p>
+                <button class="mt-2 text-sm bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
                     Order Now
                 </button>
             </div>
-        @endfor
+        @empty
+            <p class="text-gray-500">No restaurants found.</p>
+        @endforelse
         </div>
 
     </div>
