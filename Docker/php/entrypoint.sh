@@ -19,8 +19,12 @@ echo "==> Clearing config cache..."
 php artisan config:clear
 php artisan cache:clear
 
-echo "==> Running migrations..."
-php artisan migrate --force
+#echo "==> Running migrations..."
+#php artisan migrate --force
+
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
 echo "==> Starting PHP-FPM..."
 exec php-fpm
