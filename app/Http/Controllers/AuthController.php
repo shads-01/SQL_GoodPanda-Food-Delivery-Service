@@ -50,6 +50,7 @@ class AuthController extends Controller
     {
         // For SQL Server the table is referenced directly in unique string 'unique:table,column'
         $request->validate([
+            'role' => 'required|in:customer,owner',
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
             'number' => 'required|string|max:20|unique:users,phone_number',
@@ -75,14 +76,27 @@ class AuthController extends Controller
             
             $userId = $result[0]->id;
 
-            $insertAddressQuery = $this->getQuery('insert_address.sql');
-            DB::insert($insertAddressQuery, [
-                $userId,
-                'Home',
-                $request->address,
-                'Unknown', // defaulting city
-                1 // is_default
-            ]);
+            if ($request->role === 'owner') {
+                $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
+                DB::insert($insertRestaurantQuery, [
+                    $userId,
+                    $request->name . "'s Restaurant",
+                    $request->address,
+                    $request->number,
+                    'https://ui-avatars.com/api/?name=' . urlencode($request->name),
+                    null,
+                    1
+                ]);
+            } else {
+                $insertAddressQuery = $this->getQuery('insert_address.sql');
+                DB::insert($insertAddressQuery, [
+                    $userId,
+                    'Home',
+                    $request->address,
+                    'Unknown', // defaulting city
+                    1 // is_default
+                ]);
+            }
 
             DB::commit();
 

@@ -11,13 +11,19 @@ Route::get('/', function () {
 /* LOGIN & REGISTER PAGE */
 
 Route::view('/login', 'auth.login')->name('login');
-Route::view('/register','auth.register');
+Route::get('/register', function() {
+    return view('auth.register', ['role' => 'customer']);
+});
 
 Route::view('/customer/login','auth.login');
 Route::view('/owner/login','auth.login');
 
-Route::view('/customer/register','auth.register');
-Route::view('/owner/register','auth.register');
+Route::get('/customer/register', function() {
+    return view('auth.register', ['role' => 'customer']);
+});
+Route::get('/owner/register', function() {
+    return view('auth.register', ['role' => 'owner']);
+});
 
 Route::view('/customer/profile', 'customer.profile')->name('customer_profile');
 
@@ -33,7 +39,7 @@ Route::middleware(['custom.auth'])->group(function () {
     
     Route::get('/customer/profile', function () {
         $userId = session('user_id');
-        
+
         $user = \Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->first();
         
         // Use the view for profile info (addresses etc)
