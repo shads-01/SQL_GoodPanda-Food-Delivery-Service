@@ -688,22 +688,24 @@
                     <div class="info-grid">
                         <div class="info-field">
                             <label>Full Name</label>
-                            <p>John Doe</p>
+                            <p>{{ $user->name ?? 'N/A' }}</p>
                         </div>
                         <div class="info-field">
                             <label>Email Address</label>
                             <p>
-                                johndoe@example.com
+                                {{ $user->email ?? 'N/A' }}
+                                @if(isset($user->email_verified_at))
                                 <i data-feather="check-circle" style="color:#3B82F6;width:13px;height:13px"></i>
+                                @endif
                             </p>
                         </div>
                         <div class="info-field">
                             <label>Phone Number</label>
-                            <p>+880 1711 223344</p>
+                            <p>{{ $user->phone_number ?? 'N/A' }}</p>
                         </div>
                         <div class="info-field">
                             <label>Member Since</label>
-                            <p>March 2026</p>
+                            <p>{{ isset($user->created_at) ? \Carbon\Carbon::parse($user->created_at)->format('F Y') : 'N/A' }}</p>
                         </div>
                     </div>
 
@@ -753,42 +755,33 @@
                     </div>
 
                     <div class="address-list">
-                        <!-- Default -->
-                        <div class="address-card default">
-                            <div class="address-icon orange">
-                                <i data-feather="home"></i>
+                        @forelse($profileData as $address)
+                        <div class="address-card {{ $address->is_default ? 'default' : '' }}">
+                            <div class="address-icon {{ $address->is_default ? 'orange' : 'gray' }}">
+                                <i data-feather="{{ $address->is_default ? 'home' : 'briefcase' }}"></i>
                             </div>
                             <div class="address-body">
                                 <div class="address-name">
-                                    Home
+                                    {{ $address->label }}
+                                    @if($address->is_default)
                                     <span class="badge badge-orange">Default</span>
+                                    @endif
                                 </div>
                                 <div class="address-line">
-                                    Apt 4B, 123 Panda Delivery Ave.<br>Dhaka City
+                                    {{ $address->address_line }}<br>{{ $address->city }}
                                 </div>
                                 <div class="address-actions">
                                     <button class="btn-edit">Edit</button>
+                                    @if(!$address->is_default)
+                                    <button class="btn-setdefault">Set Default</button>
+                                    @endif
                                     <button class="btn-delete">Delete</button>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Office -->
-                        <div class="address-card">
-                            <div class="address-icon gray">
-                                <i data-feather="briefcase"></i>
-                            </div>
-                            <div class="address-body">
-                                <div class="address-name">Office</div>
-                                <div class="address-line">
-                                    Floor 9, Tech Tower Road<br>Dhaka City
-                                </div>
-                                <div class="address-actions">
-                                    <button class="btn-edit">Edit</button>
-                                    <button class="btn-setdefault">Set Default</button>
-                                </div>
-                            </div>
-                        </div>
+                        @empty
+                        <p style="font-size: 0.9rem; color: var(--text-muted); padding: 1rem 0;">No addresses saved yet.</p>
+                        @endforelse
                     </div>
                 </div>
 
