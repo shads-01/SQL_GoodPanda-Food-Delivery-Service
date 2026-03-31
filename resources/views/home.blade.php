@@ -23,18 +23,32 @@
     </div>
 
     <!-- Right: Profile -->
-    <div class="relative">
-        <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
-            <i data-feather="user" class="text-orange-500"></i>
-        </button>
+    <div class="relative z-50">
+        @if(Session::has('user_id'))
+            <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
+                <i data-feather="user" class="text-orange-500"></i>
+            </button>
 
-        <!-- Dropdown -->
-        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded">
-            <a href="{{ route('customer_profile') }}" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
-            <a href="#" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
-        </div>
+            <!-- Dropdown -->
+            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded overflow-hidden">
+                <a href="{{ route('customer_profile') }}" class="block px-4 py-2 hover:bg-gray-100 text-gray-800">Profile</a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-red-50 text-red-600">Logout</button>
+                </form>
+            </div>
+        @else
+            <a href="{{ route('login') }}" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Login</a>
+        @endif
     </div>
 </nav>
+
+<!-- Flash Message -->
+@if(session('success'))
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm" role="alert">
+    <span class="block sm:inline font-medium">{{ session('success') }}</span>
+</div>
+@endif
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

@@ -40,7 +40,7 @@ class AuthController extends Controller
         // Check password hash
         if (Hash::check($request->password, $user->password)) {
             Session::put('user_id', $user->id);
-            return redirect()->intended('/customer/profile');
+            return redirect()->intended('/')->with('success', 'Successfully logged in!');
         }
 
         return back()->withErrors(['email' => 'These credentials do not match our records.'])->withInput();
@@ -87,11 +87,11 @@ class AuthController extends Controller
             DB::commit();
 
             Session::put('user_id', $userId);
-            return redirect('/customer/profile');
+            return redirect('/')->with('success', 'Successfully registered!');
             
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['email' => 'A database error occurred during registration.'])->withInput();
+            return back()->withErrors(['email' => 'DB Error: ' . $e->getMessage()])->withInput();
         }
     }
 
@@ -99,6 +99,6 @@ class AuthController extends Controller
     {
         Session::forget('user_id');
         Session::flush();
-        return redirect('/login');
+        return redirect('/login')->with('success', 'Successfully logged out!');
     }
 }
