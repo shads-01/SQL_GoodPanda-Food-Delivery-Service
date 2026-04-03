@@ -110,15 +110,20 @@ Open SSMS and use these connection details:
 | Encrypt                  | Optional                  |
 | Trust server certificate | ✅ Check this box         |
 
-````
-
 ### 7. Run migrations
 
-Run schema and seed sql files from database/sql using SSMS
+Use SSMS to run SQL files from `database/sql` in this order:
+
+```text
+database/sql/schema/*.sql
+database/sql/views/*.sql
+database/sql/seed/*.sql
+```
 
 ### 8. Open the app
 
-Visit: **http://localhost:8080**
+Open in browser:
+[http://localhost:8080](http://localhost:8080)
 
 ---
 
@@ -133,7 +138,7 @@ npm run dev
 
 # Stop everything
 docker compose down
-````
+```
 
 ---
 
