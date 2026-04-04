@@ -50,7 +50,7 @@ class AuthController extends Controller
     {
         // For SQL Server the table is referenced directly in unique string 'unique:table,column'
         $request->validate([
-            'role' => 'required|in:customer,owner',
+            'role' => 'required|in:customer,restaurant_owner,delivery_partner',
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
             'number' => 'required|string|max:20|unique:users,phone_number',
@@ -67,6 +67,7 @@ class AuthController extends Controller
             
             // `DB::select` is used here because SQL Server `OUTPUT INSERTED.id` returns a result set
             $result = DB::select($insertUserQuery, [
+                $request->role,
                 $request->name,
                 $request->email,
                 $hashedPassword,
@@ -76,7 +77,10 @@ class AuthController extends Controller
             
             $userId = $result[0]->id;
 
-            if ($request->role === 'owner') {
+            if ($request->role === 'restaurant_owner') {
+                $insertOwnerProfileQuery = $this->getQuery('insert_owner_profile.sql');
+                DB::insert($insertOwnerProfileQuery, [$userId]);
+
                 $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
                 DB::insert($insertRestaurantQuery, [
                     $userId,
@@ -87,7 +91,13 @@ class AuthController extends Controller
                     null,
                     1
                 ]);
+            } elseif ($request->role === 'delivery_partner') {
+                $insertDeliveryProfileQuery = $this->getQuery('insert_delivery_profile.sql');
+                DB::insert($insertDeliveryProfileQuery, [$userId]);
             } else {
+                $insertCustomerProfileQuery = $this->getQuery('insert_customer_profile.sql');
+                DB::insert($insertCustomerProfileQuery, [$userId]);
+
                 $insertAddressQuery = $this->getQuery('insert_address.sql');
                 DB::insert($insertAddressQuery, [
                     $userId,
