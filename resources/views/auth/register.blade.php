@@ -82,35 +82,35 @@
           <!-- NAME -->
           <div class="mb-3 text-left">
             <label class="text-sm text-gray-600">Full Name</label>
-            <input type="text" name="name" value="{{ old('name') }}"
+            <input required type="text" name="name" value="{{ old('name') }}"
               class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
           </div>
 
           <!-- EMAIL -->
           <div class="mb-3 text-left">
             <label class="text-sm text-gray-600">Email Address</label>
-            <input type="email" name="email" value="{{ old('email') }}"
+            <input required type="email" name="email" value="{{ old('email') }}"
               class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
           </div>
 
           <!-- PHONE NUMBER -->
           <div class="mb-3 text-left">
             <label class="text-sm text-gray-600">Phone Number</label>
-            <input type="text" name="number" value="{{ old('number') }}"
+            <input required type="text" name="number" value="{{ old('number') }}"
               class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
           </div>
 
           <!-- ADDRESS-->
           <div class="mb-3 text-left">
             <label class="text-sm text-gray-600">Address</label>
-            <input type="text" name="address" value="{{ old('address') }}"
+            <input required type="text" name="address" value="{{ old('address') }}"
               class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
           </div>
 
           <!-- PASSWORD -->
           <div class="mb-6 text-left">
             <label class="text-sm text-gray-600">Password</label>
-            <input type="password" name="password"
+            <input required type="password" name="password"
               class="w-full border rounded-lg px-3 py-1.5 mt-1 focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm">
           </div>
 
@@ -187,19 +187,23 @@
             </div>
 
             <div class="text-left mt-2">
-              <label class="text-sm text-gray-600 block mb-1">Restaurant Cover Image</label>
+              <label class="text-sm text-gray-600 block mb-1">Restaurant Image</label>
               <div class="relative flex items-center justify-center w-full">
-                <label for="restaurant-cover-input" id="dropzone-label" class="flex flex-col items-center justify-center w-full h-32 border-2 border-orange-300 border-dashed rounded-xl cursor-pointer bg-orange-50/70 hover:bg-orange-100 hover:border-orange-400 transition-all overflow-hidden relative">
-                  
+                <label for="restaurant-cover-input" id="dropzone-label"
+                  class="flex flex-col items-center justify-center w-full h-32 border-2 border-orange-300 border-dashed rounded-xl cursor-pointer bg-orange-50/70 hover:bg-orange-100 hover:border-orange-400 transition-all overflow-hidden relative">
+
                   <div id="dropzone-text" class="flex flex-col items-center justify-center pt-4 pb-4">
                     <i data-feather="image" class="w-8 h-8 mb-2 text-orange-400"></i>
-                    <p class="mb-1 text-sm text-gray-500"><span class="font-semibold text-orange-500">Click to upload</span></p>
+                    <p class="mb-1 text-sm text-gray-500"><span class="font-semibold text-orange-500">Click to
+                        upload</span></p>
                     <p class="text-[10px] text-gray-400">PNG, JPG or JPEG (MAX. 2MB)</p>
                   </div>
 
-                  <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="Cover Preview" />
+                  <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-cover"
+                    alt="Cover Preview" />
 
-                  <input id="restaurant-cover-input" type="file" name="restaurant_cover" class="hidden" accept="image/*" />
+                  <input id="restaurant-cover-input" type="file" name="restaurant_cover" class="hidden"
+                    accept="image/*" />
                 </label>
               </div>
               <p id="file-name-display" class="mt-2 text-xs text-center text-gray-500 hidden"></p>
@@ -322,7 +326,7 @@
     const fileNameDisplay = document.getElementById('file-name-display');
 
     if (fileInput) {
-      fileInput.addEventListener('change', function(e) {
+      fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
           // Display the file name below

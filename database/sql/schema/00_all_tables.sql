@@ -146,7 +146,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'restauran
 BEGIN
     CREATE TABLE restaurants (
         restaurant_id INT IDENTITY(1,1) PRIMARY KEY,
-        owner_id BIGINT NULL FOREIGN KEY REFERENCES restaurant_owner_profiles(owner_id),
+        owner_id BIGINT NULL UNIQUE FOREIGN KEY REFERENCES restaurant_owner_profiles(owner_id),
         name VARCHAR(255) NOT NULL CHECK (LEN(TRIM(name)) >= 2),
         location VARCHAR(255) NOT NULL CHECK (LEN(TRIM(location)) >= 5),
         phone_number VARCHAR(11) NOT NULL UNIQUE CHECK (phone_number LIKE '01[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),

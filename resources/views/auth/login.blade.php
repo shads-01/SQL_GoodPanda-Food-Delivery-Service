@@ -63,19 +63,10 @@
 
       <!-- LOGIN REGISTER SWITCH -->
       <div class="flex bg-gray-200 rounded-full p-1 w-fit mb-8 mx-auto">
-        @php
-        // Determine the prefix (customer or owner) based on the URL
-        $prefix = request()->is('owner*') ? 'owner' : 'customer';
-        $isLogin = request()->is('*/login');
-        @endphp
-
-        <a href="/{{ $prefix }}/login"
-          class="px-6 py-2 rounded-full font-semibold transition-all {{ $isLogin ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-600' }}">
+        <a href="/login" class="px-6 py-2 rounded-full font-semibold transition-all bg-white text-orange-500 shadow-sm">
           Login
         </a>
-
-        <a href="/{{ $prefix }}/register"
-          class="px-6 py-2 rounded-full font-semibold transition-all {{ !$isLogin ? 'bg-white text-orange-500 shadow-sm' : 'text-gray-600' }}">
+        <a href="/register" class="px-6 py-2 rounded-full font-semibold transition-all text-gray-600">
           Register
         </a>
       </div>
@@ -89,7 +80,7 @@
       </p>
 
       <div class="w-full max-w-md">
-        <form method="POST" action="{{ request()->is('owner*') ? '/owner/login' : '/customer/login' }}">
+        <form method="POST" action="/login">
           @csrf
 
           @if($errors->any())
@@ -128,9 +119,9 @@
       </div>
 
       <p class="text-center text-sm mt-6 text-gray-500">
-        {{ $isLogin ? "Don't have an account?" : "Already have an account?" }}
-        <a href="/{{ $prefix }}/{{ $isLogin ? 'register' : 'login' }}" class="text-orange-500 font-semibold">
-          Switch to {{ $isLogin ? 'Register' : 'Login' }}
+        Don't have an account?
+        <a href="/register" class="text-orange-500 font-semibold">
+          Switch to Register
         </a>
       </p>
 
