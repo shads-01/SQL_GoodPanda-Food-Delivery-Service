@@ -18,7 +18,7 @@
 
         <!-- Center: Menu -->
         <div class="flex gap-6 text-white font-medium mx-auto">
-            <a href="{{ route ('home') }}">Home</a>
+            <a href="{{ route('home') }}">Home</a>
             <a href="#">Restaurants</a>
             <a href="#">Offers</a>
             <a href="#">About</a>
@@ -54,7 +54,7 @@
             </form>
             @else
             {{-- Guests --}}
-            <a href="{{ route('customer.login') }}"
+            <a href="{{ route('login') }}"
                 class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">
                 Login
             </a>

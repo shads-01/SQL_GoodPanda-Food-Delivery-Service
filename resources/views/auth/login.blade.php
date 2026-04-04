@@ -127,29 +127,6 @@
         </form>
       </div>
 
-      <!-- PORTAL CHOOSE -->
-      <div class="mt-8 text-center">
-
-        <p class="text-sm text-gray-500 mb-4">
-          Choose your portal
-        </p>
-
-        <div class="flex gap-4 justify-center">
-
-          <a href="/customer/login"
-            class="border rounded-xl p-4 w-32 text-center hover:border-orange-500 transition-all duration-300">
-            <p class="text-sm font-semibold">Customer</p>
-          </a>
-
-          <a href="/owner/login"
-            class="border rounded-xl p-4 w-32 text-center hover:border-orange-500 transition-all duration-300">
-            <p class="text-sm font-semibold ">Owner</p>
-          </a>
-
-        </div>
-
-      </div>
-
       <p class="text-center text-sm mt-6 text-gray-500">
         {{ $isLogin ? "Don't have an account?" : "Already have an account?" }}
         <a href="/{{ $prefix }}/{{ $isLogin ? 'register' : 'login' }}" class="text-orange-500 font-semibold">
