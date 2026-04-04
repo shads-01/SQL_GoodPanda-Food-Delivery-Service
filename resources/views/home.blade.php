@@ -18,7 +18,7 @@
 
         <!-- Center: Menu -->
         <div class="flex gap-6 text-white font-medium mx-auto">
-            <a href="{{ route ('home') }}">Home</a>
+            <a href="{{ route('home') }}">Home</a>
             <a href="#">Restaurants</a>
             <a href="#">Offers</a>
             <a href="#">About</a>
@@ -26,14 +26,7 @@
 
         <!-- Right: Profile -->
         <div class="relative z-50 flex items-center gap-4">
-            @php
-            $isOwner = false;
-            if(Session::has('user_id')) {
-            $isOwner = \Illuminate\Support\Facades\DB::table('restaurants')->where('owner_id', Session::get('user_id'))->exists();
-            }
-            @endphp
-
-            @if(Session::has('user_id') && !$isOwner)
+            @if(Session::has('user_id'))
             <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
                 <i data-feather="user" class="text-orange-500"></i>
             </button>
@@ -54,7 +47,7 @@
             </form>
             @else
             {{-- Guests --}}
-            <a href="{{ route('customer.login') }}"
+            <a href="{{ route('login') }}"
                 class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">
                 Login
             </a>
@@ -64,13 +57,13 @@
 
     <!-- Flash Message -->
     @if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm" role="alert">
+    <div id="flash-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm transition-opacity duration-500" role="alert">
         <span class="block sm:inline font-medium">{{ session('success') }}</span>
     </div>
     @endif
 
     @if(session('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm" role="alert">
+    <div id="flash-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm transition-opacity duration-500" role="alert">
         <span class="block sm:inline font-medium">{{ session('error') }}</span>
     </div>
     @endif
@@ -112,6 +105,18 @@
                     }
                 });
             }
+
+            // Auto-dismiss flash messages after 4s
+            ['flash-success', 'flash-error'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    setTimeout(() => { 
+                        el.style.transition = 'opacity 0.5s ease-out';
+                        el.style.opacity = '0'; 
+                    }, 10000);
+                    setTimeout(() => { el.remove(); }, 10000);
+                }
+            });
         });
     </script>
 

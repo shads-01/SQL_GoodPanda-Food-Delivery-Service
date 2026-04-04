@@ -40,7 +40,13 @@ class AuthController extends Controller
         // Check password hash
         if (Hash::check($request->password, $user->password)) {
             Session::put('user_id', $user->id);
-            return redirect()->intended('/')->with('success', 'Successfully logged in!');
+            Session::put('user_role', $user->role);
+
+            return match($user->role) {
+                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Welcome back!'),
+                'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Welcome back!'),
+                default            => redirect()->route('home')->with('success', 'Welcome back!'),
+            };
         }
 
         return back()->withErrors(['email' => 'These credentials do not match our records.'])->withInput();
@@ -50,12 +56,19 @@ class AuthController extends Controller
     {
         // For SQL Server the table is referenced directly in unique string 'unique:table,column'
         $request->validate([
-            'role' => 'required|in:customer,owner',
+            'role' => 'required|in:customer,restaurant_owner,delivery_partner',
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:100|unique:users',
             'number' => 'required|string|max:20|unique:users,phone_number',
             'address' => 'required|string|max:255',
             'password' => 'required|string|min:8',
+
+            // Conditional: required only for owners
+            'restaurant_name' => 'required_if:role,restaurant_owner|nullable|string|max:255',
+            'restaurant_location' => 'required_if:role,restaurant_owner|nullable|string|max:255',
+
+            // Conditional: required only for riders
+            'vehicle_type' => 'required_if:role,delivery_partner|nullable|in:bike,scooter,bicycle,car',
         ]);
 
         $hashedPassword = Hash::make($request->password);
@@ -64,30 +77,40 @@ class AuthController extends Controller
             DB::beginTransaction();
 
             $insertUserQuery = $this->getQuery('insert_user.sql');
-            
+
             // `DB::select` is used here because SQL Server `OUTPUT INSERTED.id` returns a result set
             $result = DB::select($insertUserQuery, [
+                $request->role,
                 $request->name,
                 $request->email,
                 $hashedPassword,
                 $request->number,
                 1 // is_active
             ]);
-            
+
             $userId = $result[0]->id;
 
-            if ($request->role === 'owner') {
+            if ($request->role === 'restaurant_owner') {
+                $insertOwnerProfileQuery = $this->getQuery('insert_owner_profile.sql');
+                DB::insert($insertOwnerProfileQuery, [$userId]);
+
                 $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
                 DB::insert($insertRestaurantQuery, [
                     $userId,
-                    $request->name . "'s Restaurant",
-                    $request->address,
-                    $request->number,
-                    'https://ui-avatars.com/api/?name=' . urlencode($request->name),
+                    $request->restaurant_name,
+                    $request->restaurant_location,
+                    $request->restaurant_phone,
+                    'https://ui-avatars.com/api/?name=' . urlencode($request->restaurant_name),
                     null,
                     1
                 ]);
+            } elseif ($request->role === 'delivery_partner') {
+                $insertDeliveryProfileQuery = $this->getQuery('insert_delivery_profile.sql');
+                DB::insert($insertDeliveryProfileQuery, [$userId, $request->vehicle_type]);
             } else {
+                $insertCustomerProfileQuery = $this->getQuery('insert_customer_profile.sql');
+                DB::insert($insertCustomerProfileQuery, [$userId]);
+
                 $insertAddressQuery = $this->getQuery('insert_address.sql');
                 DB::insert($insertAddressQuery, [
                     $userId,
@@ -101,8 +124,14 @@ class AuthController extends Controller
             DB::commit();
 
             Session::put('user_id', $userId);
-            return redirect('/')->with('success', 'Successfully registered!');
-            
+            Session::put('user_role', $request->role);
+
+            return match($request->role) {
+                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
+                'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
+                default            => redirect()->route('home')->with('success', 'Registration successful! Welcome aboard.'),
+            };
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['email' => 'DB Error: ' . $e->getMessage()])->withInput();
