@@ -50,12 +50,19 @@ class AuthController extends Controller
     {
         // For SQL Server the table is referenced directly in unique string 'unique:table,column'
         $request->validate([
-            'role' => 'required|in:customer,restaurant_owner,delivery_partner',
-            'name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'number' => 'required|string|max:20|unique:users,phone_number',
+            'role'    => 'required|in:customer,restaurant_owner,delivery_partner',
+            'name'    => 'required|string|max:100',
+            'email'   => 'required|string|email|max:100|unique:users',
+            'number'  => 'required|string|max:20|unique:users,phone_number',
             'address' => 'required|string|max:255',
             'password' => 'required|string|min:8',
+            
+            // Conditional: required only for owners
+            'restaurant_name'     => 'required_if:role,restaurant_owner|nullable|string|max:255',
+            'restaurant_location' => 'required_if:role,restaurant_owner|nullable|string|max:255',
+            
+            // Conditional: required only for riders
+            'vehicle_type' => 'required_if:role,delivery_partner|nullable|in:bike,scooter,bicycle,car',
         ]);
 
         $hashedPassword = Hash::make($request->password);
@@ -84,16 +91,16 @@ class AuthController extends Controller
                 $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
                 DB::insert($insertRestaurantQuery, [
                     $userId,
-                    $request->name . "'s Restaurant",
-                    $request->address,
+                    $request->restaurant_name,
+                    $request->restaurant_location,
                     $request->number,
-                    'https://ui-avatars.com/api/?name=' . urlencode($request->name),
+                    'https://ui-avatars.com/api/?name=' . urlencode($request->restaurant_name),
                     null,
                     1
                 ]);
             } elseif ($request->role === 'delivery_partner') {
                 $insertDeliveryProfileQuery = $this->getQuery('insert_delivery_profile.sql');
-                DB::insert($insertDeliveryProfileQuery, [$userId]);
+                DB::insert($insertDeliveryProfileQuery, [$userId, $request->vehicle_type]);
             } else {
                 $insertCustomerProfileQuery = $this->getQuery('insert_customer_profile.sql');
                 DB::insert($insertCustomerProfileQuery, [$userId]);

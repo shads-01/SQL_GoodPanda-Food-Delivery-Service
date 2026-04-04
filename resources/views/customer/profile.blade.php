@@ -378,70 +378,6 @@
             color: #EA6C0A;
         }
 
-        /* ---- AVATAR SECTION ---- */
-        .avatar-section {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .avatar-circle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: var(--orange-pale);
-            border: 2px solid var(--orange-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .avatar-circle svg {
-            color: #FDBA74;
-            width: 24px;
-            height: 24px;
-        }
-
-        .avatar-inputs {
-            flex: 1;
-        }
-
-        .avatar-inputs label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-        }
-
-        .file-input-wrapper input[type="file"]::file-selector-button {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            margin-right: 0.75rem;
-            transition: all 0.15s;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        .file-input-wrapper input[type="file"]::file-selector-button:hover {
-            background: var(--border);
-            color: var(--text-primary);
-        }
-
         /* ---- ADDRESS CARDS ---- */
         .address-list {
             display: flex;
@@ -714,33 +650,6 @@
                     <button class="btn btn-ghost">
                         <i data-feather="edit-2"></i> Edit Information
                     </button>
-                </div>
-
-                <!-- Profile Picture -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">
-                            <i data-feather="camera"></i> Profile Picture
-                        </span>
-                    </div>
-
-                    <form action="#" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="avatar-section">
-                            <div class="avatar-circle">
-                                <i data-feather="user"></i>
-                            </div>
-                            <div class="avatar-inputs" style="flex:1">
-                                <label>Choose an image</label>
-                                <div class="file-input-wrapper">
-                                    <input type="file" name="avatar" accept="image/*" />
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-orange" style="flex-shrink:0">
-                                <i data-feather="upload-cloud"></i> Upload
-                            </button>
-                        </div>
-                    </form>
                 </div>
 
                 <!-- Saved Addresses -->
