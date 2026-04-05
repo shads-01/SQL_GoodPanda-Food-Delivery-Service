@@ -19,11 +19,19 @@
 
     <input name="price" class="w-full border p-3 rounded" placeholder="Price">
 
-    <select name="category" class="w-full border p-3 rounded">
+    <!-- <select name="category" class="w-full border p-3 rounded">
         <option>Appetizer</option>
         <option>Main Course</option>
         <option>Dessert</option>
         <option>Beverages</option>
+    </select> -->
+    <select name="category_id" class="w-full border p-3 rounded">
+        <option value="" disabled selected>Select a category</option>
+        @foreach($categories as $cat)
+            <option value="{{ $cat->category_id }}">
+                {{ $cat->category_name }}
+            </option>
+        @endforeach
     </select>
 
     <textarea name="description" class="w-full border p-3 rounded" placeholder="Description"></textarea>

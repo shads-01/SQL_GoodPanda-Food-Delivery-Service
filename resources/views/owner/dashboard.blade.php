@@ -25,6 +25,11 @@
       {{ session('success') }}
     </div>
   @endif
+  @if(session('error'))
+    <div id="flash-msg" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-2xl mx-auto mt-6 text-center shadow-sm">
+      {{ session('error') }}
+    </div>
+  @endif
 
   <!-- Content -->
   <div class="max-w-4xl mx-auto mt-12 px-6">

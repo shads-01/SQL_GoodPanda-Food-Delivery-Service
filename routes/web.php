@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RestaurantController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -61,9 +62,8 @@ Route::middleware(['custom.auth'])->group(function () {
         return view('restaurant.dashboard');
     })->name('restaurant.dashboard');
 
-    Route::get('/restaurant/items', function () {
-        return view('restaurant.items'); // create this blade file
-    })->name('restaurant.items');
+    Route::get('/restaurant/items', [RestaurantController::class, 'items'])
+        ->name('restaurant.items');
 
     Route::get('/restaurant/orders', function () {
         return view('restaurant.orders'); // create this blade file
@@ -73,9 +73,11 @@ Route::middleware(['custom.auth'])->group(function () {
         return view('restaurant.analytics'); // create this blade file
     })->name('restaurant.analytics');
 
-    Route::get('/restaurant/add-item', function () {
-        return view('restaurant.add_item');
-    })->name('restaurant.add_item');
+    // Route::get('/restaurant/add-item', function () {
+    //     return view('restaurant.add_item');
+    // })->name('restaurant.add_item');
+    Route::get('/restaurant/add-item', [RestaurantController::class, 'addItem'])
+    ->name('restaurant.add_item');
 
     Route::get('/restaurant/add-offer', function () {
         return view('restaurant.add_offer');
@@ -88,18 +90,19 @@ Route::middleware(['custom.auth'])->group(function () {
 
 });
 
-Route::post('/restaurant/store-item', function () {
+// Route::post('/restaurant/store-item', function () {
 
-    $name = request('name');
-    $price = request('price');
-    $category = request('category');
-    $description = request('description');
+//     $name = request('name');
+//     $price = request('price');
+//     $category = request('category');
+//     $description = request('description');
 
-    // For now just test
-    return $name . " added successfully!";
+//     // For now just test
+//     return $name . " added successfully!";
     
-})->name('restaurant.storeItem');
-
+// })->name('restaurant.storeItem');
+Route::post('/restaurant/store-item', [RestaurantController::class, 'storeItem'])
+    ->name('restaurant.storeItem');
 
 /* -------------------------------------------------------
  | PUBLIC HOMEPAGE (restaurants / cuisines browsing)
