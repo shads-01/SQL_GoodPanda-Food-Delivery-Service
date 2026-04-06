@@ -198,11 +198,11 @@
             </div>
             <!-- Explore Cuisines -->
             <h2 class="text-2xl font-semibold mb-4">Explore Cuisines</h2>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-10">
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-4 mb-10">
                 @forelse($cuisines as $cuisine)
                 <div class="bg-white p-6 rounded-2xl shadow-lg text-center hover:scale-105 transform transition">
-                    <div class="h-20 w-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-3 text-orange-500">
-                        <i data-feather="grid" class="h-8 w-8"></i>
+                    <div class="w-32 h-32 mx-auto aspect-square rounded-full overflow-hidden mb-3 border-4 border-orange-50 shadow-inner">
+                        <img src="{{ $cuisine->cuisine_image }}" alt="{{ $cuisine->cuisine_name }}" class="w-full h-full object-cover shadow-sm">
                     </div>
                     <h3 class="font-bold text-lg">{{ $cuisine->cuisine_name }}</h3>
                 </div>
