@@ -16,7 +16,7 @@ Route::get('/', function () {
     // Redirect to the correct dashboard based on role
     $role = Session::get('user_role');
     return match($role) {
-        'restaurant_owner' => redirect()->route('owner.dashboard'),
+        'restaurant_owner' => redirect()->route('restaurant.dashboard'),
         'delivery_partner' => redirect()->route('rider.dashboard'),
         default            => redirect()->route('home'),
     };
