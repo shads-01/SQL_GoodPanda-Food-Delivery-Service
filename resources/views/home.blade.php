@@ -222,9 +222,9 @@
                     </div>
                     <h3 class="font-bold text-lg">{{ $restaurant->name }}</h3>
                     <p class="text-gray-500 text-sm mb-2 text-ellipsis overflow-hidden whitespace-nowrap"><i data-feather="map-pin" class="inline w-3 h-3"></i> {{ $restaurant->location }}</p>
-                    <button class="mt-2 text-sm bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition">
+                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id]) }}" class="mt-2 text-sm bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition inline-block text-center">
                         Order Now
-                    </button>
+                    </a>
                 </div>
                 @empty
                 <p class="text-gray-500">No restaurants found.</p>

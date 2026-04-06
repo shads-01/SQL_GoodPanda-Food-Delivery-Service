@@ -47,10 +47,14 @@ Route::middleware(['custom.auth'])->group(function () {
         return view('customer.profile', compact('user', 'profileData'));
     })->name('customer_profile');
 
-    // --- Owner ---
-    Route::get('/owner/dashboard', function () {
-        return view('owner.dashboard');
-    })->name('owner.dashboard');
+    Route::get('/restaurant-details/{id}', function ($id) {
+        $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$id]);
+        if (!$restaurant) abort(404);
+        
+        $items = DB::select("EXEC sp_get_restaurant_items ?", [$id]);
+        
+        return view('restaurant_detail', compact('restaurant', 'items'));
+    })->name('restaurant.details');
 
     // --- Rider ---
     Route::get('/rider/dashboard', function () {

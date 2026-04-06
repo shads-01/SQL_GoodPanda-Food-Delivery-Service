@@ -1,0 +1,1 @@
+<?php $sql = file_get_contents("database/sql/queries/sp_get_restaurant_details.sql"); $parts = explode("/* SEP */", $sql); foreach ($parts as $part) { if(trim($part) !== "") DB::unprepared(trim($part)); } echo "SUCCESS";
