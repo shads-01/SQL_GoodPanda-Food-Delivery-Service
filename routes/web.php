@@ -58,9 +58,8 @@ Route::middleware(['custom.auth'])->group(function () {
     })->name('rider.dashboard');
 
     // ---Restaurant ---
-    Route::get('/restaurant/dashboard', function () {
-        return view('restaurant.dashboard');
-    })->name('restaurant.dashboard');
+    Route::get('/restaurant/dashboard', [RestaurantController::class, 'dashboard'])
+        ->name('restaurant.dashboard');
 
     Route::get('/restaurant/items', [RestaurantController::class, 'items'])
         ->name('restaurant.items');
@@ -77,15 +76,22 @@ Route::middleware(['custom.auth'])->group(function () {
     //     return view('restaurant.add_item');
     // })->name('restaurant.add_item');
     Route::get('/restaurant/add-item', [RestaurantController::class, 'addItem'])
-    ->name('restaurant.add_item');
+        ->name('restaurant.add_item');
 
-    Route::get('/restaurant/add-offer', function () {
-        return view('restaurant.add_offer');
-    })->name('restaurant.add_offer');
+    Route::get('/restaurant/add-offer', [RestaurantController::class, 'addOffer'])
+        ->name('restaurant.add_offer');
 
-    Route::get('/restaurant/item/{id}', function ($id) {
-        return view('restaurant.item_details', compact('id'));
-    })->name('restaurant.item.details');
+    Route::post('/restaurant/store-offer', [RestaurantController::class, 'storeOffer'])
+        ->name('restaurant.store_offer');
+
+    Route::get('/restaurant/item/{id}', [RestaurantController::class, 'editItem'])
+        ->name('restaurant.item.details');
+
+    Route::put('/restaurant/item/{id}', [RestaurantController::class, 'updateItem'])
+        ->name('restaurant.updateItem');
+
+    Route::delete('/restaurant/item/{id}', [RestaurantController::class, 'deleteItem'])
+        ->name('restaurant.deleteItem');
 
 
 });

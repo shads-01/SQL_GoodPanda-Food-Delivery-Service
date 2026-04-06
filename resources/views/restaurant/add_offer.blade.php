@@ -12,18 +12,22 @@
 
 <h2 class="text-xl font-bold mb-4">Create Offer</h2>
 
-<form class="space-y-4">
+<form action="{{ route('restaurant.store_offer') }}" method="POST" class="space-y-4">
+    @csrf
 
-<select class="w-full border p-3 rounded">
-<option>Select Item</option>
+<select name="item_id" class="w-full border p-3 rounded" required>
+<option value="">Select Item</option>
+@foreach($items as $item)
+<option value="{{ $item->item_id }}">{{ $item->item_name }}</option>
+@endforeach
 </select>
 
-<input class="w-full border p-3 rounded" placeholder="Discount %">
+<input name="discount_percentage" type="number" min="1" max="100" class="w-full border p-3 rounded" placeholder="Discount %" required>
 
-<input type="datetime-local" class="w-full border p-3 rounded">
-<input type="datetime-local" class="w-full border p-3 rounded">
+<input name="start_date" type="datetime-local" class="w-full border p-3 rounded" required>
+<input name="end_date" type="datetime-local" class="w-full border p-3 rounded" required>
 
-<button class="bg-orange-500 text-white px-6 py-2 rounded">
+<button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded">
 Apply Offer
 </button>
 
