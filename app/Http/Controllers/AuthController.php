@@ -43,7 +43,7 @@ class AuthController extends Controller
             Session::put('user_role', $user->role);
 
             return match($user->role) {
-                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Welcome back!'),
+                'restaurant_owner' => redirect()->route('restaurant.dashboard')->with('success', 'Welcome back!'),
                 'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Welcome back!'),
                 default            => redirect()->route('home')->with('success', 'Welcome back!'),
             };
@@ -66,6 +66,8 @@ class AuthController extends Controller
             // Conditional: required only for owners
             'restaurant_name' => 'required_if:role,restaurant_owner|nullable|string|max:255',
             'restaurant_location' => 'required_if:role,restaurant_owner|nullable|string|max:255',
+            'restaurant_phone' => 'required_if:role,restaurant_owner|nullable|string|max:20', // Added missing validation
+            'restaurant_cover' => 'required_if:role,restaurant_owner|image|mimes:jpeg,png,jpg|max:2048',
 
             // Conditional: required only for riders
             'vehicle_type' => 'required_if:role,delivery_partner|nullable|in:bike,scooter,bicycle,car',
@@ -88,12 +90,63 @@ class AuthController extends Controller
                 1 // is_active
             ]);
 
+            if (empty($result)) {
+                throw new \Exception('User could not be created. The users table may be missing or the insert failed.');
+            }
             $userId = $result[0]->id;
 
             if ($request->role === 'restaurant_owner') {
+                
+                // 1. Handle the Cloudinary Upload
+                $coverImageUrl = null;
+                $coverImagePublicId = null; 
+
+                if ($request->hasFile('restaurant_cover')) {
+                    try {
+                        $file = $request->file('restaurant_cover');
+                        $cloudName = env('CLOUDINARY_CLOUD_NAME');
+                        $apiKey    = env('CLOUDINARY_API_KEY');
+                        $apiSecret = env('CLOUDINARY_API_SECRET');
+                        $timestamp = time();
+                        $folder = 'goodpanda/assets';
+
+                        // Build signature
+                        $paramsToSign = "folder={$folder}&timestamp={$timestamp}";
+                        $signature = sha1($paramsToSign . $apiSecret);
+
+                        // Upload via curl directly (bypasses SDK parsing bugs)
+                        $ch = curl_init("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+                        curl_setopt_array($ch, [
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_POST           => true,
+                            CURLOPT_POSTFIELDS     => [
+                                'file'      => new \CURLFile($file->getRealPath(), $file->getMimeType(), $file->getClientOriginalName()),
+                                'api_key'   => $apiKey,
+                                'timestamp' => $timestamp,
+                                'folder'    => $folder,
+                                'signature' => $signature,
+                            ],
+                        ]);
+                        $response = curl_exec($ch);
+                        curl_close($ch);
+
+                        $result = json_decode($response, true);
+                        if (isset($result['secure_url'])) {
+                            $coverImageUrl = $result['secure_url'];
+                            $coverImagePublicId = $result['public_id'] ?? null;
+                        } else {
+                            \Illuminate\Support\Facades\Log::warning('Cloudinary upload returned no URL: ' . $response);
+                        }
+                    } catch (\Throwable $cloudinaryEx) {
+                        \Illuminate\Support\Facades\Log::error('Cloudinary upload failed: [' . get_class($cloudinaryEx) . '] ' . $cloudinaryEx->getMessage());
+                        $coverImageUrl = null;
+                    }
+                }
+
                 $insertOwnerProfileQuery = $this->getQuery('insert_owner_profile.sql');
                 DB::insert($insertOwnerProfileQuery, [$userId]);
 
+                // 2. Insert into database using the new Cloudinary URL
                 $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
                 DB::insert($insertRestaurantQuery, [
                     $userId,
@@ -101,7 +154,7 @@ class AuthController extends Controller
                     $request->restaurant_location,
                     $request->restaurant_phone,
                     'https://ui-avatars.com/api/?name=' . urlencode($request->restaurant_name),
-                    null,
+                    $coverImageUrl, // Replaced the "null" placeholder with the actual URL
                     1
                 ]);
             } elseif ($request->role === 'delivery_partner') {
@@ -127,14 +180,14 @@ class AuthController extends Controller
             Session::put('user_role', $request->role);
 
             return match($request->role) {
-                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
+                'restaurant_owner' => redirect()->route('restaurant.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
                 'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
                 default            => redirect()->route('home')->with('success', 'Registration successful! Welcome aboard.'),
             };
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withErrors(['email' => 'DB Error: ' . $e->getMessage()])->withInput();
+            return back()->withErrors(['email' => 'DB Error: [' . get_class($e) . '] ' . $e->getMessage()])->withInput();
         }
     }
 
