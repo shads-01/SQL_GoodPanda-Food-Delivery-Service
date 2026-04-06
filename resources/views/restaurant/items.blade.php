@@ -20,6 +20,12 @@
 
 <h2 class="text-2xl font-bold mb-6">Menu Management</h2>
 
+<div class="mb-4">
+    <a href="{{ route('restaurant.add_offer') }}" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+        Create Offer
+    </a>
+</div>
+
 <table class="w-full bg-white shadow rounded text-left">
 
 <tr class="border-b text-gray-500 bg-gray-50">
@@ -33,7 +39,17 @@
 @foreach($items as $item)
 <tr class="border-b">
     <td class="p-3">{{ $item->item_name }}</td>
-    <td class="p-3">${{ $item->price }}</td>
+    <td class="p-3">
+        @if($item->has_offer)
+            <span class="line-through text-gray-500">${{ $item->original_price }}</span>
+            <span class="text-green-600 font-bold">${{ $item->discounted_price }}</span>
+            @if($item->discount_type === 'percentage')
+                <span class="text-sm text-green-600">({{ $item->discount_value }}% off)</span>
+            @endif
+        @else
+            ${{ $item->price }}
+        @endif
+    </td>
     <td class="p-3">{{ $item->category_name ?? 'No Category' }}</td>
     <td class="p-3 {{ $item->is_available ? 'text-green-500' : 'text-red-500' }}">
         {{ $item->is_available ? 'Available' : 'Unavailable' }}
