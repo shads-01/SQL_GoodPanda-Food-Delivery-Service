@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
-@source '../views';
+@source "../views/**/*.blade.php";
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
@@ -26,7 +27,19 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /* Custom Design System Variables */
+    --orange-main: #F97316;
+    --orange-light: #FED7AA;
+    --orange-pale: #FFF7ED;
+    --text-primary: #1C1917;
+    --text-secondary: #78716C;
+    --text-muted: #A8A29E;
+    --border: #E7E5E4;
+    --surface: #FFFFFF;
+    --bg: #FAFAF9;
 }
+
 
 @layer theme {
     .dark {

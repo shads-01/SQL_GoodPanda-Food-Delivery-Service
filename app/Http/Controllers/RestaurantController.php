@@ -19,7 +19,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         $itemCount = DB::table('menu_items')
@@ -69,7 +69,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         $categories = DB::table('menu_categories')
@@ -89,7 +89,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         DB::table('menu_items')->insert([
@@ -118,7 +118,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Get items
@@ -175,7 +175,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         $items = DB::table('menu_items')
@@ -216,7 +216,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Check if item belongs to this restaurant
@@ -262,7 +262,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         $item = DB::table('menu_items')
@@ -300,7 +300,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Check if item belongs to this restaurant
@@ -336,7 +336,7 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('owner.dashboard')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Check if item belongs to this restaurant

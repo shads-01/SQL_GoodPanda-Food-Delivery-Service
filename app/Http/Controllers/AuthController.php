@@ -43,7 +43,7 @@ class AuthController extends Controller
             Session::put('user_role', $user->role);
 
             return match($user->role) {
-                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Welcome back!'),
+                'restaurant_owner' => redirect()->route('restaurant.dashboard')->with('success', 'Welcome back!'),
                 'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Welcome back!'),
                 default            => redirect()->route('home')->with('success', 'Welcome back!'),
             };
@@ -180,7 +180,7 @@ class AuthController extends Controller
             Session::put('user_role', $request->role);
 
             return match($request->role) {
-                'restaurant_owner' => redirect()->route('owner.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
+                'restaurant_owner' => redirect()->route('restaurant.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
                 'delivery_partner' => redirect()->route('rider.dashboard')->with('success', 'Registration successful! Welcome aboard.'),
                 default            => redirect()->route('home')->with('success', 'Registration successful! Welcome aboard.'),
             };

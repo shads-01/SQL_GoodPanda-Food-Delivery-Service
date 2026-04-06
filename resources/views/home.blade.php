@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>GoodPanda</title>
     @vite('resources/css/app.css')
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -26,7 +28,13 @@
 
         <!-- Right: Profile -->
         <div class="relative z-50 flex items-center gap-4">
-            @if(Session::has('user_id'))
+            @if(Session::has('user_id') && ($isOwner ?? false))
+            {{-- Owner views simple logout button similar to unauthenticated login button --}}
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Logout</button>
+            </form>
+            @elseif(Session::has('user_id'))
             <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
                 <i data-feather="user" class="text-orange-500"></i>
             </button>
@@ -39,12 +47,6 @@
                     <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-red-50 text-red-600">Logout</button>
                 </form>
             </div>
-            @elseif(Session::has('user_id') && $isOwner)
-            {{-- Owner views simple logout button similar to unauthenticated login button --}}
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Logout</button>
-            </form>
             @else
             {{-- Guests --}}
             <a href="{{ route('login') }}"
@@ -52,6 +54,7 @@
                 Login
             </a>
             @endif
+
         </div>
     </nav>
 
