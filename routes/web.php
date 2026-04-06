@@ -16,7 +16,7 @@ Route::get('/', function () {
     // Redirect to the correct dashboard based on role
     $role = Session::get('user_role');
     return match($role) {
-        'restaurant_owner' => redirect()->route('owner.dashboard'),
+        'restaurant_owner' => redirect()->route('restaurant.dashboard'),
         'delivery_partner' => redirect()->route('rider.dashboard'),
         default            => redirect()->route('home'),
     };
@@ -46,11 +46,6 @@ Route::middleware(['custom.auth'])->group(function () {
                         ->where('customer_id', $userId)->get();
         return view('customer.profile', compact('user', 'profileData'));
     })->name('customer_profile');
-
-    // --- Owner ---
-    Route::get('/owner/dashboard', function () {
-        return view('owner.dashboard');
-    })->name('owner.dashboard');
 
     // --- Rider ---
     Route::get('/rider/dashboard', function () {

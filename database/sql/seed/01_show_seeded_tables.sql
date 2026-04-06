@@ -34,7 +34,7 @@ GO
 
 -- 6. View data from Fulfillment (Payments, Delivery, Reviews)
 SELECT * FROM payments;
-SELECT * FROM delivery_partners;
+SELECT * FROM delivery_partner_profiles;
 SELECT * FROM deliveries;
 SELECT * FROM reviews;
 GO
