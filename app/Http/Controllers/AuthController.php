@@ -68,6 +68,8 @@ class AuthController extends Controller
             'restaurant_location' => 'required_if:role,restaurant_owner|nullable|string|max:255',
             'restaurant_phone' => 'required_if:role,restaurant_owner|nullable|string|max:20', // Added missing validation
             'restaurant_cover' => 'required_if:role,restaurant_owner|image|mimes:jpeg,png,jpg|max:2048',
+            'categories' => 'required_if:role,restaurant_owner|array|min:1|max:6',
+            'categories.*' => 'nullable|string|max:100',
 
             // Conditional: required only for riders
             'vehicle_type' => 'required_if:role,delivery_partner|nullable|in:bike,scooter,bicycle,car',
@@ -148,7 +150,7 @@ class AuthController extends Controller
 
                 // 2. Insert into database using the new Cloudinary URL
                 $insertRestaurantQuery = $this->getQuery('insert_restaurant.sql');
-                DB::insert($insertRestaurantQuery, [
+                $restaurantResult = DB::select($insertRestaurantQuery, [
                     $userId,
                     $request->restaurant_name,
                     $request->restaurant_location,
@@ -157,6 +159,27 @@ class AuthController extends Controller
                     $coverImageUrl, // Replaced the "null" placeholder with the actual URL
                     1
                 ]);
+
+                if (empty($restaurantResult)) {
+                    throw new \Exception('Restaurant profile could not be created.');
+                }
+                $restaurantId = $restaurantResult[0]->restaurant_id;
+
+                // 3. Automate Default Categories
+                $categories = array_filter($request->input('categories', []), function($val) {
+                    return !empty(trim($val));
+                });
+
+                if (!empty($categories)) {
+                    $insertCategoryQuery = $this->getQuery('insert_category.sql');
+                    foreach (array_values($categories) as $index => $catName) {
+                        DB::select($insertCategoryQuery, [
+                            $restaurantId,
+                            trim($catName),
+                            $index + 1
+                        ]);
+                    }
+                }
             } elseif ($request->role === 'delivery_partner') {
                 $insertDeliveryProfileQuery = $this->getQuery('insert_delivery_profile.sql');
                 DB::insert($insertDeliveryProfileQuery, [$userId, $request->vehicle_type]);

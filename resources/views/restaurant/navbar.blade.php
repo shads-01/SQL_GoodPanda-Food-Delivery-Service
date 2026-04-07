@@ -12,10 +12,11 @@
 
     <div class="flex items-center gap-4">
         <div class="flex gap-1">
-            <a href="{{ route('restaurant.add_item') }}" class="bg-white text-orange-500 px-4 py-2 rounded">+ Add Item</a>
+            <a href="{{ route('restaurant.add_item') }}" class="bg-white text-orange-500 px-4 py-2 rounded">+ Add
+                Item</a>
             <a href="{{ route('restaurant.add_offer') }}" class="bg-orange-500 text-white px-4 py-2 rounded">+ Offer</a>
         </div>
-        
+
         <div class="relative z-50 flex items-center gap-1">
             @if(Session::has('user_id'))
                 <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
