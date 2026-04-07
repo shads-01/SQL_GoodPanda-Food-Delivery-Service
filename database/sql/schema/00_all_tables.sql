@@ -313,6 +313,13 @@ BEGIN
     );
 END
 
+ALTER TABLE payments
+DROP CONSTRAINT UQ__payments__89389771C6206887;
+
+
+ALTER TABLE payments
+DROP COLUMN transaction_ref;
+
 -- ============================================================
 -- 16. DELIVERY PARTNER PROFILES
 -- ============================================================
