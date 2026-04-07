@@ -29,16 +29,23 @@
 <table class="w-full bg-white shadow rounded text-left">
 
 <tr class="border-b text-gray-500 bg-gray-50">
+    <th class="p-3">Image</th>
     <th class="p-3">Item</th>
     <th class="p-3">Price</th>
     <th class="p-3">Category</th>
+    <th class="p-3">Cuisine</th>
     <th class="p-3">Status</th>
     <th class="p-3">Actions</th>
 </tr>
 
 @foreach($items as $item)
-<tr class="border-b">
-    <td class="p-3">{{ $item->item_name }}</td>
+<tr class="border-b hover:bg-gray-50 transition-colors">
+    <td class="p-3">
+        <div class="w-20 h-20 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
+            <img src="{{ $item->item_image }}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('{{ $item->item_name }}')+'&background=random'">
+        </div>
+    </td>
+    <td class="p-3 font-semibold text-gray-700">{{ $item->item_name }}</td>
     <td class="p-3">
         @if($item->has_offer)
             <span class="line-through text-gray-500">${{ $item->original_price }}</span>
@@ -51,6 +58,7 @@
         @endif
     </td>
     <td class="p-3">{{ $item->category_name ?? 'No Category' }}</td>
+    <td class="p-3">{{ $item->cuisine_name ?? 'No Cuisine' }}</td>
     <td class="p-3 {{ $item->is_available ? 'text-green-500' : 'text-red-500' }}">
         {{ $item->is_available ? 'Available' : 'Unavailable' }}
     </td>

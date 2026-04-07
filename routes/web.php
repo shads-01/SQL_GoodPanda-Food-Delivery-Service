@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -69,6 +70,30 @@ Route::middleware(['custom.auth'])->group(function () {
     // Customer account deletion
     Route::delete('/customer/account', [CustomerController::class, 'deleteAccount'])->name('customer.account.delete');
 
+    Route::get('/restaurant-details/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$id]);
+        if (!$restaurant) abort(404);
+        
+        // Search, Category and Cuisine filters
+        $search = $request->query('search');
+        $categoryId = $request->query('category_id');
+        $cuisineId = $request->query('cuisine_id');
+        
+        // Filtered items
+        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
+            $id, 
+            $categoryId,
+            $search,
+            $cuisineId
+        ]);
+        
+        $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
+        $cuisines = DB::select("EXEC sp_get_cuisines_by_restaurant ?", [$id]);
+        $offers = DB::select("EXEC sp_get_active_offers ?", [$id]);
+
+        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers'));
+    })->name('restaurant.details');
+
     // --- Rider ---
     Route::get('/rider/dashboard', function () {
         return view('rider.dashboard');
@@ -106,8 +131,33 @@ Route::middleware(['custom.auth'])->group(function () {
 
     Route::delete('/restaurant/item/{id}', [RestaurantController::class, 'deleteItem'])
         ->name('restaurant.deleteItem');
+
+    // --- Cart API Routes ---
+    // Route::get('/api/cart', [App\Http\Controllers\CartController::class, 'getGlobalCart'])->name('cart.global');
+    // Route::post('/api/cart/clear-all', [App\Http\Controllers\CartController::class, 'clearAllCarts'])->name('cart.clearAll');
+    Route::get('/api/cart/{restaurantId}', [App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
+    Route::post('/api/cart/add', [App\Http\Controllers\CartController::class, 'addToCart'])->name('cart.add');
+    Route::post('/api/cart/update', [App\Http\Controllers\CartController::class, 'updateQuantity'])->name('cart.update');
+    Route::delete('/api/cart/remove', [App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
+    Route::post('/api/cart/clear', [App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
+
+    // --- Checkout Routes ---
+    Route::get('/checkout/{restaurantId}', [CheckoutController::class, 'showCheckout'])->name('checkout.show');
+    Route::post('/checkout/{restaurantId}/place', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
+
 });
 
+// Route::post('/restaurant/store-item', function () {
+
+//     $name = request('name');
+//     $price = request('price');
+//     $category = request('category');
+//     $description = request('description');
+
+//     // For now just test
+//     return $name . " added successfully!";
+    
+// })->name('restaurant.storeItem');
 Route::post('/restaurant/store-item', [RestaurantController::class, 'storeItem'])
     ->name('restaurant.storeItem');
 

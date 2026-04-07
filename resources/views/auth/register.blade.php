@@ -186,7 +186,7 @@
                 placeholder="e.g. 01711111111">
             </div>
 
-            <div class="text-left mt-2">
+            <div class="text-left mt-2 pb-2 border-b border-orange-100">
               <label class="text-sm text-gray-600 block mb-1">Restaurant Image</label>
               <div class="relative flex items-center justify-center w-full">
                 <label for="restaurant-cover-input" id="dropzone-label"
@@ -207,6 +207,26 @@
                 </label>
               </div>
               <p id="file-name-display" class="mt-2 text-xs text-center text-gray-500 hidden"></p>
+            </div>
+
+            <!-- MENU CATEGORIES SECTION -->
+            <div class="text-left mt-2">
+              <p class="text-xs font-bold text-orange-600 uppercase tracking-wide mb-2">Initial Menu Categories</p>
+              <p class="text-[10px] text-gray-400 mb-3 italic">Set up to 6 categories for your menu items (e.g. Burger, Drinks). You can change these later.</p>
+              
+              <div class="grid grid-cols-2 gap-3">
+                @php
+                  $defaults = ['Main Course', 'Appetizers', 'Desserts', 'Beverages'];
+                @endphp
+                @for($i = 0; $i < 6; $i++)
+                <div>
+                  <input type="text" name="categories[]" 
+                    value="{{ old('categories.'.$i, ($i < 4 ? $defaults[$i] : '')) }}"
+                    placeholder="Category {{ $i + 1 }}"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 text-xs bg-white/50">
+                </div>
+                @endfor
+              </div>
             </div>
           </div>
 

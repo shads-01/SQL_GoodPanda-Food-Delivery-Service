@@ -30,31 +30,19 @@
                 <a href="{{ route('restaurant.add_offer') }}" class="bg-orange-500 text-white px-4 py-2 rounded">+ Offer</a>
             </div>
             
-            <div class="relative z-50 flex items-center gap-1">
-                @if(Session::has('user_id'))
-                    <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
-                        <i data-feather="user" class="text-orange-500"></i>
+            @if(Session::has('user_id'))
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="bg-white text-red-600 px-4 py-2 rounded font-semibold shadow hover:bg-red-50 transition flex items-center gap-2">
+                        <i data-feather="log-out" class="w-4 h-4 text-red-600"></i> Logout
                     </button>
-
-                    <!-- Dropdown -->
-                    <div id="profileDropdown"
-                        class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded overflow-hidden">
-                        <a href="{{ route('customer_profile') }}"
-                            class="block px-4 py-2 hover:bg-gray-100 text-gray-800">Profile</a>
-                        <form action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="w-full text-left block px-4 py-2 hover:bg-red-50 text-red-600">Logout</button>
-                        </form>
-                    </div>
-                @else
-                    {{-- Guests --}}
-                    <a href="{{ route('login') }}"
-                        class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">
-                        Login
-                    </a>
-                @endif
-            </div>
+                </form>
+            @else
+                <a href="{{ route('login') }}"
+                    class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">
+                    Login
+                </a>
+            @endif
         </div>
     </nav>
 
@@ -221,23 +209,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             feather.replace();
-
-            // Profile Dropdown
-            const btn = document.getElementById('profileBtn');
-            const dropdown = document.getElementById('profileDropdown');
-
-            if (btn && dropdown) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                        dropdown.classList.add('hidden');
-                    }
-                });
-            }
         });
     </script>
 
