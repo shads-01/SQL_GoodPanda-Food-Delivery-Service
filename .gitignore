@@ -54,4 +54,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+consolidated_code.txt
+issues_and_improvements.md
 .vs/

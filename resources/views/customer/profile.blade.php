@@ -4,15 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>My Account | GoodPanda</title>
     @vite('resources/css/app.css')
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
     <style>
         :root {
             --orange-main: #F97316;
@@ -36,7 +31,6 @@
             font-family: 'DM Sans', sans-serif;
             background: var(--bg);
             color: var(--text-primary);
-            min-height: 100vh;
         }
 
         h1,
@@ -46,125 +40,11 @@
             font-family: 'Sora', sans-serif;
         }
 
-        /* ---- NAVBAR ---- */
-        .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            padding: 0 2rem;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .navbar-logo {
-            font-family: 'Sora', sans-serif;
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--orange-main);
-            text-decoration: none;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .navbar-logo span {
-            display: inline-block;
-            font-size: 1.3rem;
-        }
-
-        .navbar-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .navbar-links a {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.15s;
-        }
-
-        .navbar-links a:hover {
-            color: var(--text-primary);
-        }
-
-        .profile-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--orange-pale);
-            border: 1.5px solid var(--orange-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s;
-            position: relative;
-        }
-
-        .profile-btn:hover {
-            background: var(--orange-light);
-            transform: scale(1.05);
-        }
-
-        .profile-btn svg {
-            color: var(--orange-main);
-            width: 16px;
-            height: 16px;
-        }
-
-        .profile-dropdown {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 180px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            display: none;
-        }
-
-        .profile-dropdown.open {
-            display: block;
-        }
-
-        .profile-dropdown a {
-            display: block;
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: background 0.1s;
-        }
-
-        .profile-dropdown a:not(:last-child) {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .profile-dropdown a:hover {
-            background: var(--bg);
-        }
-
-        .profile-dropdown a.danger:hover {
-            color: #DC2626;
-            background: #FFF5F5;
-        }
-
-        /* ---- LAYOUT ---- */
+        /* Navbar CSS already in customer_navbar component */
         .page-container {
-            max-width: 960px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 2.5rem 1.5rem 4rem;
+            padding: 2rem 1.5rem 4rem;
         }
 
         .page-header {
@@ -172,39 +52,44 @@
         }
 
         .page-header h1 {
-            font-size: 1.625rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            letter-spacing: -0.03em;
-            color: var(--text-primary);
         }
 
         .page-header p {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: 0.3rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
         }
 
         .layout-grid {
             display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 1.5rem;
-            align-items: start;
+            grid-template-columns: 180px 1fr;
+            gap: 2rem;
         }
 
-        /* ---- SIDEBAR ---- */
+        @media(max-width:700px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
         .sidebar {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            position: sticky;
+            top: 72px;
+            align-self: start;
         }
 
         .sidebar a {
             display: flex;
             align-items: center;
-            gap: 0.625rem;
-            padding: 0.625rem 0.875rem;
-            border-radius: 9px;
+            gap: 0.5rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 10px;
             font-size: 0.875rem;
             font-weight: 500;
             color: var(--text-secondary);
@@ -212,33 +97,20 @@
             transition: all 0.15s;
         }
 
-        .sidebar a svg {
-            width: 15px;
-            height: 15px;
-            flex-shrink: 0;
-        }
-
-        .sidebar a:hover {
-            background: var(--bg);
-            color: var(--text-primary);
-        }
-
+        .sidebar a:hover,
         .sidebar a.active {
             background: var(--orange-pale);
             color: var(--orange-main);
-            font-weight: 600;
         }
 
-        /* ---- CARDS ---- */
+        /* Cards */
         .card {
-            background: white;
+            background: #fff;
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 1.75rem;
-        }
-
-        .card+.card {
-            margin-top: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
         }
 
         .card-header {
@@ -249,51 +121,12 @@
         }
 
         .card-title {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            letter-spacing: -0.01em;
-        }
-
-        .card-title svg {
-            width: 15px;
-            height: 15px;
-            color: var(--text-muted);
-        }
-
-        /* ---- INFO GRID ---- */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
-        }
-
-        .info-field label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .info-field p {
-            font-size: 0.9375rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-        }
-
-        .info-field p svg {
-            width: 13px;
-            height: 13px;
-            color: #3B82F6;
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .card-divider {
@@ -302,25 +135,135 @@
             margin: 1.25rem 0;
         }
 
-        /* ---- BADGES ---- */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.25rem 0.625rem;
-            border-radius: 999px;
+        /* Info grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
         }
 
-        .badge svg {
-            width: 10px;
-            height: 10px;
+        @media(max-width:600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-field label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-field p {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        /* Edit mode fields */
+        .info-field input,
+        .info-field textarea {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .info-field input:focus,
+        .info-field textarea:focus {
+            border-color: var(--orange-main);
+        }
+
+        .info-field input.invalid {
+            border-color: #EF4444;
+        }
+
+        .field-error {
+            font-size: 0.75rem;
+            color: #EF4444;
+            margin-top: 0.2rem;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-ghost {
+            background: none;
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--orange-main);
+            color: var(--orange-main);
+        }
+
+        .btn-orange {
+            background: var(--orange-main);
+            color: #fff;
+        }
+
+        .btn-orange:hover {
+            background: #EA580C;
+        }
+
+        .btn-text-orange {
+            background: none;
+            border: none;
+            color: var(--orange-main);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .btn-text-orange:hover {
+            background: var(--orange-pale);
+        }
+
+        /* Badges */
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         .badge-green {
             background: #D1FAE5;
-            color: #059669;
+            color: #065F46;
         }
 
         .badge-orange {
@@ -328,59 +271,7 @@
             color: var(--orange-main);
         }
 
-        /* ---- BUTTONS ---- */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.15s;
-            text-decoration: none;
-        }
-
-        .btn svg {
-            width: 13px;
-            height: 13px;
-        }
-
-        .btn-ghost {
-            background: var(--bg);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-ghost:hover {
-            background: var(--border);
-            color: var(--text-primary);
-        }
-
-        .btn-orange {
-            background: var(--orange-main);
-            color: white;
-        }
-
-        .btn-orange:hover {
-            background: #EA6C0A;
-        }
-
-        .btn-text-orange {
-            background: none;
-            color: var(--orange-main);
-            padding: 0;
-            font-size: 0.8125rem;
-        }
-
-        .btn-text-orange:hover {
-            color: #EA6C0A;
-        }
-
-        /* ---- ADDRESS CARDS ---- */
+        /* Address cards */
         .address-list {
             display: flex;
             flex-direction: column;
@@ -389,48 +280,36 @@
 
         .address-card {
             display: flex;
+            gap: 0.85rem;
             align-items: flex-start;
-            gap: 0.875rem;
-            padding: 1rem 1.125rem;
+            padding: 1rem;
+            border: 1.5px solid var(--border);
             border-radius: 12px;
-            border: 1px solid var(--border);
-            transition: all 0.15s;
-            position: relative;
-        }
-
-        .address-card:hover {
-            border-color: var(--orange-light);
-            box-shadow: 0 2px 12px rgba(249, 115, 22, 0.06);
+            transition: border-color 0.15s;
         }
 
         .address-card.default {
-            border-color: #FED7AA;
-            background: #FFFBF7;
+            border-color: var(--orange-light);
+            background: var(--orange-pale);
         }
 
         .address-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 9px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            font-size: 1.1rem;
         }
 
         .address-icon.orange {
-            background: var(--orange-pale);
-            color: var(--orange-main);
+            background: var(--orange-light);
         }
 
         .address-icon.gray {
-            background: var(--bg);
-            color: var(--text-muted);
-        }
-
-        .address-icon svg {
-            width: 15px;
-            height: 15px;
+            background: #F5F5F4;
         }
 
         .address-body {
@@ -438,40 +317,35 @@
         }
 
         .address-name {
-            font-size: 0.9rem;
             font-weight: 600;
-            color: var(--text-primary);
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             margin-bottom: 0.2rem;
         }
 
         .address-line {
-            font-size: 0.8125rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
             line-height: 1.5;
         }
 
         .address-actions {
-            margin-top: 0.6rem;
             display: flex;
-            gap: 0.875rem;
-        }
-
-        .address-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 0;
-            transition: color 0.15s;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
         }
 
         .btn-edit {
             color: #3B82F6;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
         }
 
         .btn-edit:hover {
@@ -480,6 +354,13 @@
 
         .btn-delete {
             color: #EF4444;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
         }
 
         .btn-delete:hover {
@@ -488,13 +369,231 @@
 
         .btn-setdefault {
             color: var(--text-muted);
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
         }
 
         .btn-setdefault:hover {
             color: var(--orange-main);
         }
 
-        /* ---- FOOTER ---- */
+        /* Address edit form */
+        .addr-form {
+            display: none;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .addr-form.open {
+            display: block;
+        }
+
+        .addr-form .form-group {
+            margin-bottom: 0.6rem;
+        }
+
+        .addr-form label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+            display: block;
+        }
+
+        .addr-form input {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .addr-form input:focus {
+            border-color: var(--orange-main);
+        }
+
+        .addr-form input.invalid {
+            border-color: #EF4444;
+        }
+
+        .addr-form .fe {
+            font-size: 0.72rem;
+            color: #EF4444;
+            margin-top: 0.15rem;
+            display: none;
+        }
+
+        .addr-form .fe.show {
+            display: block;
+        }
+
+        .addr-form-btns {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Order cards */
+        .order-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .order-card+.order-card {
+            margin-top: 0.75rem;
+        }
+
+        .order-id {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .order-rest {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .order-date {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .order-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+        }
+
+        .status-delivered {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .order-amount {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--orange-main);
+            margin-top: 0.3rem;
+        }
+
+        /* Danger zone */
+        .danger-card {
+            border: 2px solid #FCA5A5;
+            background: #FFF5F5;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .danger-title {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #DC2626;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .danger-warning {
+            font-size: 0.82rem;
+            color: #78716C;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: #fff;
+            border: none;
+            padding: 0.55rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+
+        /* Delete Confirm Popup */
+        #deletePopupOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #deletePopupOverlay.open {
+            display: flex;
+        }
+
+        .delete-popup {
+            background: #fff;
+            border-radius: 18px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .delete-popup h3 {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #DC2626;
+            margin-bottom: 0.75rem;
+        }
+
+        .delete-popup p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .delete-popup-btns {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        /* Footer */
         footer {
             background: var(--text-primary);
             color: #D6D3D1;
@@ -505,9 +604,6 @@
         .footer-inner {
             max-width: 960px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
         }
 
@@ -516,76 +612,40 @@
             font-weight: 700;
             font-size: 1.2rem;
             color: white;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .footer-logo span {
             color: var(--orange-main);
         }
 
-        .footer-tagline {
-            font-size: 0.8rem;
-            color: #A8A29E;
-            margin-bottom: 1.25rem;
-        }
-
+        .footer-tagline,
         .footer-contact {
             font-size: 0.8rem;
-            line-height: 1.8;
             color: #A8A29E;
-            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            margin-bottom: 0.4rem;
         }
 
         .footer-bottom {
             border-top: 1px solid #292524;
-            padding-top: 1.25rem;
+            padding-top: 1rem;
             font-size: 0.75rem;
             color: #78716C;
-            width: 100%;
-            text-align: center;
+            margin-top: 0.75rem;
         }
 
         .footer-bottom a {
             color: #78716C;
             text-decoration: none;
         }
-
-        .footer-bottom a:hover {
-            color: var(--text-muted);
-        }
-
-        @media (max-width: 700px) {
-            .layout-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .avatar-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .sidebar {
-                position: static;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.25rem;
-            }
-        }
     </style>
 </head>
 
 <body>
+    @include('components.customer_navbar')
 
-    <!-- Navbar -->
-    @include('components.navbar')
-
-    <!-- Page -->
     <div class="page-container">
-
         <div class="page-header">
             <h1>My Account</h1>
             <p>Manage your personal info, addresses, and settings.</p>
@@ -595,107 +655,221 @@
 
             <!-- Sidebar -->
             <aside class="sidebar">
-                <a href="#" class="active">
-                    <i data-feather="user"></i> Profile
-                </a>
-                <a href="#">
-                    <i data-feather="map-pin"></i> Addresses
-                </a>
-                <a href="#">
-                    <i data-feather="shopping-bag"></i> Orders
-                </a>
-                <a href="#">
-                    <i data-feather="settings"></i> Settings
-                </a>
+                <a href="#section-profile" onclick="customScrollTo(event, 'section-profile')" class="active">👤 Profile</a>
+                <a href="#section-address" onclick="customScrollTo(event, 'section-address')">📍 Addresses</a>
+                <a href="#section-orders" onclick="customScrollTo(event, 'section-orders')">📋 Orders</a>
+                <a href="#section-danger" onclick="customScrollTo(event, 'section-danger')">⚠️ Account</a>
             </aside>
 
             <!-- Content -->
             <div>
 
-                <!-- Personal Info -->
-                <div class="card">
+                <!-- ===== PERSONAL INFO ===== -->
+                <div class="card" id="section-profile">
                     <div class="card-header">
-                        <span class="card-title">
-                            <i data-feather="user"></i> Personal Information
-                        </span>
-                        <span class="badge badge-green">
-                            <i data-feather="check-circle"></i> Active
-                        </span>
+                        <span class="card-title">👤 Personal Information</span>
+                        <span class="badge badge-green">✓ Active</span>
                     </div>
 
-                    <div class="info-grid">
-                        <div class="info-field">
-                            <label>Full Name</label>
-                            <p>{{ $user->name ?? 'N/A' }}</p>
+                    {{-- View Mode --}}
+                    <div id="profileView">
+                        <div class="info-grid">
+                            <div class="info-field">
+                                <label>Full Name</label>
+                                <p>{{ $user->name ?? 'N/A' }}</p>
+                            </div>
+                            <div class="info-field">
+                                <label>Email Address</label>
+                                <p>{{ $user->email ?? 'N/A' }}</p>
+                            </div>
+                            <div class="info-field">
+                                <label>Phone Number</label>
+                                <p>{{ $user->phone_number ?? 'N/A' }}</p>
+                            </div>
+                            <div class="info-field">
+                                <label>Member Since</label>
+                                <p>{{ isset($user->created_at) ? \Carbon\Carbon::parse($user->created_at)->format('F Y') : 'N/A' }}</p>
+                            </div>
                         </div>
-                        <div class="info-field">
-                            <label>Email Address</label>
-                            <p>
-                                {{ $user->email ?? 'N/A' }}
-                                @if(isset($user->email_verified_at))
-                                <i data-feather="check-circle" style="color:#3B82F6;width:13px;height:13px"></i>
-                                @endif
-                            </p>
-                        </div>
-                        <div class="info-field">
-                            <label>Phone Number</label>
-                            <p>{{ $user->phone_number ?? 'N/A' }}</p>
-                        </div>
-                        <div class="info-field">
-                            <label>Member Since</label>
-                            <p>{{ isset($user->created_at) ? \Carbon\Carbon::parse($user->created_at)->format('F Y') : 'N/A' }}</p>
-                        </div>
+                        <hr class="card-divider">
+                        <button class="btn btn-ghost" onclick="toggleEditProfile(true)">✏️ Edit Information</button>
                     </div>
 
-                    <hr class="card-divider">
-
-                    <button class="btn btn-ghost">
-                        <i data-feather="edit-2"></i> Edit Information
-                    </button>
+                    {{-- Edit Mode --}}
+                    <div id="profileEdit" style="display:none;">
+                        <form action="{{ route('customer.profile.update') }}" method="POST" id="profileForm">
+                            @csrf
+                            @method('PUT')
+                            <div class="info-grid">
+                                <div class="info-field">
+                                    <label>Full Name</label>
+                                    <input type="text" name="name" id="editName" value="{{ $user->name ?? '' }}" placeholder="Full Name">
+                                    <div class="field-error" id="errName">Name must be at least 2 characters.</div>
+                                </div>
+                                <div class="info-field">
+                                    <label>Email Address</label>
+                                    <input type="email" name="email" id="editEmail" value="{{ $user->email ?? '' }}" placeholder="Email">
+                                    <div class="field-error" id="errEmail">Enter a valid email address.</div>
+                                </div>
+                                <div class="info-field">
+                                    <label>Phone Number</label>
+                                    <input type="text" name="phone_number" id="editPhone" value="{{ $user->phone_number ?? '' }}" placeholder="01XXXXXXXXX">
+                                    <div class="field-error" id="errPhone">Enter a valid 11-digit Bangladeshi number (01X...).</div>
+                                </div>
+                            </div>
+                            @if($errors->any())
+                            <div style="background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:0.6rem 1rem;border-radius:8px;font-size:0.82rem;margin-top:0.75rem;">
+                                @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+                            </div>
+                            @endif
+                            <hr class="card-divider">
+                            <div style="display:flex;gap:0.5rem;">
+                                <button type="button" class="btn btn-ghost" onclick="toggleEditProfile(false)">Cancel</button>
+                                <button type="button" class="btn btn-orange" onclick="submitProfileForm()">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- Saved Addresses -->
-                <div class="card">
+                <!-- ===== ADDRESSES ===== -->
+                <div class="card" id="section-address">
                     <div class="card-header">
-                        <span class="card-title">
-                            <i data-feather="map-pin"></i> Saved Addresses
-                        </span>
-                        <button class="btn btn-text-orange">
-                            <i data-feather="plus" style="width:13px;height:13px"></i> Add New
-                        </button>
+                        <span class="card-title">📍 Saved Addresses</span>
+                        <button class="btn-text-orange" onclick="toggleNewAddrForm()">＋ Add New</button>
                     </div>
 
-                    <div class="address-list">
-                        @forelse($profileData as $address)
-                        <div class="address-card {{ $address->is_default ? 'default' : '' }}">
-                            <div class="address-icon {{ $address->is_default ? 'orange' : 'gray' }}">
-                                <i data-feather="{{ $address->is_default ? 'home' : 'briefcase' }}"></i>
+                    {{-- Add New Form --}}
+                    <div class="addr-form" id="newAddrForm">
+                        <form action="{{ route('customer.address.store') }}" method="POST" id="newAddrFormEl">
+                            @csrf
+                            <div class="form-group">
+                                <label>Label (e.g. Home, Office)</label>
+                                <input type="text" name="label" id="naLabel" placeholder="Label">
+                                <div class="fe" id="na-errLabel">Label is required.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Address Line</label>
+                                <input type="text" name="address_line" id="naLine" placeholder="Street address">
+                                <div class="fe" id="na-errLine">Address line is required.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" name="city" id="naCity" placeholder="City">
+                                <div class="fe" id="na-errCity">City is required.</div>
+                            </div>
+                            <div class="addr-form-btns">
+                                <button type="button" class="btn btn-ghost" onclick="toggleNewAddrForm()">Cancel</button>
+                                <button type="button" class="btn btn-orange" onclick="submitNewAddress()">Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="address-list" id="addressList">
+                        @forelse($addresses as $addr)
+                        <div class="address-card {{ $addr->is_default ? 'default' : '' }}" id="addr-{{ $addr->address_id }}">
+                            <div class="address-icon {{ $addr->is_default ? 'orange' : 'gray' }}">
+                                {{ $addr->is_default ? '🏠' : '📋' }}
                             </div>
                             <div class="address-body">
-                                <div class="address-name">
-                                    {{ $address->label }}
-                                    @if($address->is_default)
-                                    <span class="badge badge-orange">Default</span>
-                                    @endif
+                                {{-- View --}}
+                                <div class="address-name" id="addrView-{{ $addr->address_id }}">
+                                    {{ $addr->label }}
+                                    @if($addr->is_default)<span class="badge badge-orange">Default</span>@endif
                                 </div>
-                                <div class="address-line">
-                                    {{ $address->address_line }}<br>{{ $address->city }}
-                                </div>
+                                <div class="address-line">{{ $addr->address_line }}<br>{{ $addr->city }}</div>
                                 <div class="address-actions">
-                                    <button class="btn-edit">Edit</button>
-                                    @if(!$address->is_default)
-                                    <button class="btn-setdefault">Set Default</button>
+                                    <button class="btn-edit" onclick="openAddrEdit({{ $addr->address_id }}, '{{ addslashes($addr->label) }}', '{{ addslashes($addr->address_line) }}', '{{ addslashes($addr->city) }}', {{ $addr->is_default }})">Edit</button>
+                                    @if(!$addr->is_default)
+                                    <button class="btn-setdefault" onclick="setDefault({{ $addr->address_id }})">Set Default</button>
                                     @endif
-                                    <button class="btn-delete">Delete</button>
+                                    <button class="btn-delete" onclick="deleteAddress({{ $addr->address_id }})">Delete</button>
+                                </div>
+
+                                {{-- Edit Form --}}
+                                <div class="addr-form" id="editAddrForm-{{ $addr->address_id }}">
+                                    <form action="{{ route('customer.address.update', $addr->address_id) }}" method="POST" id="editAddrFormEl-{{ $addr->address_id }}">
+                                        @csrf @method('PUT')
+                                        <div class="form-group">
+                                            <label>Label</label>
+                                            <input type="text" name="label" id="ea-label-{{ $addr->address_id }}" value="{{ $addr->label }}">
+                                            <div class="fe" id="ea-errLabel-{{ $addr->address_id }}">Label is required.</div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Address Line</label>
+                                            <input type="text" name="address_line" id="ea-line-{{ $addr->address_id }}" value="{{ $addr->address_line }}">
+                                            <div class="fe" id="ea-errLine-{{ $addr->address_id }}">Address line is required.</div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>City</label>
+                                            <input type="text" name="city" id="ea-city-{{ $addr->address_id }}" value="{{ $addr->city }}">
+                                            <div class="fe" id="ea-errCity-{{ $addr->address_id }}">City is required.</div>
+                                        </div>
+                                        <div class="addr-form-btns">
+                                            <button type="button" class="btn btn-ghost" onclick="closeAddrEdit({{ $addr->address_id }})">Cancel</button>
+                                            <button type="button" class="btn btn-ghost" onclick="setDefaultInForm({{ $addr->address_id }})">Set as Default</button>
+                                            <button type="button" class="btn btn-orange" onclick="submitEditAddress({{ $addr->address_id }})">Save Changes</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                         @empty
-                        <p style="font-size: 0.9rem; color: var(--text-muted); padding: 1rem 0;">No addresses saved yet.</p>
+                        <p style="font-size:0.9rem;color:var(--text-muted);padding:1rem 0;">No addresses saved yet.</p>
                         @endforelse
                     </div>
                 </div>
 
+                <!-- ===== ORDER HISTORY ===== -->
+                <div class="card" id="section-orders">
+                    <div class="card-header">
+                        <span class="card-title">📋 Order History</span>
+                        <a href="{{ route('customer.order_history') }}" class="btn-text-orange">Show all →</a>
+                    </div>
+
+                    @forelse($recentOrders as $order)
+                    <div class="order-card">
+                        <div>
+                            <div class="order-id">Order #{{ $order->order_id }}</div>
+                            <div class="order-rest">{{ $order->restaurant_name }}</div>
+                            <div class="order-date">{{ \Carbon\Carbon::parse($order->order_datetime)->format('d M Y') }}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="order-status status-{{ $order->order_status }}">{{ ucfirst($order->order_status) }}</span>
+                            <div class="order-amount">৳{{ number_format($order->total_amount,0) }}</div>
+                        </div>
+                    </div>
+                    @empty
+                    <p style="font-size:0.9rem;color:var(--text-muted);">No orders yet.</p>
+                    @endforelse
+                </div>
+
+                <!-- ===== DANGER ZONE ===== -->
+                <div class="danger-card" id="section-danger">
+                    <div class="danger-title">⚠️ Account Deletion</div>
+                    <p class="danger-warning">
+                        <strong>This action is irreversible.</strong> Deleting your account will permanently deactivate it and you will not be able to sign in again with this account.
+                        You may register a new account with the same email address, but all previous data will be inaccessible.
+                    </p>
+                    <button class="btn-danger" onclick="document.getElementById('deletePopupOverlay').classList.add('open')">
+                        Delete My Account
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Popup -->
+    <div id="deletePopupOverlay">
+        <div class="delete-popup">
+            <h3>⚠️ Delete Account?</h3>
+            <p>This will permanently deactivate your account. You will be logged out and cannot sign in with this account again. This <strong>cannot be undone</strong>.</p>
+            <div class="delete-popup-btns">
+                <button class="btn btn-ghost" onclick="document.getElementById('deletePopupOverlay').classList.remove('open')">Cancel</button>
+                <form action="{{ route('customer.account.delete') }}" method="POST" style="margin:0;">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-danger">Yes, Delete Account</button>
+                </form>
             </div>
         </div>
     </div>
@@ -705,35 +879,139 @@
         <div class="footer-inner">
             <div class="footer-logo">Good<span>Panda</span> 🐼</div>
             <p class="footer-tagline">Fast delivery, great restaurants, happy you.</p>
-            <div class="footer-contact">
-                support@goodpanda.com &nbsp;·&nbsp; +880 1234 567890
-            </div>
+            <div class="footer-contact">support@goodpanda.com &nbsp;·&nbsp; +880 1234 567890</div>
             <div class="footer-bottom">
                 &copy; {{ date('Y') }} GoodPanda. All rights reserved.
-                &nbsp;·&nbsp; <a href="#">Privacy</a>
-                &nbsp;·&nbsp; <a href="#">Terms</a>
+                &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a>
             </div>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            feather.replace();
-
-            const btn = document.getElementById('profileBtn');
-            const dropdown = document.getElementById('profileDropdown');
-
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('open');
+        // ---- Smooth scroll to section ----
+        function scrollTo(id) {
+            event.preventDefault();
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
+        }
 
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
+        // ---- Profile Edit Toggle ----
+        function toggleEditProfile(editing) {
+            document.getElementById('profileView').style.display = editing ? 'none' : 'block';
+            document.getElementById('profileEdit').style.display = editing ? 'block' : 'none';
+        }
+
+        function validateField(inputId, errId, regex, min) {
+            const inp = document.getElementById(inputId);
+            const err = document.getElementById(errId);
+            let valid = true;
+            if (regex && !regex.test(inp.value.trim())) valid = false;
+            if (min && inp.value.trim().length < min) valid = false;
+            inp.classList.toggle('invalid', !valid);
+            err.classList.toggle('show', !valid);
+            return valid;
+        }
+
+        function submitProfileForm() {
+            const v1 = validateField('editName', 'errName', null, 2);
+            const v2 = validateField('editEmail', 'errEmail', /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 0);
+            const v3 = validateField('editPhone', 'errPhone', /^01[0-9]{9}$/, 11);
+            if (v1 && v2 && v3) document.getElementById('profileForm').submit();
+        }
+
+        // ---- New Address ----
+        function toggleNewAddrForm() {
+            const f = document.getElementById('newAddrForm');
+            f.classList.toggle('open');
+        }
+
+        function validateAddrField(inputId, errId) {
+            const inp = document.getElementById(inputId);
+            const err = document.getElementById(errId);
+            const valid = inp.value.trim().length > 0;
+            inp.classList.toggle('invalid', !valid);
+            err.classList.toggle('show', !valid);
+            return valid;
+        }
+
+        function submitNewAddress() {
+            const v1 = validateAddrField('naLabel', 'na-errLabel');
+            const v2 = validateAddrField('naLine', 'na-errLine');
+            const v3 = validateAddrField('naCity', 'na-errCity');
+            if (v1 && v2 && v3) document.getElementById('newAddrFormEl').submit();
+        }
+
+        // ---- Edit Address ----
+        function openAddrEdit(id, label, line, city, isDef) {
+            document.getElementById('editAddrForm-' + id).classList.add('open');
+        }
+
+        function closeAddrEdit(id) {
+            document.getElementById('editAddrForm-' + id).classList.remove('open');
+        }
+
+        function submitEditAddress(id) {
+            const v1 = validateAddrField('ea-label-' + id, 'ea-errLabel-' + id);
+            const v2 = validateAddrField('ea-line-' + id, 'ea-errLine-' + id);
+            const v3 = validateAddrField('ea-city-' + id, 'ea-errCity-' + id);
+            if (v1 && v2 && v3) document.getElementById('editAddrFormEl-' + id).submit();
+        }
+
+        function setDefaultInForm(id) {
+            // Create hidden form and submit
+            const f = document.createElement('form');
+            f.method = 'POST';
+            f.action = '/customer/address/' + id + '/default';
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            f.appendChild(csrf);
+            document.body.appendChild(f);
+            f.submit();
+        }
+
+        function setDefault(id) {
+            setDefaultInForm(id);
+        }
+
+        function customScrollTo(e, id) {
+            e.preventDefault();
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                history.pushState(null, null, '#' + id);
+            }
+        }
+
+        function deleteAddress(id) {
+            if (!confirm('Delete this address?')) return;
+            const f = document.createElement('form');
+            f.method = 'POST';
+            f.action = '/customer/address/' + id;
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            const method = document.createElement('input');
+            method.type = 'hidden';
+            method.name = '_method';
+            method.value = 'DELETE';
+            f.appendChild(csrf);
+            f.appendChild(method);
+            document.body.appendChild(f);
+            f.submit();
+        }
+
+        // Profile edit auto-open on validation errors
+        @if($errors->any())
+        toggleEditProfile(true);
+        @endif
     </script>
 
 </body>
