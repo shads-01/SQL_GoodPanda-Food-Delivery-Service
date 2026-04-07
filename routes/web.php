@@ -47,13 +47,24 @@ Route::middleware(['custom.auth'])->group(function () {
         return view('customer.profile', compact('user', 'profileData'));
     })->name('customer_profile');
 
-    Route::get('/restaurant-details/{id}', function ($id) {
+    Route::get('/restaurant-details/{id}', function (\Illuminate\Http\Request $request, $id) {
         $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$id]);
         if (!$restaurant) abort(404);
         
-        $items = DB::select("EXEC sp_get_restaurant_items ?", [$id]);
+        // Search and Category filters
+        $search = $request->query('search');
+        $categoryId = $request->query('category_id');
         
-        return view('restaurant_detail', compact('restaurant', 'items'));
+        // Filtered items
+        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?", [
+            $id, 
+            $categoryId,
+            $search
+        ]);
+        
+        $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
+        
+        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'search', 'categoryId'));
     })->name('restaurant.details');
 
     // --- Rider ---

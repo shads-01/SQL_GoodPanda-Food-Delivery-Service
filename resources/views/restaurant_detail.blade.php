@@ -65,7 +65,6 @@
 
     <!-- Floating Offers Button -->
     <button id="openOffersBtn" class="fixed right-0 top-1/2 -translate-y-1/2 bg-gradient-to-b from-orange-400 to-orange-500 text-white px-2 py-5 rounded-l-2xl shadow-[-5px_0_15px_-3px_rgba(249,115,22,0.3)] z-40 hover:pr-4 hover:-ml-2 transition-all duration-300 flex flex-col items-center gap-3 group">
-        <i data-feather="tag" class="w-5 h-5 group-hover:rotate-12 group-hover:scale-110 transition-all"></i>
         <span class="[writing-mode:vertical-lr] font-black tracking-widest text-xs rotate-180 uppercase">Offers</span>
     </button>
 
@@ -105,21 +104,28 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center">
             
             <!-- Search -->
-            <div class="relative w-full md:w-80 flex-shrink-0">
+            <form action="{{ route('restaurant.details', $restaurant->restaurant_id) }}" method="GET" class="relative w-full md:w-80 flex-shrink-0">
                 <i data-feather="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-                <input type="text" placeholder="Search menu by name..." class="w-full pl-12 pr-4 py-3 bg-gray-100/50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all font-bold text-sm text-gray-700 placeholder-gray-400">
-            </div>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search menu by name..." class="w-full pl-12 pr-4 py-3 bg-gray-100/50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-400 transition-all font-bold text-sm text-gray-700 placeholder-gray-400">
+                @if($categoryId)
+                    <input type="hidden" name="category_id" value="{{ $categoryId }}">
+                @endif
+            </form>
 
             <!-- Categories -->
             <div class="flex gap-2.5 overflow-x-auto w-full pb-1 md:pb-0 hide-scrollbar scroll-smooth">
-                @php
-                    $categories = ['All', 'Drinks', 'Platter', 'Snacks', 'Burger', 'Pizza'];
-                @endphp
-                @foreach($categories as $index => $category)
-                    <button class="flex-shrink-0 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 border-transparent {{ $index === 0 ? 'bg-gray-800 text-white shadow-xl shadow-gray-200' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
-                        {{ $category }}
-                    </button>
-                @endforeach
+                <!-- All categories link -->
+                <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search]) }}" class="flex-shrink-0 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 {{ !$categoryId ? 'bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
+                    All
+                </a>
+
+                @forelse($categories as $category)
+                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'category_id' => $category->category_id, 'search' => $search]) }}" class="flex-shrink-0 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 {{ $categoryId == $category->category_id ? 'bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
+                        {{ $category->category_name }}
+                    </a>
+                @empty
+                    <p class="text-gray-500">No categories found</p>
+                @endforelse
             </div>
 
         </div>
@@ -128,7 +134,7 @@
     <!-- Main Content: Food Grid -->
     <main class="max-w-7xl mx-auto px-6 sm:px-10 lg:px-20 py-12">
         
-        <h2 class="text-2xl font-black text-gray-800 tracking-tight mb-8">Popular Items</h2>
+        <h2 class="text-2xl font-black text-gray-800 tracking-tight mb-8">Menu Items</h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
             
