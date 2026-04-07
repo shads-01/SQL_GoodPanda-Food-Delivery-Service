@@ -76,7 +76,9 @@ class RestaurantController extends Controller
             ->where('restaurant_id', $restaurant->restaurant_id)
             ->get();
 
-        return view('restaurant.add_item', compact('categories'));
+        $cuisines = DB::table('cuisine_types')->get();
+
+        return view('restaurant.add_item', compact('categories', 'cuisines'));
     }
 
     // Store Item
@@ -86,6 +88,7 @@ class RestaurantController extends Controller
             'name' => 'required|string|max:100',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|integer',
+            'cuisine_id' => 'required|integer',
             'description' => 'nullable|string|max:500',
             'item_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
@@ -150,7 +153,7 @@ class RestaurantController extends Controller
         DB::table('menu_items')->insert([
             'restaurant_id' => $restaurant->restaurant_id,
             'category_id' => $request->category_id,
-            'cuisine_id' => 1, // Defaulting for now
+            'cuisine_id' => $request->cuisine_id,
             'item_name' => $request->name,
             'description' => $request->description,
             'item_image' => $itemImageUrl,
@@ -176,12 +179,8 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        // Get items
-        $items = DB::table('menu_items')
-            ->leftJoin('menu_categories', 'menu_items.category_id', '=', 'menu_categories.category_id')
-            ->where('menu_items.restaurant_id', $restaurant->restaurant_id)
-            ->select('menu_items.*', 'menu_categories.category_name')
-            ->get();
+        // Get items using stored procedure
+        $items = collect(DB::select("EXEC sp_get_items_by_res_id ?", [$restaurant->restaurant_id]));
 
         // Get active offers for these items
         $itemIds = $items->pluck('item_id');

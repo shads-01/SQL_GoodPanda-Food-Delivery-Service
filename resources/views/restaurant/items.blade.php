@@ -33,6 +33,7 @@
     <th class="p-3">Item</th>
     <th class="p-3">Price</th>
     <th class="p-3">Category</th>
+    <th class="p-3">Cuisine</th>
     <th class="p-3">Status</th>
     <th class="p-3">Actions</th>
 </tr>
@@ -57,6 +58,7 @@
         @endif
     </td>
     <td class="p-3">{{ $item->category_name ?? 'No Category' }}</td>
+    <td class="p-3">{{ $item->cuisine_name ?? 'No Cuisine' }}</td>
     <td class="p-3 {{ $item->is_available ? 'text-green-500' : 'text-red-500' }}">
         {{ $item->is_available ? 'Available' : 'Unavailable' }}
     </td>

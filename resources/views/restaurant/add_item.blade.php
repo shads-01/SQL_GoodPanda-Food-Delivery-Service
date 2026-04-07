@@ -35,6 +35,15 @@
                 @endforeach
             </select>
 
+            <select name="cuisine_id" class="w-full border p-3 rounded">
+                <option value="" disabled selected>Select a cuisine type</option>
+                @foreach($cuisines as $cuisine)
+                    <option value="{{ $cuisine->cuisine_id }}">
+                        {{ $cuisine->cuisine_name }}
+                    </option>
+                @endforeach
+            </select>
+
             <textarea name="description" class="w-full border p-3 rounded" placeholder="Description"></textarea>
 
 
