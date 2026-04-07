@@ -340,7 +340,7 @@
                     <div class="rest-name">{{ $r->name }}</div>
                     <div class="rest-loc">📍 {{ $r->location }}</div>
                     <div class="rest-rating">★ {{ number_format($r->avg_rating,1) }} <span style="color:var(--text-muted);font-weight:400;">({{ $r->total_reviews }} reviews)</span></div>
-                    <button class="rest-btn" onclick="window.location='{{ route('home') }}'">Order Now</button>
+                    <button class="rest-btn" onclick="window.location='{{ url('/restaurant-details/' . $r->restaurant_id) }}'">Order Now</button>
                 </div>
             </div>
             @empty

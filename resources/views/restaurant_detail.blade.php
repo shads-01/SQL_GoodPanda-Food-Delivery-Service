@@ -18,6 +18,13 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 
@@ -98,7 +105,7 @@
 
     <!-- Floating Offers Button -->
     <button id="openOffersBtn"
-        class="fixed right-0 top-1/2 -translate-y-1/2 bg-gradient-to-b from-orange-400 to-orange-500 text-white px-2 py-5 rounded-l-2xl shadow-[-5px_0_15px_-3px_rgba(249,115,22,0.3)] z-40 hover:pr-4 hover:-ml-2 transition-all duration-300 flex flex-col items-center gap-3 group">
+        class="fixed right-0 top-1/2 -translate-y-1/2 bg-gradient-to-b from-orange-400 to-orange-500 text-white px-2 py-5 rounded-l-2xl shadow-[-5px_0_15px_-3px_rgba(249,115,22,0.3)] z-[60] hover:pr-4 hover:-ml-2 transition-all duration-300 flex flex-col items-center gap-3 group">
         <span class="[writing-mode:vertical-lr] font-black tracking-widest text-xs rotate-180 uppercase">Offers</span>
     </button>
 
@@ -162,7 +169,7 @@
                     class="w-full pl-12 pr-12 py-3 bg-gray-100/50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-400 transition-all font-bold text-sm text-gray-700 placeholder-gray-400">
                 
                 @if($search)
-                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'category_id' => $categoryId]) }}"
+                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'category_id' => $categoryId, 'cuisine_id' => $cuisineId]) }}"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 bg-white/50 hover:bg-red-50 rounded-full p-1 transition-all" title="Clear Search">
                         <i data-feather="x" class="w-4 h-4"></i>
                     </a>
@@ -171,30 +178,59 @@
                 @if($categoryId)
                     <input type="hidden" name="category_id" value="{{ $categoryId }}">
                 @endif
+                @if($cuisineId)
+                    <input type="hidden" name="cuisine_id" value="{{ $cuisineId }}">
+                @endif
             </form>
 
-            <!-- Categories -->
-            <div class="flex gap-2.5 overflow-x-auto w-full pb-1 md:pb-0 hide-scrollbar scroll-smooth">
-                @if($categoryId)
-                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search]) }}"
-                        class="flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border-2 border-red-100 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-200 shadow-sm flex items-center gap-1.5 focus:outline-none">
-                        <i data-feather="x" class="w-4 h-4"></i> Clear Category
-                    </a>
-                @else
-                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search]) }}"
-                        class="flex-shrink-0 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent focus:outline-none">
-                        All Categories
-                    </a>
-                @endif
+            <div class="flex flex-col gap-2 w-full">
+                <!-- Categories -->
+                <div class="flex gap-2.5 overflow-x-auto w-full pb-1 hide-scrollbar scroll-smooth">
+                    @if($categoryId)
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search, 'cuisine_id' => $cuisineId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 border-red-100 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-200 shadow-sm flex items-center gap-1.5 focus:outline-none">
+                            <i data-feather="x" class="w-3.5 h-3.5"></i> Clear Category
+                        </a>
+                    @else
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search, 'cuisine_id' => $cuisineId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent focus:outline-none">
+                            All Categories
+                        </a>
+                    @endif
 
-                @forelse($categories as $category)
-                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'category_id' => $category->category_id, 'search' => $search]) }}"
-                        class="flex-shrink-0 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 {{ $categoryId == $category->category_id ? 'bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
-                        {{ $category->category_name }}
-                    </a>
-                @empty
-                    <p class="text-gray-500">No categories found</p>
-                @endforelse
+                    @forelse($categories as $category)
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'category_id' => $category->category_id, 'search' => $search, 'cuisine_id' => $cuisineId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 {{ $categoryId == $category->category_id ? 'bg-gray-800 text-white shadow-xl shadow-gray-200 border-transparent' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
+                            {{ $category->category_name }}
+                        </a>
+                    @empty
+                        <p class="text-gray-500 text-xs">No categories</p>
+                    @endforelse
+                </div>
+
+                <!-- Cuisines -->
+                <div class="flex gap-2.5 overflow-x-auto w-full pb-1 hide-scrollbar scroll-smooth">
+                    @if($cuisineId)
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search, 'category_id' => $categoryId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 border-red-100 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-200 shadow-sm flex items-center gap-1.5 focus:outline-none">
+                            <i data-feather="x" class="w-3.5 h-3.5"></i> Clear Cuisine
+                        </a>
+                    @else
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'search' => $search, 'category_id' => $categoryId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 bg-gray-600 text-white shadow-xl shadow-gray-200 border-transparent focus:outline-none">
+                            All Cuisines
+                        </a>
+                    @endif
+
+                    @forelse($cuisines as $cuisine)
+                        <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id, 'cuisine_id' => $cuisine->cuisine_id, 'search' => $search, 'category_id' => $categoryId]) }}"
+                            class="flex-shrink-0 px-4 py-2 rounded-xl font-bold text-xs transition-all border-2 {{ $cuisineId == $cuisine->cuisine_id ? 'bg-gray-600 text-white shadow-xl shadow-gray-200 border-transparent' : 'bg-white border-gray-100 text-gray-500 hover:border-orange-500 hover:text-orange-500 shadow-sm' }}">
+                            {{ $cuisine->cuisine_name }}
+                        </a>
+                    @empty
+                        <p class="text-gray-500 text-xs">No cuisines</p>
+                    @endforelse
+                </div>
             </div>
 
         </div>
@@ -292,9 +328,18 @@
 
             <!-- Add to Cart Button -->
             <button id="addToCartBtn"
-                class="w-full bg-gray-900 text-white font-black text-base py-4 rounded-2xl shadow-xl hover:bg-black hover:scale-[1.02] transition-all flex justify-between items-center px-6 group">
-                <span class="flex items-center gap-2"><i data-feather="shopping-cart"
-                        class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"></i> Add to Cart</span>
+                class="w-full bg-gray-900 text-white font-black text-base py-4 rounded-2xl shadow-xl hover:bg-black hover:scale-[1.02] transition-all flex justify-between items-center px-6 group disabled:opacity-70 disabled:pointer-events-none relative overflow-hidden">
+                <span id="addToCartBtnText" class="flex items-center gap-2">
+                    <i data-feather="shopping-cart" class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors"></i> 
+                    Add to Cart
+                </span>
+                <span id="addToCartBtnLoading" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="ml-2">Adding...</span>
+                </span>
                 <span id="modalBtnTotal"
                     class="bg-gray-800 px-3 py-1 rounded-lg text-sm group-hover:bg-gray-700 transition-colors">$0.00</span>
             </button>
@@ -621,6 +666,17 @@
         }
 
         async function addToCart(item) {
+            const btn = document.getElementById('addToCartBtn');
+            const btnText = document.getElementById('addToCartBtnText');
+            const btnLoading = document.getElementById('addToCartBtnLoading');
+            const btnTotal = document.getElementById('modalBtnTotal');
+
+            // Show loading state
+            btn.disabled = true;
+            btnText.classList.add('opacity-0');
+            btnTotal.classList.add('opacity-0');
+            btnLoading.classList.remove('hidden');
+
             try {
                 await apiFetch(CART_ADD_URL, {
                     method: 'POST',
@@ -633,7 +689,20 @@
                 });
             } catch (e) {
                 console.error('addToCart failed:', e.message);
+                alert('Failed to add item to cart. Please try again.');
+                
+                btn.disabled = false;
+                btnText.classList.remove('opacity-0');
+                btnTotal.classList.remove('opacity-0');
+                btnLoading.classList.add('hidden');
+                return;
             }
+
+            btn.disabled = false;
+            btnText.classList.remove('opacity-0');
+            btnTotal.classList.remove('opacity-0');
+            btnLoading.classList.add('hidden');
+
             closeModals();
             await loadCart();
             openCart();

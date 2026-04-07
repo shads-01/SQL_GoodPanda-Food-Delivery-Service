@@ -74,21 +74,24 @@ Route::middleware(['custom.auth'])->group(function () {
         $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$id]);
         if (!$restaurant) abort(404);
         
-        // Search and Category filters
+        // Search, Category and Cuisine filters
         $search = $request->query('search');
         $categoryId = $request->query('category_id');
+        $cuisineId = $request->query('cuisine_id');
         
         // Filtered items
-        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?", [
+        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
             $id, 
             $categoryId,
-            $search
+            $search,
+            $cuisineId
         ]);
         
         $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
+        $cuisines = DB::select("EXEC sp_get_cuisines_by_restaurant ?", [$id]);
         $offers = DB::select("EXEC sp_get_active_offers ?", [$id]);
 
-        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'search', 'categoryId', 'offers'));
+        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers'));
     })->name('restaurant.details');
 
     // --- Rider ---
@@ -130,6 +133,8 @@ Route::middleware(['custom.auth'])->group(function () {
         ->name('restaurant.deleteItem');
 
     // --- Cart API Routes ---
+    // Route::get('/api/cart', [App\Http\Controllers\CartController::class, 'getGlobalCart'])->name('cart.global');
+    // Route::post('/api/cart/clear-all', [App\Http\Controllers\CartController::class, 'clearAllCarts'])->name('cart.clearAll');
     Route::get('/api/cart/{restaurantId}', [App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
     Route::post('/api/cart/add', [App\Http\Controllers\CartController::class, 'addToCart'])->name('cart.add');
     Route::post('/api/cart/update', [App\Http\Controllers\CartController::class, 'updateQuantity'])->name('cart.update');
