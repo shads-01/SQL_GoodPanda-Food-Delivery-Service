@@ -77,20 +77,20 @@
                     <div class="space-y-2 mb-4 text-sm font-medium text-gray-500">
                         <div class="flex justify-between">
                             <span>Subtotal</span>
-                            <span id="cartSubtotal" class="text-gray-800 font-bold">$0.00</span>
+                            <span id="cartSubtotal" class="text-gray-800 font-bold">৳0.00</span>
                         </div>
                         <div class="flex justify-between" id="deliveryFeeContainer">
                             <span>Delivery Fee</span>
-                            <span id="cartDelivery" class="text-gray-800 font-bold">$70.00</span>
+                            <span id="cartDelivery" class="text-gray-800 font-bold">৳70.00</span>
                         </div>
                         <div id="cartDiscountRow" class="flex justify-between text-orange-500 hidden font-bold">
                             <span>Discount Applied</span>
-                            <span id="cartDiscount">-$0.00</span>
+                            <span id="cartDiscount">-৳0.00</span>
                         </div>
                     </div>
                     <div class="flex justify-between items-center mb-5 pt-3 border-t border-gray-100">
                         <span class="font-bold text-gray-400 text-xs tracking-widest uppercase">Total Cost</span>
-                        <span id="cartTotal" class="font-black text-2xl text-gray-800">$0.00</span>
+                        <span id="cartTotal" class="font-black text-2xl text-gray-800">৳0.00</span>
                     </div>
                     <div class="flex gap-3">
                         <button id="clearCartBtn"
@@ -263,7 +263,7 @@
                         <p class="text-xs text-gray-400 line-clamp-2 mb-4 font-medium leading-relaxed flex-1">
                             {{ $item->description }}</p>
                         <div class="flex justify-between items-center pt-4 border-t border-gray-50 mt-auto">
-                            <span class="item-price-display font-black text-xl text-gray-800">${{ number_format($item->price, 2) }}</span>
+                            <span class="item-price-display font-black text-xl text-gray-800">৳{{ number_format($item->price, 2) }}</span>
                             <div
                                 class="bg-orange-50 text-orange-500 p-2.5 rounded-xl transition-all shadow-sm group-hover:bg-orange-500 group-hover:text-white">
                                 <i data-feather="plus" class="w-5 h-5"></i>
@@ -308,8 +308,8 @@
                 class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 pt-6 border-t border-gray-100">
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Unit Price</p>
-                    <span id="modalPrice" class="text-3xl font-black text-gray-800">$0.00</span>
-                    <p id="modalPriceOriginal" class="text-sm font-bold text-gray-400 line-through hidden">$0.00</p>
+                    <span id="modalPrice" class="text-3xl font-black text-gray-800">৳0.00</span>
+                    <p id="modalPriceOriginal" class="text-sm font-bold text-gray-400 line-through hidden">৳0.00</p>
                 </div>
 
                 <!-- Quantity Selector -->
@@ -341,7 +341,7 @@
                     <span class="ml-2">Adding...</span>
                 </span>
                 <span id="modalBtnTotal"
-                    class="bg-gray-800 px-3 py-1 rounded-lg text-sm group-hover:bg-gray-700 transition-colors">$0.00</span>
+                    class="bg-gray-800 px-3 py-1 rounded-lg text-sm group-hover:bg-gray-700 transition-colors">৳0.00</span>
             </button>
         </div>
     </div>
@@ -371,7 +371,7 @@
                     @if($offer->discount_type == 'percentage')
                         {{ (int)$offer->discount_value }}% OFF
                     @elseif($offer->discount_type == 'flat')
-                        ${{ number_format($offer->discount_value, 2) }} OFF
+                        ৳{{ number_format($offer->discount_value, 2) }} OFF
                     @elseif($offer->discount_type == 'free_delivery')
                         FREE DELIVERY
                     @endif
@@ -390,7 +390,7 @@
                     </span>
                     <br>
                     @if($offer->min_order_amount > 0)
-                        Min Order: ${{ number_format($offer->min_order_amount, 2) }}
+                        Min Order: ৳{{ number_format($offer->min_order_amount, 2) }}
                     @else
                         No Minimum Order
                     @endif
@@ -593,9 +593,9 @@
                 const discountedPrice = calculateDiscount(basePrice, categoryId, itemId);
 
                 if (discountedPrice < basePrice) {
-                    priceDisplay.innerHTML = `<span class="line-through text-gray-400 text-sm mr-1">$${basePrice.toFixed(2)}</span> <span class="text-orange-500">$${discountedPrice.toFixed(2)}</span>`;
+                    priceDisplay.innerHTML = `<span class="line-through text-gray-400 text-sm mr-1">৳${basePrice.toFixed(2)}</span> <span class="text-orange-500">৳${discountedPrice.toFixed(2)}</span>`;
                 } else {
-                    priceDisplay.innerHTML = `$${basePrice.toFixed(2)}`;
+                    priceDisplay.innerHTML = `৳${basePrice.toFixed(2)}`;
                 }
             });
         }
@@ -607,11 +607,11 @@
             document.getElementById('modalDesc').innerText  = desc;
 
             const discountedPrice  = calculateDiscount(price, categoryId, itemId);
-            document.getElementById('modalPrice').innerText = `$${discountedPrice.toFixed(2)}`;
+            document.getElementById('modalPrice').innerText = `৳${discountedPrice.toFixed(2)}`;
 
             const originPriceEl = document.getElementById('modalPriceOriginal');
             if (discountedPrice < price) {
-                originPriceEl.innerText = `$${price.toFixed(2)}`;
+                originPriceEl.innerText = `৳${price.toFixed(2)}`;
                 originPriceEl.classList.remove('hidden');
                 currentModalItem.calculatedPrice = discountedPrice;
             } else {
@@ -637,7 +637,7 @@
             if (!currentModalItem) return;
             document.getElementById('modalQty').innerText = currentModalItem.qty;
             const priceToUse = currentModalItem.calculatedPrice || currentModalItem.price;
-            document.getElementById('modalBtnTotal').innerText = `$${(priceToUse * currentModalItem.qty).toFixed(2)}`;
+            document.getElementById('modalBtnTotal').innerText = `৳${(priceToUse * currentModalItem.qty).toFixed(2)}`;
         }
 
         document.getElementById('addToCartBtn').addEventListener('click', () => {
@@ -761,10 +761,10 @@
                         <p class="text-xs mt-1">Add some delicious items!</p>
                     </div>
                 `;
-                subtotalEl.innerText = '$0.00';
-                deliveryEl.innerText = '$0.00';
+                subtotalEl.innerText = '৳0.00';
+                deliveryEl.innerText = '৳0.00';
                 discountRow.classList.add('hidden');
-                totalEl.innerText    = '$0.00';
+                totalEl.innerText    = '৳0.00';
                 countEl.innerText    = '0';
                 countEl.classList.add('hidden');
                 checkoutBtn.disabled  = true;
@@ -801,9 +801,9 @@
                 const discountedUnit = calculateDiscount(item.price, item.category_id, item.id);
                 subtotal += discountedUnit * item.qty;
 
-                let priceHTML = `<div class="text-orange-500 font-black text-sm">$${discountedUnit.toFixed(2)}</div>`;
+                let priceHTML = `<div class="text-orange-500 font-black text-sm">৳${discountedUnit.toFixed(2)}</div>`;
                 if (discountedUnit < item.price) {
-                    priceHTML = `<div class="text-orange-500 font-black text-sm"><span class="line-through text-gray-400 mr-1 text-xs">$${item.price.toFixed(2)}</span>$${discountedUnit.toFixed(2)}</div>`;
+                    priceHTML = `<div class="text-orange-500 font-black text-sm"><span class="line-through text-gray-400 mr-1 text-xs">৳${item.price.toFixed(2)}</span>৳${discountedUnit.toFixed(2)}</div>`;
                 }
 
                 const itemDiv       = document.createElement('div');
@@ -850,22 +850,22 @@
             const finalTotal = subtotal + deliveryFee;
             const savings    = undiscountedSubtotal - subtotal;
 
-            subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+            subtotalEl.innerText = `৳${subtotal.toFixed(2)}`;
 
             if (deliveryDiscounted) {
-                deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">$70.00</span> <span class="text-green-500 font-black">FREE</span>`;
+                deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">৳70.00</span> <span class="text-green-500 font-black">FREE</span>`;
             } else {
-                deliveryEl.innerText = `$${deliveryFee.toFixed(2)}`;
+                deliveryEl.innerText = `৳${deliveryFee.toFixed(2)}`;
             }
 
             if (savings > 0) {
                 discountRow.classList.remove('hidden');
-                discountEl.innerText = `-$${savings.toFixed(2)}`;
+                discountEl.innerText = `-৳${savings.toFixed(2)}`;
             } else {
                 discountRow.classList.add('hidden');
             }
 
-            totalEl.innerText  = `$${finalTotal.toFixed(2)}`;
+            totalEl.innerText  = `৳${finalTotal.toFixed(2)}`;
             countEl.innerText  = count;
             countEl.classList.remove('hidden');
 
