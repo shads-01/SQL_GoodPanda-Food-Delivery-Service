@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CheckoutController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -10,13 +11,13 @@ use Illuminate\Support\Facades\Session;
 /* -------------------------------------------------------
  | DEFAULT ROUTE: always redirect to /login
  ------------------------------------------------------- */
+
 Route::get('/', function () {
     if (!Session::has('user_id')) {
         return redirect()->route('login');
     }
-    // Redirect to the correct dashboard based on role
     $role = Session::get('user_role');
-    return match($role) {
+    return match ($role) {
         'restaurant_owner' => redirect()->route('restaurant.dashboard'),
         'delivery_partner' => redirect()->route('rider.dashboard'),
         default            => redirect()->route('home'),
@@ -35,18 +36,39 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
 
 /* -------------------------------------------------------
+ | PUBLIC ROUTES (no login required)
+ ------------------------------------------------------- */
+
+// Homepage — now served by CustomerController
+Route::get('/home', [CustomerController::class, 'home'])->name('home');
+
+// Search — accessible to guests too
+Route::get('/search',             [CustomerController::class, 'search'])->name('customer.search');
+Route::get('/search/suggestions', [CustomerController::class, 'searchSuggestions'])->name('customer.search.suggestions');
+Route::get('/offers',             [CustomerController::class, 'offers'])->name('customer.offers');
+
+/* -------------------------------------------------------
  | PROTECTED ROUTES (requires login via custom.auth)
  ------------------------------------------------------- */
 Route::middleware(['custom.auth'])->group(function () {
 
-    // --- Customer ---
-    Route::get('/customer/profile', function () {
-        $userId = session('user_id');
-        $user = DB::table('users')->where('id', $userId)->first();
-        $profileData = DB::table('vw_customer_profile_by_id')
-                        ->where('customer_id', $userId)->get();
-        return view('customer.profile', compact('user', 'profileData'));
-    })->name('customer_profile');
+    // --- Customer Profile ---
+    Route::get('/customer/profile', [CustomerController::class, 'profile'])->name('customer_profile');
+
+    // Customer profile update
+    Route::put('/customer/profile', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
+
+    // Customer addresses
+    Route::post('/customer/address',              [CustomerController::class, 'storeAddress'])->name('customer.address.store');
+    Route::put('/customer/address/{id}',          [CustomerController::class, 'updateAddress'])->name('customer.address.update');
+    Route::post('/customer/address/{id}/default', [CustomerController::class, 'setDefaultAddress'])->name('customer.address.default');
+    Route::delete('/customer/address/{id}',       [CustomerController::class, 'deleteAddress'])->name('customer.address.destroy');
+
+    // Customer order history (full page)
+    Route::get('/customer/orders', [CustomerController::class, 'orderHistory'])->name('customer.order_history');
+
+    // Customer account deletion
+    Route::delete('/customer/account', [CustomerController::class, 'deleteAccount'])->name('customer.account.delete');
 
     Route::get('/restaurant-details/{id}', function (\Illuminate\Http\Request $request, $id) {
         $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$id]);
@@ -74,7 +96,7 @@ Route::middleware(['custom.auth'])->group(function () {
         return view('rider.dashboard');
     })->name('rider.dashboard');
 
-    // ---Restaurant ---
+    // --- Restaurant ---
     Route::get('/restaurant/dashboard', [RestaurantController::class, 'dashboard'])
         ->name('restaurant.dashboard');
 
@@ -82,16 +104,13 @@ Route::middleware(['custom.auth'])->group(function () {
         ->name('restaurant.items');
 
     Route::get('/restaurant/orders', function () {
-        return view('restaurant.orders'); // create this blade file
+        return view('restaurant.orders');
     })->name('restaurant.orders');
 
     Route::get('/restaurant/analytics', function () {
-        return view('restaurant.analytics'); // create this blade file
+        return view('restaurant.analytics');
     })->name('restaurant.analytics');
 
-    // Route::get('/restaurant/add-item', function () {
-    //     return view('restaurant.add_item');
-    // })->name('restaurant.add_item');
     Route::get('/restaurant/add-item', [RestaurantController::class, 'addItem'])
         ->name('restaurant.add_item');
 
@@ -137,13 +156,4 @@ Route::middleware(['custom.auth'])->group(function () {
 Route::post('/restaurant/store-item', [RestaurantController::class, 'storeItem'])
     ->name('restaurant.storeItem');
 
-/* -------------------------------------------------------
- | PUBLIC HOMEPAGE (restaurants / cuisines browsing)
- ------------------------------------------------------- */
-Route::get('/home', function () {
-    $cuisines    = DB::table('vw_get_cuisines')->get();
-    $restaurants = DB::table('vw_get_restaurants')->get();
-    return view('home', compact('cuisines', 'restaurants'));
-})->name('home');
-
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

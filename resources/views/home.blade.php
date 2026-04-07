@@ -4,267 +4,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>GoodPanda</title>
     @vite('resources/css/app.css')
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --orange-main: #F97316;
+            --orange-light: #FED7AA;
+            --orange-pale: #FFF7ED;
+            --text-primary: #1C1917;
+            --text-secondary: #78716C;
+            --text-muted: #A8A29E;
+            --border: #E7E5E4;
+            --surface: #FFFFFF;
+            --bg: #FAFAF9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-display {
+            font-family: 'Sora', sans-serif;
+        }
+
+        .page-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        /* ---- Search Bar ---- */
+        .search-wrap {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.85rem 7rem 0.85rem 3rem;
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            background: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--orange-main);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-box .search-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--orange-main);
+            color: white;
+            border: none;
+            padding: 0.55rem 1.3rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .search-btn:hover {
+            background: #EA580C;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+            z-index: 500;
+            overflow: hidden;
+            display: none;
+        }
+
+        .search-suggestions.open {
+            display: block;
+        }
+
+        .search-suggestions li {
+            list-style: none;
+            padding: 0.65rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .search-suggestions li:hover {
+            background: var(--bg);
+        }
+
+        .sug-type {
+            font-size: 0.7rem;
+            background: var(--orange-pale);
+            color: var(--orange-main);
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* ---- Section Titles ---- */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-link {
+            font-size: 0.875rem;
+            color: var(--orange-main);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ---- Restaurant Cards ---- */
+        .rest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        @media(max-width:700px) {
+            .rest-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .rest-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+
+        .rest-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.11);
+        }
+
+        .rest-cover {
+            height: 150px;
+            background: #FFF7ED;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rest-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .rest-cover-ph {
+            font-size: 3rem;
+        }
+
+        .rest-body {
+            padding: 0.9rem;
+        }
+
+        .rest-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .rest-loc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .rest-rating {
+            font-size: 0.8rem;
+            color: #F97316;
+            font-weight: 600;
+        }
+
+        .rest-btn {
+            margin-top: 0.6rem;
+            background: var(--orange-main);
+            color: #fff;
+            border: none;
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .rest-btn:hover {
+            background: #EA580C;
+        }
+
+        /* ---- Offer Cards ---- */
+        .offer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            background: #1C1917;
+            color: #D6D3D1;
+            padding: 2.5rem 2rem 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .footer-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: 0.4rem;
+        }
+
+        .footer-logo span {
+            color: var(--orange-main);
+        }
+
+        .footer-tagline,
+        .footer-contact {
+            font-size: 0.8rem;
+            color: #A8A29E;
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #292524;
+            padding-top: 1rem;
+            font-size: 0.75rem;
+            color: #78716C;
+            margin-top: 1rem;
+        }
+
+        .footer-bottom a {
+            color: #78716C;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
-    <!-- Navbar -->
-    <nav class="w-full p-4 flex justify-between items-center" style="background: linear-gradient(135deg, #f3a34e, #FB923C);">
+    @include('components.customer_navbar')
 
-        <!-- Left: Logo -->
-        <h1 class="text-2xl font-bold text-white">GoodPanda</h1>
+    <div class="page-wrap">
 
-        <!-- Center: Menu -->
-        <div class="flex gap-6 text-white font-medium mx-auto">
-            <a href="{{ route('home') }}">Home</a>
-            <a href="#">Restaurants</a>
-            <a href="#">Offers</a>
-            <a href="#">About</a>
+
+
+        <!-- Top Restaurants -->
+        <div class="section-header">
+            <h2 class="section-title">🏆 Top Restaurants</h2>
+        </div>
+        <div class="rest-grid">
+            @forelse($topRestaurants as $r)
+            <div class="rest-card">
+                <div class="rest-cover">
+                    @if(!empty($r->cover_image) && str_starts_with($r->cover_image,'http'))
+                    <img src="{{ $r->cover_image }}" alt="{{ $r->name }}">
+                    @else
+                    <span class="rest-cover-ph">🍽️</span>
+                    @endif
+                </div>
+                <div class="rest-body">
+                    <div class="rest-name">{{ $r->name }}</div>
+                    <div class="rest-loc">📍 {{ $r->location }}</div>
+                    <div class="rest-rating">★ {{ number_format($r->avg_rating,1) }} <span style="color:var(--text-muted);font-weight:400;">({{ $r->total_reviews }} reviews)</span></div>
+                    <button class="rest-btn" onclick="window.location='{{ route('home') }}'">Order Now</button>
+                </div>
+            </div>
+            @empty
+            <p style="color:var(--text-muted);grid-column:1/-1;">No restaurants yet.</p>
+            @endforelse
         </div>
 
-        <!-- Right: Profile -->
-        <div class="relative z-50 flex items-center gap-4">
-            @if(Session::has('user_id') && ($isOwner ?? false))
-            {{-- Owner views simple logout button similar to unauthenticated login button --}}
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Logout</button>
-            </form>
-            @elseif(Session::has('user_id'))
-            <button id="profileBtn" class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow">
-                <i data-feather="user" class="text-orange-500"></i>
-            </button>
-
-            <!-- Dropdown -->
-            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded overflow-hidden">
-                <a href="{{ route('customer_profile') }}" class="block px-4 py-2 hover:bg-gray-100 text-gray-800">Profile</a>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="w-full text-left block px-4 py-2 hover:bg-red-50 text-red-600">Logout</button>
-                </form>
-            </div>
-            @else
-            {{-- Guests --}}
-            <a href="{{ route('login') }}"
-                class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">
-                Login
-            </a>
-            @endif
-
+        <!-- Top Offers -->
+        <div class="section-header">
+            <h2 class="section-title">🏷️ Top Offers</h2>
+            <a href="{{ route('customer.offers') }}" class="section-link">Show all offers →</a>
         </div>
-    </nav>
-
-    <!-- Flash Message -->
-    @if(session('success'))
-    <div id="flash-success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm transition-opacity duration-500" role="alert">
-        <span class="block sm:inline font-medium">{{ session('success') }}</span>
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div id="flash-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative max-w-2xl mx-auto mt-4 text-center shadow-sm transition-opacity duration-500" role="alert">
-        <span class="block sm:inline font-medium">{{ session('error') }}</span>
-    </div>
-    @endif
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            feather.replace(); // render icons after DOM loaded
-
-            // Filter Dropdown
-            const filterBtn = document.getElementById('filterBtn');
-            const filterDropdown = document.getElementById('filterDropdown');
-
-            if (filterBtn && filterDropdown) {
-                filterBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    filterDropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!filterDropdown.contains(e.target) && !filterBtn.contains(e.target)) {
-                        filterDropdown.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Profile Dropdown
-            const btn = document.getElementById('profileBtn');
-            const dropdown = document.getElementById('profileDropdown');
-
-            if (btn && dropdown) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                        dropdown.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Auto-dismiss flash messages after 4s
-            ['flash-success', 'flash-error'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    setTimeout(() => { 
-                        el.style.transition = 'opacity 0.5s ease-out';
-                        el.style.opacity = '0'; 
-                    }, 10000);
-                    setTimeout(() => { el.remove(); }, 10000);
-                }
-            });
-        });
-    </script>
-
-    <div class="flex">
-
-        <!-- Main Content -->
-        <div class="flex-1 p-8">
-
-            <!-- Search + Filter -->
-            <div class="grid grid-cols-1 md:grid-cols-3 items-center mb-10 gap-4">
-
-                <!-- Filter (Left on desktop, Top on mobile) -->
-                <div class="flex md:justify-start justify-center">
-                    <div class="relative">
-                        <button id="filterBtn"
-                            class="flex items-center gap-2 bg-white border px-4 py-3 rounded-lg shadow w-40">
-                            <i data-feather="filter" class="text-gray-400 h-4 w-4"></i>
-                            <span class="text-gray-400">Filter</span>
-                            <i data-feather="chevron-down"></i>
-                        </button>
-
-                        <!-- Dropdown -->
-                        <div id="filterDropdown"
-                            class="hidden absolute left-0 mt-2 w-52 bg-white shadow-xl rounded-xl p-3 space-y-2 z-50">
-
-                            <label class="flex gap-2 items-center cursor-pointer p-2 rounded-md hover:bg-gray-50">
-                                <input type="checkbox" class="accent-orange-500"> Italian
-                            </label>
-
-                            <label class="flex gap-2 items-center cursor-pointer p-2 rounded-md hover:bg-gray-50">
-                                <input type="checkbox" class="accent-orange-500"> Chinese
-                            </label>
-
-                            <label class="flex gap-2 items-center cursor-pointer p-2 rounded-md hover:bg-gray-50">
-                                <input type="checkbox" class="accent-orange-500"> Bangladeshi
-                            </label>
-
-                            <label class="flex gap-2 items-center cursor-pointer p-2 rounded-md hover:bg-gray-50">
-                                <input type="checkbox" class="accent-orange-500"> Fast Food
-                            </label>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Search -->
-                <div class="md:col-span-1 flex justify-center">
-                    <div class="relative w-full max-w-2xl">
-
-                        <!-- Search Icon -->
-                        <i data-feather="search"
-                            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-
-                        <!-- Input -->
-                        <input
-                            type="text"
-                            placeholder="Search restaurants or dishes..."
-                            class="w-full pl-12 pr-32 py-3 border rounded-full shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-orange-400
-                   focus:shadow-lg transition-all duration-200" />
-
-                        <!-- Button -->
-                        <button
-                            class="absolute right-1 top-1/2 -translate-y-1/2
-                   bg-orange-500 text-white px-6 py-2 rounded-full
-                   hover:bg-orange-600 transition">
-                            Search
-                        </button>
-
-                    </div>
-                </div>
-
-                <!-- Empty column for balance (desktop only) -->
-                <div class="hidden md:block"></div>
-
-            </div>
-            <!-- Explore Cuisines -->
-            <h2 class="text-2xl font-semibold mb-4">Explore Cuisines</h2>
-            <div class="grid grid-cols-3 md:grid-cols-5 gap-4 mb-10">
-                @forelse($cuisines as $cuisine)
-                <div class="bg-white p-6 rounded-2xl shadow-lg text-center hover:scale-105 transform transition">
-                    <div class="w-32 h-32 mx-auto aspect-square rounded-full overflow-hidden mb-3 border-4 border-orange-50 shadow-inner">
-                        <img src="{{ $cuisine->cuisine_image }}" alt="{{ $cuisine->cuisine_name }}" class="w-full h-full object-cover shadow-sm">
-                    </div>
-                    <h3 class="font-bold text-lg">{{ $cuisine->cuisine_name }}</h3>
-                </div>
-                @empty
-                <p class="text-gray-500">No cuisines found.</p>
-                @endforelse
-            </div>
-
-            <!-- Top Restaurants -->
-            <h2 class="text-2xl font-semibold mb-4">Top Restaurants</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @forelse($restaurants as $restaurant)
-                <div class="bg-white rounded-2xl shadow p-4 hover:shadow-xl transition">
-                    <div class="h-40 bg-gray-200 rounded mb-4 overflow-hidden flex items-center justify-center relative">
-                        @if(isset($restaurant->cover_image) && $restaurant->cover_image)
-                        <img src="{{ $restaurant->cover_image }}" alt="Cover" class="w-full h-full object-cover">
-                        @else
-                        <i data-feather="image" class="text-gray-400 w-10 h-10"></i>
-                        @endif
-                    </div>
-                    <h3 class="font-bold text-lg">{{ $restaurant->name }}</h3>
-                    <p class="text-gray-500 text-sm mb-2 text-ellipsis overflow-hidden whitespace-nowrap"><i data-feather="map-pin" class="inline w-3 h-3"></i> {{ $restaurant->location }}</p>
-                    <a href="{{ route('restaurant.details', ['id' => $restaurant->restaurant_id]) }}" class="mt-2 text-sm bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition inline-block text-center">
-                        Order Now
-                    </a>
-                </div>
-                @empty
-                <p class="text-gray-500">No restaurants found.</p>
-                @endforelse
-            </div>
-
+        <div class="offer-grid">
+            @forelse($topOffers as $item)
+            @include('components.menu_item_card', ['item' => $item])
+            @empty
+            <p style="color:var(--text-muted);grid-column:1/-1;">No offers available right now.</p>
+            @endforelse
         </div>
+
     </div>
 
     <!-- Footer -->
-    <footer class="mt-12 text-white text-center" style="background: linear-gradient(135deg, #FDBA74, #FB923C);">
-        <div class="max-w-4xl mx-auto px-6 py-10">
-            <!-- Brand -->
-            <!-- Panda Logo Circle -->
-            <div class="w-38 h-38 mx-auto rounded-full bg-white flex items-center justify-center mb-4 shadow-lg overflow-hidden">
-                <img src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/kawaii-cute-anime-panda-otaku-japanese-ramen-noodles-finnly-maria.jpg"
-                    class="w-full h-full object-cover"
-                    alt="Panda Logo">
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-logo">Good<span>Panda</span> 🐼</div>
+            <p class="footer-tagline">Fast delivery, great restaurants, happy you.</p>
+            <div class="footer-contact">support@goodpanda.com &nbsp;·&nbsp; +880 1234 567890</div>
+            <div class="footer-bottom">
+                &copy; {{ date('Y') }} GoodPanda. All rights reserved.
+                &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a>
             </div>
-            <p class="text-sm opacity-90 mb-6">
-                Discover the best restaurants and enjoy fast delivery at your doorstep.
-            </p>
-            <!-- Contact -->
-            <div class="space-y-1 text-sm">
-                <p>Email: support@goodpanda.com</p>
-                <p>Phone: +880 1234 567890</p>
-            </div>
-        </div>
-        <!-- Bottom -->
-        <div class="border-t border-orange-300 py-4 text-sm">
-            &copy {{ date('Y') }} GoodPanda. All Rights Reserved.
-            |
-            <a href="#" class="hover:underline">Privacy Policy</a>
-            |
-            <a href="#" class="hover:underline">Terms of Service</a>
         </div>
     </footer>
+
+    @include('components.menu_item_popup')
+
+
+
 </body>
 
 </html>
