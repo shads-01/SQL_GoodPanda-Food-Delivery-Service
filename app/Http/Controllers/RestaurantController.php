@@ -82,26 +82,81 @@ class RestaurantController extends Controller
     // Store Item
     public function storeItem(Request $request)
     {
-        $ownerId = session('user_id');
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|integer',
+            'description' => 'nullable|string|max:500',
+            'item_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $ownerId = session('user_id');
+        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
 
         if (!$restaurant) {
-            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
         }
 
+        // 1. Handle Image Upload to Cloudinary
+        $itemImageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop'; // Default placeholder
+
+        if ($request->hasFile('item_image')) {
+            try {
+                $file = $request->file('item_image');
+                $cloudName = env('CLOUDINARY_CLOUD_NAME');
+                $apiKey = env('CLOUDINARY_API_KEY');
+                $apiSecret = env('CLOUDINARY_API_SECRET');
+                $timestamp = time();
+                $folder = 'goodpanda/menu_items';
+
+                $paramsToSign = "folder={$folder}&timestamp={$timestamp}";
+                $signature = sha1($paramsToSign . $apiSecret);
+
+                $ch = curl_init("https://api.cloudinary.com/v1_1/{$cloudName}/image/upload");
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => [
+                        'file' => new \CURLFile($file->getRealPath(), $file->getMimeType(), $file->getClientOriginalName()),
+                        'api_key' => $apiKey,
+                        'timestamp' => $timestamp,
+                        'folder' => $folder,
+                        'signature' => $signature,
+                    ],
+                ]);
+
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                $result = json_decode($response, true);
+                if (isset($result['secure_url'])) {
+                    $itemImageUrl = $result['secure_url'];
+                } else {
+                    dd([
+                        'error_message' => 'Cloudinary Item Upload returned no URL', 
+                        'raw_response' => $response,
+                        'cloudConfig' => compact('cloudName', 'apiKey', 'apiSecret'),
+                        'payload' => $paramsToSign
+                    ]);
+                    \Illuminate\Support\Facades\Log::warning('Cloudinary Item Upload returned no URL: ' . $response);
+                }
+            } catch (\Throwable $e) {
+                dd('Exception thrown during upload:', $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Cloudinary Item Upload failed: ' . $e->getMessage());
+            }
+        }
+
+        // 2. Insert into database
         DB::table('menu_items')->insert([
             'restaurant_id' => $restaurant->restaurant_id,
-            'category_id'   => $request->category_id,
-            'cuisine_id'    => 1,
-            'item_name'     => $request->name,
-            'description'   => $request->description,
-            'item_image'    => 'default.jpg',
-            'price'         => $request->price,
-            'is_available'  => 1,
-            'created_at'    => now(),
+            'category_id' => $request->category_id,
+            'cuisine_id' => 1, // Defaulting for now
+            'item_name' => $request->name,
+            'description' => $request->description,
+            'item_image' => $itemImageUrl,
+            'price' => $request->price,
+            'is_available' => 1,
+            'created_at' => now(),
         ]);
 
         return redirect()->route('restaurant.items')
