@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Restaurant Detail | GoodPanda</title>
 
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
@@ -371,32 +372,69 @@
 
 
     <script>
-        // Data injected from backend
-        window.activeOffersList = @json($offers);
-        window.restaurantId = {{ $restaurant->restaurant_id }};
-        
-        // Restore Session State
-        const savedOfferId = sessionStorage.getItem('goodpanda_offer_' + window.restaurantId);
-        window.activeOffer = savedOfferId ? window.activeOffersList.find(o => parseInt(o.offer_id) == savedOfferId) : null;
-        
-        // Restore cart from session, default to empty array
-        let cart = JSON.parse(sessionStorage.getItem('goodpanda_cart_' + window.restaurantId)) || [];
-        let currentModalItem = null;
+        const CSRF_TOKEN      = document.querySelector('meta[name="csrf-token"]').content;
+        const RESTAURANT_ID   = {{ $restaurant->restaurant_id }};
+        const CART_ADD_URL    = "{{ route('cart.add') }}";
+        const CART_UPDATE_URL = "{{ route('cart.update') }}";
+        const CART_REMOVE_URL = "{{ route('cart.remove') }}";
+        const CART_CLEAR_URL  = "{{ route('cart.clear') }}";
+        const CART_GET_URL    = (id) => `/api/cart/${id}`;
 
-        function saveState() {
-            sessionStorage.setItem('goodpanda_cart_' + window.restaurantId, JSON.stringify(cart));
-            if(window.activeOffer) {
-                sessionStorage.setItem('goodpanda_offer_' + window.restaurantId, window.activeOffer.offer_id);
+        window.activeOffersList = @json($offers);
+        window.restaurantId     = RESTAURANT_ID;
+
+        const savedOfferId  = sessionStorage.getItem('goodpanda_offer_' + RESTAURANT_ID);
+        window.activeOffer  = savedOfferId
+            ? window.activeOffersList.find(o => parseInt(o.offer_id) == savedOfferId)
+            : null;
+
+        let cart              = [];
+        let currentModalItem  = null;
+
+        function saveOfferState() {
+            if (window.activeOffer) {
+                sessionStorage.setItem('goodpanda_offer_' + RESTAURANT_ID, window.activeOffer.offer_id);
             } else {
-                sessionStorage.removeItem('goodpanda_offer_' + window.restaurantId);
+                sessionStorage.removeItem('goodpanda_offer_' + RESTAURANT_ID);
             }
+        }
+
+        async function apiFetch(url, options = {}) {
+            const defaults = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept':       'application/json',
+                },
+            };
+            const res  = await fetch(url, { ...defaults, ...options, headers: { ...defaults.headers, ...(options.headers || {}) } });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.message || 'API error');
+            return json;
+        }
+
+        async function loadCart() {
+            try {
+                const data = await apiFetch(CART_GET_URL(RESTAURANT_ID));
+                cart = (data.cart || []).map(row => ({
+                    id:          row.item_id,
+                    name:        row.item_name,
+                    price:       parseFloat(row.unit_price),
+                    qty:         parseInt(row.quantity),
+                    category_id: row.category_id,
+                }));
+            } catch (e) {
+                console.error('loadCart failed:', e.message);
+                cart = [];
+            }
+            renderCart();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof feather !== 'undefined') feather.replace();
 
-            // Cart Click Logic
-            const cartBtn = document.getElementById('cartBtn');
+            // Cart toggle
+            const cartBtn      = document.getElementById('cartBtn');
             const cartDropdown = document.getElementById('cartDropdown');
 
             cartBtn.addEventListener('click', (e) => {
@@ -405,14 +443,13 @@
                 else closeCart();
             });
 
-            // Close cart when clicking outside
             document.addEventListener('click', (e) => {
                 if (!cartBtn.contains(e.target) && !cartDropdown.contains(e.target) && !cartDropdown.classList.contains('hidden')) {
                     closeCart();
                 }
             });
 
-            // Cart Footer Buttons
+            // Cart footer buttons
             document.getElementById('clearCartBtn').addEventListener('click', clearCart);
             document.getElementById('checkoutBtn').addEventListener('click', () => {
                 if (cart.length > 0) alert('Proceeding to checkout...');
@@ -423,19 +460,18 @@
                 closeCart();
             });
 
-            // Offers Modal Triggers
+            // Offers
             document.getElementById('openOffersBtn').addEventListener('click', openOffersModal);
 
-            // Re-apply visual state from saved sessions
-            if(window.activeOffer) {
-                updateGridPrices();
-            }
-            renderCart();
+            // Restore offer visual state
+            if (window.activeOffer) updateGridPrices();
+
+            // Load cart from DB on page ready
+            loadCart();
         });
 
-        // --- Modals & Overlays Controller ---
-        const overlay = document.getElementById('modalOverlay');
-        const itemModal = document.getElementById('itemModal');
+        const overlay     = document.getElementById('modalOverlay');
+        const itemModal   = document.getElementById('itemModal');
         const offersModal = document.getElementById('offersModal');
 
         function toggleOverlay(show) {
@@ -460,68 +496,50 @@
 
         overlay.addEventListener('click', closeModals);
 
-        // --- Offer Calculation Logic ---
         function calculateDiscount(basePrice, testCategory = null, testItem = null) {
             if (!window.activeOffer) return basePrice;
             const offer = window.activeOffer;
-            
-            // Cart-level rules that don't affect unit display prices individually
+
             if (offer.discount_type === 'free_delivery') return basePrice;
             if (offer.target_type === 'restaurant' && offer.discount_type === 'flat') return basePrice;
             if (offer.target_type === 'restaurant' && offer.discount_type === 'percentage' && parseFloat(offer.min_order_amount) > 0) return basePrice;
 
             let isApplicable = false;
-            // Use loose equality (==) for IDs to prevent String/Int mismatch from DB JSON payload
             if (offer.target_type === 'restaurant') isApplicable = true;
             else if (offer.target_type === 'category' && offer.target_category_id == testCategory) isApplicable = true;
-            else if (offer.target_type === 'item' && offer.target_item_id == testItem) isApplicable = true;
+            else if (offer.target_type === 'item'     && offer.target_item_id     == testItem)     isApplicable = true;
 
             if (isApplicable) {
-                if (offer.discount_type === 'percentage') {
-                    return Math.max(0, basePrice - (basePrice * (offer.discount_value / 100)));
-                } else if (offer.discount_type === 'flat') {
-                    return Math.max(0, basePrice - offer.discount_value);
-                }
+                if (offer.discount_type === 'percentage') return Math.max(0, basePrice - (basePrice * (offer.discount_value / 100)));
+                if (offer.discount_type === 'flat')       return Math.max(0, basePrice - offer.discount_value);
             }
             return basePrice;
         }
 
         window.availOffer = function(offerId) {
             const newOffer = window.activeOffersList.find(o => parseInt(o.offer_id) === parseInt(offerId));
-            
-            if(!newOffer) {
-                console.error("Offer not found in activeOffersList!");
-                return;
-            }
+            if (!newOffer) { console.error('Offer not found!'); return; }
 
-            // Anti-Stacking Check
             if (window.activeOffer && window.activeOffer.offer_id !== newOffer.offer_id) {
-                if(!confirm(`You currently have "${window.activeOffer.offer_title}" applied. Do you want to replace it with "${newOffer.offer_title}"? Offers cannot be stacked.`)) {
-                    return;
-                }
+                if (!confirm(`You currently have "${window.activeOffer.offer_title}" applied. Replace with "${newOffer.offer_title}"? Offers cannot be stacked.`)) return;
             }
 
             window.activeOffer = newOffer;
-
             closeModals();
             updateGridPrices();
-            saveState(); // Persist the active offer
-            renderCart(); // Rematch cart if items are already present
-            
-            // Notification toast
+            saveOfferState();
+            renderCart();
             alert(`Offer "${window.activeOffer.offer_title}" successfully applied!`);
-        }
+        };
 
         function updateGridPrices() {
-            const itemCards = document.querySelectorAll('.item-card');
-            itemCards.forEach(card => {
-                const basePrice = parseFloat(card.dataset.price);
-                const categoryId = card.dataset.categoryId;
-                const itemId = card.dataset.itemId;
-                const priceDisplay = card.querySelector('.item-price-display');
-                
+            document.querySelectorAll('.item-card').forEach(card => {
+                const basePrice      = parseFloat(card.dataset.price);
+                const categoryId     = card.dataset.categoryId;
+                const itemId         = card.dataset.itemId;
+                const priceDisplay   = card.querySelector('.item-price-display');
                 const discountedPrice = calculateDiscount(basePrice, categoryId, itemId);
-                
+
                 if (discountedPrice < basePrice) {
                     priceDisplay.innerHTML = `<span class="line-through text-gray-400 text-sm mr-1">$${basePrice.toFixed(2)}</span> <span class="text-orange-500">$${discountedPrice.toFixed(2)}</span>`;
                 } else {
@@ -530,16 +548,15 @@
             });
         }
 
-        // --- Item Detail Modal Logic ---
-        window.openItemModal = function (itemId, categoryId, name, desc, price, img) {
-            currentModalItem = { id: itemId, category_id: categoryId, name: name, price: price, qty: 1 };
+        window.openItemModal = function(itemId, categoryId, name, desc, price, img) {
+            currentModalItem = { id: itemId, category_id: categoryId, name, price, qty: 1 };
 
             document.getElementById('modalTitle').innerText = name;
-            document.getElementById('modalDesc').innerText = desc;
-            
-            const discountedPrice = calculateDiscount(price, categoryId, itemId);
+            document.getElementById('modalDesc').innerText  = desc;
+
+            const discountedPrice  = calculateDiscount(price, categoryId, itemId);
             document.getElementById('modalPrice').innerText = `$${discountedPrice.toFixed(2)}`;
-            
+
             const originPriceEl = document.getElementById('modalPriceOriginal');
             if (discountedPrice < price) {
                 originPriceEl.innerText = `$${price.toFixed(2)}`;
@@ -549,51 +566,39 @@
                 originPriceEl.classList.add('hidden');
                 currentModalItem.calculatedPrice = price;
             }
-            
             document.getElementById('modalImg').src = img;
-
             updateModalUI();
 
             toggleOverlay(true);
             itemModal.classList.remove('hidden');
             setTimeout(() => itemModal.classList.replace('scale-95', 'scale-100'), 10);
             setTimeout(() => itemModal.classList.replace('opacity-0', 'opacity-100'), 10);
-        }
+        };
 
-        window.updateModalQty = function (change) {
+        window.updateModalQty = function(change) {
             if (!currentModalItem) return;
             const newQty = currentModalItem.qty + change;
-            if (newQty > 0) {
-                currentModalItem.qty = newQty;
-                updateModalUI();
-            }
-        }
+            if (newQty > 0) { currentModalItem.qty = newQty; updateModalUI(); }
+        };
 
         function updateModalUI() {
             if (!currentModalItem) return;
             document.getElementById('modalQty').innerText = currentModalItem.qty;
             const priceToUse = currentModalItem.calculatedPrice || currentModalItem.price;
-            const total = priceToUse * currentModalItem.qty;
-            document.getElementById('modalBtnTotal').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modalBtnTotal').innerText = `$${(priceToUse * currentModalItem.qty).toFixed(2)}`;
         }
 
         document.getElementById('addToCartBtn').addEventListener('click', () => {
-            if (currentModalItem) {
-                addToCart(currentModalItem);
-                closeModals();
-            }
+            if (currentModalItem) addToCart(currentModalItem);
         });
 
-
-        // --- Offers Modal Logic ---
         function openOffersModal() {
             toggleOverlay(true);
             offersModal.classList.remove('hidden');
-            setTimeout(() => offersModal.classList.replace('scale-95', 'scale-100'), 10);
+            setTimeout(() => offersModal.classList.replace('scale-95',  'scale-100'), 10);
             setTimeout(() => offersModal.classList.replace('opacity-0', 'opacity-100'), 10);
         }
 
-        // --- Global Cart Logic ---
         function openCart() {
             const dropdown = document.getElementById('cartDropdown');
             dropdown.classList.remove('hidden');
@@ -608,56 +613,68 @@
             setTimeout(() => dropdown.classList.add('hidden'), 200);
         }
 
-        function addToCart(item) {            // Add to cart
-            const existing = cart.find(i => i.id === currentModalItem.id);
-            if (existing) {
-                existing.qty += currentModalItem.qty;
-            } else {
-                cart.push({ ...currentModalItem });
+        async function addToCart(item) {
+            try {
+                await apiFetch(CART_ADD_URL, {
+                    method: 'POST',
+                    body:   JSON.stringify({
+                        restaurant_id: RESTAURANT_ID,
+                        item_id:       item.id,
+                        quantity:      item.qty,
+                        unit_price:    item.calculatedPrice ?? item.price,
+                    }),
+                });
+            } catch (e) {
+                console.error('addToCart failed:', e.message);
             }
-
-            saveState(); // Persist Cart
-            renderCart();
             closeModals();
+            await loadCart();
             openCart();
+        }
+
+        window.updateCartQty = async function(id, change) {
+            try {
+                await apiFetch(CART_UPDATE_URL, {
+                    method: 'POST',
+                    body:   JSON.stringify({
+                        restaurant_id: RESTAURANT_ID,
+                        item_id:       id,
+                        qty_change:    change,
+                    }),
+                });
+            } catch (e) {
+                console.error('updateCartQty failed:', e.message);
+            }
+            await loadCart();
         };
 
-        window.updateCartQty = function (id, change) {
-            const item = cart.find(i => i.id === id);
-            if (!item) return;
-
-            item.qty += change;
-            if (item.qty <= 0) {
-                cart = cart.filter(i => i.id !== id);
+        window.clearCart = async function() {
+            try {
+                await apiFetch(CART_CLEAR_URL, {
+                    method: 'POST',
+                    body:   JSON.stringify({ restaurant_id: RESTAURANT_ID }),
+                });
+            } catch (e) {
+                console.error('clearCart failed:', e.message);
             }
-            
-            saveState(); // Persist Cart
-            renderCart();
-        }
-
-        window.clearCart = function () {
-            cart = [];
-            window.activeOffer = null; // Purge offer
-            
-            saveState(); // Purge Sessions
-            updateGridPrices(); // Revert UI
-            renderCart();
+            window.activeOffer = null;
+            saveOfferState();
+            updateGridPrices();
+            await loadCart();
             closeCart();
-        }
+        };
 
         function renderCart() {
-            const list = document.getElementById('cartItemsList');
-            const totalEl = document.getElementById('cartTotal');
-            const countEl = document.getElementById('cartCount');
-            const checkoutBtn = document.getElementById('checkoutBtn');
+            const list         = document.getElementById('cartItemsList');
+            const totalEl      = document.getElementById('cartTotal');
+            const countEl      = document.getElementById('cartCount');
+            const checkoutBtn  = document.getElementById('checkoutBtn');
             const clearCartBtn = document.getElementById('clearCartBtn');
-            
-            const subtotalEl = document.getElementById('cartSubtotal');
-            const deliveryEl = document.getElementById('cartDelivery');
-            const discountRow = document.getElementById('cartDiscountRow');
-            const discountEl = document.getElementById('cartDiscount');
+            const subtotalEl   = document.getElementById('cartSubtotal');
+            const deliveryEl   = document.getElementById('cartDelivery');
+            const discountRow  = document.getElementById('cartDiscountRow');
+            const discountEl   = document.getElementById('cartDiscount');
 
-            // Reset UI cleanly
             if (cart.length === 0) {
                 list.innerHTML = `
                     <div id="emptyCartMessage" class="text-center text-gray-400 py-8">
@@ -671,60 +688,51 @@
                 subtotalEl.innerText = '$0.00';
                 deliveryEl.innerText = '$0.00';
                 discountRow.classList.add('hidden');
-                totalEl.innerText = '$0.00';
-                countEl.innerText = '0';
+                totalEl.innerText    = '$0.00';
+                countEl.innerText    = '0';
                 countEl.classList.add('hidden');
-                checkoutBtn.disabled = true;
+                checkoutBtn.disabled  = true;
                 clearCartBtn.disabled = true;
                 if (typeof feather !== 'undefined') feather.replace();
                 return;
             }
 
-            list.innerHTML = '';
-            checkoutBtn.disabled = false;
+            list.innerHTML      = '';
+            checkoutBtn.disabled  = false;
             clearCartBtn.disabled = false;
 
-            let subtotal = 0;
+            let subtotal             = 0;
             let undiscountedSubtotal = 0;
-            let count = 0;
+            let count                = 0;
 
-            // PRE-CALCULATION LOOP: Determine if subtotal meets the minimum order threshold natively before calculating discounts
+            // Pre-calculate raw subtotal to check minimum order threshold
             cart.forEach(item => {
-                undiscountedSubtotal += (item.price * item.qty);
-                count += item.qty;
+                undiscountedSubtotal += item.price * item.qty;
+                count                += item.qty;
             });
 
-            // Minimum order enforcement check
             let isOfferMathValid = true;
             if (window.activeOffer) {
                 const minOrder = parseFloat(window.activeOffer.min_order_amount) || 0;
-                if (undiscountedSubtotal < minOrder && minOrder > 0) {
-                    isOfferMathValid = false;
-                }
+                if (undiscountedSubtotal < minOrder && minOrder > 0) isOfferMathValid = false;
             }
 
-            // Temporarily suppress the active offer if the minimum order threshold failed
+            // Temporarily suppress offer when min-order not met
             const tempOfferBackup = window.activeOffer;
-            if (!isOfferMathValid) {
-                window.activeOffer = null;
-            }
+            if (!isOfferMathValid) window.activeOffer = null;
 
-            // Primary UI generation loop
             cart.forEach(item => {
                 const discountedUnit = calculateDiscount(item.price, item.category_id, item.id);
-                const itemTotal = discountedUnit * item.qty;
-                
-                subtotal += itemTotal;
+                subtotal += discountedUnit * item.qty;
 
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm';
-                
                 let priceHTML = `<div class="text-orange-500 font-black text-sm">$${discountedUnit.toFixed(2)}</div>`;
-                if(discountedUnit < item.price) {
+                if (discountedUnit < item.price) {
                     priceHTML = `<div class="text-orange-500 font-black text-sm"><span class="line-through text-gray-400 mr-1 text-xs">$${item.price.toFixed(2)}</span>$${discountedUnit.toFixed(2)}</div>`;
                 }
 
-                itemDiv.innerHTML = `
+                const itemDiv       = document.createElement('div');
+                itemDiv.className   = 'flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm';
+                itemDiv.innerHTML   = `
                     <div class="flex-1 pr-3">
                         <h4 class="font-bold text-sm text-gray-800 line-clamp-1 mb-1">${item.name}</h4>
                         ${priceHTML}
@@ -732,51 +740,42 @@
                     <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 flex-shrink-0">
                         <button onclick="updateCartQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><i data-feather="minus" class="w-3 h-3"></i></button>
                         <span class="text-sm font-black w-5 text-center text-gray-800">${item.qty}</span>
-                        <button onclick="updateCartQty(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center text-orange-500 bg-orange-50 border border-orange-100 hover:border-transparent hover:bg-white hover:shadow-sm rounded-lg transition-all"><i data-feather="plus" class="w-3 h-3"></i></button>
+                        <button onclick="updateCartQty(${item.id}, 1)"  class="w-7 h-7 flex items-center justify-center text-orange-500 bg-orange-50 border border-orange-100 hover:border-transparent hover:bg-white hover:shadow-sm rounded-lg transition-all"><i data-feather="plus" class="w-3 h-3"></i></button>
                     </div>
                 `;
                 list.appendChild(itemDiv);
             });
 
-            // Restore the active offer configuration
             window.activeOffer = tempOfferBackup;
 
-            // Delivery & Order Level Logic
-            let deliveryFee = 70.00;
-            let deliveryDiscounted = false;
-            let orderDiscountValue = 0;
+            // Delivery & order-level discount
+            let deliveryFee         = 70.00;
+            let deliveryDiscounted  = false;
+            let orderDiscountValue  = 0;
 
             if (window.activeOffer && isOfferMathValid) {
-                // If the offer has a minimum requirement, check subtotal against it
                 const minOrder = parseFloat(window.activeOffer.min_order_amount) || 0;
-                
-                // For cart level rules evaluate against subtotal. Item level rules bypass the subtotal check on the grid,
-                // but if an item deal has a high min order we enforce it strictly here in the cart.
                 if (subtotal >= minOrder || minOrder === 0) {
                     if (window.activeOffer.discount_type === 'free_delivery') {
-                        deliveryFee = 0.00;
+                        deliveryFee        = 0.00;
                         deliveryDiscounted = true;
                     }
                     if (window.activeOffer.target_type === 'restaurant') {
                         if (window.activeOffer.discount_type === 'flat') {
                             orderDiscountValue = parseFloat(window.activeOffer.discount_value);
                         } else if (window.activeOffer.discount_type === 'percentage' && minOrder > 0) {
-                            // Because we prevented this percentage rule from slashing unit grid prices (cart evaluation needed),
-                            // we deduct it manually from the subtotal.
                             orderDiscountValue = subtotal * (parseFloat(window.activeOffer.discount_value) / 100);
                         }
                     }
                 }
             }
 
-            // Calculations
-            subtotal = Math.max(0, subtotal - orderDiscountValue);
+            subtotal         = Math.max(0, subtotal - orderDiscountValue);
             const finalTotal = subtotal + deliveryFee;
-            const savings = undiscountedSubtotal - subtotal;
+            const savings    = undiscountedSubtotal - subtotal;
 
-            // UI Rendering
             subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
-            
+
             if (deliveryDiscounted) {
                 deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">$70.00</span> <span class="text-green-500 font-black">FREE</span>`;
             } else {
@@ -790,8 +789,8 @@
                 discountRow.classList.add('hidden');
             }
 
-            totalEl.innerText = `$${finalTotal.toFixed(2)}`;
-            countEl.innerText = count;
+            totalEl.innerText  = `$${finalTotal.toFixed(2)}`;
+            countEl.innerText  = count;
             countEl.classList.remove('hidden');
 
             if (typeof feather !== 'undefined') feather.replace();

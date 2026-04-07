@@ -109,6 +109,12 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::delete('/restaurant/item/{id}', [RestaurantController::class, 'deleteItem'])
         ->name('restaurant.deleteItem');
 
+    // --- Cart API Routes ---
+    Route::get('/api/cart/{restaurantId}', [App\Http\Controllers\CartController::class, 'getCart'])->name('cart.get');
+    Route::post('/api/cart/add', [App\Http\Controllers\CartController::class, 'addToCart'])->name('cart.add');
+    Route::post('/api/cart/update', [App\Http\Controllers\CartController::class, 'updateQuantity'])->name('cart.update');
+    Route::delete('/api/cart/remove', [App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
+    Route::post('/api/cart/clear', [App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
 
 });
 
