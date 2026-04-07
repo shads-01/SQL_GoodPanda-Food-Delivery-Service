@@ -257,7 +257,7 @@ class RestaurantController extends Controller
             'target_item_id' => 'nullable|integer',
             'target_category_id' => 'nullable|integer',
             'min_order_amount' => 'nullable|numeric|min:1',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|before:-1 day',
             'end_date' => 'required|date',
         ]);
 
@@ -287,11 +287,7 @@ class RestaurantController extends Controller
         if ($endDateTime <= $startDateTime) {
             return redirect()->back()->withErrors(['end_date' => 'End date must be after start date.']);
         }
-
-        if ($startDateTime < $now) {
-            return redirect()->back()->withErrors(['start_date' => 'Start date cannot be in the past.']);
-        }
-
+ 
         $ownerId = session('user_id');
 
         $restaurant = DB::table('restaurants')
@@ -329,7 +325,7 @@ class RestaurantController extends Controller
             ]);
 
             return redirect()->route('restaurant.items')
-                ->with('success', 'Offer created successfully using custom SQL script!');
+                ->with('success', 'Offer created successfully!');
                 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Offer insertion failed: " . $e->getMessage());

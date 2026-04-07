@@ -65,9 +65,22 @@
                 </div>
 
                 <!-- Cart Footer -->
-                <div
-                    class="p-5 border-t border-gray-100 bg-white shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] relative z-10">
-                    <div class="flex justify-between items-center mb-5">
+                <div class="p-5 border-t border-gray-100 bg-white shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] relative z-10">
+                    <div class="space-y-2 mb-4 text-sm font-medium text-gray-500">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span id="cartSubtotal" class="text-gray-800 font-bold">$0.00</span>
+                        </div>
+                        <div class="flex justify-between" id="deliveryFeeContainer">
+                            <span>Delivery Fee</span>
+                            <span id="cartDelivery" class="text-gray-800 font-bold">$70.00</span>
+                        </div>
+                        <div id="cartDiscountRow" class="flex justify-between text-orange-500 hidden font-bold">
+                            <span>Discount Applied</span>
+                            <span id="cartDiscount">-$0.00</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-5 pt-3 border-t border-gray-100">
                         <span class="font-bold text-gray-400 text-xs tracking-widest uppercase">Total Cost</span>
                         <span id="cartTotal" class="font-black text-2xl text-gray-800">$0.00</span>
                     </div>
@@ -194,8 +207,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
 
             @forelse($items as $item)
-                <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 group flex flex-col cursor-pointer"
-                    onclick="openItemModal({{ $item->item_id }}, '{{ addslashes($item->item_name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->item_image }}')">
+                <div class="item-card bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 group flex flex-col cursor-pointer"
+                    data-item-id="{{ $item->item_id }}" data-category-id="{{ $item->category_id }}" data-price="{{ $item->price }}"
+                    onclick="openItemModal({{ $item->item_id }}, {{ $item->category_id }}, '{{ addslashes($item->item_name) }}', '{{ addslashes($item->description ?? '') }}', {{ $item->price }}, '{{ $item->item_image }}')">
                     <div class="relative h-56 overflow-hidden bg-gray-100">
                         <img src="{{ $item->item_image }}"
                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
@@ -212,7 +226,7 @@
                         <p class="text-xs text-gray-400 line-clamp-2 mb-4 font-medium leading-relaxed flex-1">
                             {{ $item->description }}</p>
                         <div class="flex justify-between items-center pt-4 border-t border-gray-50 mt-auto">
-                            <span class="font-black text-xl text-gray-800">${{ number_format($item->price, 2) }}</span>
+                            <span class="item-price-display font-black text-xl text-gray-800">${{ number_format($item->price, 2) }}</span>
                             <div
                                 class="bg-orange-50 text-orange-500 p-2.5 rounded-xl transition-all shadow-sm group-hover:bg-orange-500 group-hover:text-white">
                                 <i data-feather="plus" class="w-5 h-5"></i>
@@ -258,6 +272,7 @@
                 <div>
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Unit Price</p>
                     <span id="modalPrice" class="text-3xl font-black text-gray-800">$0.00</span>
+                    <p id="modalPriceOriginal" class="text-sm font-bold text-gray-400 line-through hidden">$0.00</p>
                 </div>
 
                 <!-- Quantity Selector -->
@@ -291,7 +306,7 @@
         class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2rem] shadow-2xl z-[120] hidden opacity-0 scale-95 transition-all duration-300 p-8">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-black text-gray-800 flex items-center gap-2">
-                <i data-feather="percent" class="text-orange-500"></i> Active Deals
+                Active Offers
             </h2>
             <button onclick="closeModals()"
                 class="p-2 bg-gray-50 border border-gray-100 rounded-full hover:bg-gray-100 transition-colors">
@@ -299,38 +314,83 @@
             </button>
         </div>
 
-        <div
-            class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-orange-500 p-8 text-center text-white shadow-xl shadow-orange-200 mb-6 border border-orange-300">
-            <i data-feather="gift" class="w-10 h-10 mx-auto mb-3 opacity-80"></i>
-            <h3 id="offerTitle" class="text-4xl font-black mb-2 tracking-tight">20% OFF</h3>
-            <p id="offerDesc" class="font-medium text-orange-50 text-sm mb-6 max-w-[200px] mx-auto">Use code PANDA20 on
-                orders above $50.</p>
-            <button
-                class="bg-white text-orange-500 font-black px-8 py-3 rounded-xl text-sm hover:scale-105 transition-transform shadow-md uppercase tracking-wider">USE
-                Code</button>
-        </div>
+        <!-- Offer Container -->
+        <div id="offersContainer" class="relative max-h-96 overflow-y-auto pr-2 space-y-4">
+            @forelse($offers as $offer)
+            <div class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-orange-400 to-orange-500 p-8 text-center text-white shadow-xl shadow-orange-200 border border-orange-300">
+                <i data-feather="gift" class="w-10 h-10 mx-auto mb-3 opacity-80"></i>
+                <h3 class="text-3xl font-black mb-2 tracking-tight">{{ $offer->offer_title }}</h3>
+                
+                <div class="font-bold text-orange-50 text-sm mb-3 max-w-[250px] mx-auto bg-black/10 rounded-lg py-2">
+                    @if($offer->discount_type == 'percentage')
+                        {{ (int)$offer->discount_value }}% OFF
+                    @elseif($offer->discount_type == 'flat')
+                        ${{ number_format($offer->discount_value, 2) }} OFF
+                    @elseif($offer->discount_type == 'free_delivery')
+                        FREE DELIVERY
+                    @endif
+                </div>
 
-        <!-- Pagination -->
-        <div class="flex justify-between items-center bg-gray-50 rounded-2xl p-2 border border-gray-100">
-            <button class="p-3 bg-white shadow-sm rounded-xl text-gray-600 hover:text-orange-500 transition-colors">
-                <i data-feather="chevron-left" class="w-4 h-4"></i>
-            </button>
-            <div class="flex gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-800"></span>
-                <span class="w-2 h-2 rounded-full bg-gray-300"></span>
-                <span class="w-2 h-2 rounded-full bg-gray-300"></span>
+                <p class="font-medium text-orange-100 text-xs mb-6 max-w-[250px] mx-auto leading-relaxed">
+                    Target:
+                    <span class="font-bold text-white">
+                        @if($offer->target_type == 'item')
+                            {{ $offer->item_name }}
+                        @elseif($offer->target_type == 'category')
+                            {{ $offer->category_name }}
+                        @else
+                            Entire Restaurant
+                        @endif
+                    </span>
+                    <br>
+                    @if($offer->min_order_amount > 0)
+                        Min Order: ${{ number_format($offer->min_order_amount, 2) }}
+                    @else
+                        No Minimum Order
+                    @endif
+                    <br>
+                    <span class="opacity-75">Valid until: {{ date('M d, Y h:i A', strtotime($offer->end_datetime)) }}</span>
+                </p>
+                
+                <button onclick="availOffer({{ $offer->offer_id }})"
+                    class="bg-white text-orange-500 font-black px-8 py-3 rounded-xl text-sm hover:scale-105 transition-transform shadow-md uppercase tracking-wider relative z-10 w-full active:scale-95">
+                    Avail Offer
+                </button>
             </div>
-            <button class="p-3 bg-white shadow-sm rounded-xl text-gray-600 hover:text-orange-500 transition-colors">
-                <i data-feather="chevron-right" class="w-4 h-4"></i>
-            </button>
+            @empty
+            <div class="text-center py-10 px-6 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <i data-feather="frown" class="w-8 h-8 text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-black mb-2 tracking-tight text-gray-800">No Active Deals</h3>
+                <p class="font-medium text-gray-500 text-sm max-w-[200px] mx-auto">This restaurant currently has no active offers. Check back later!</p>
+            </div>
+            @endforelse
         </div>
     </div>
 
 
     <script>
-        // Global State simulating Cart
-        let cart = [];
+        // Data injected from backend
+        window.activeOffersList = @json($offers);
+        window.restaurantId = {{ $restaurant->restaurant_id }};
+        
+        // Restore Session State
+        const savedOfferId = sessionStorage.getItem('goodpanda_offer_' + window.restaurantId);
+        window.activeOffer = savedOfferId ? window.activeOffersList.find(o => parseInt(o.offer_id) == savedOfferId) : null;
+        
+        // Restore cart from session, default to empty array
+        let cart = JSON.parse(sessionStorage.getItem('goodpanda_cart_' + window.restaurantId)) || [];
         let currentModalItem = null;
+
+        function saveState() {
+            sessionStorage.setItem('goodpanda_cart_' + window.restaurantId, JSON.stringify(cart));
+            if(window.activeOffer) {
+                sessionStorage.setItem('goodpanda_offer_' + window.restaurantId, window.activeOffer.offer_id);
+            } else {
+                sessionStorage.removeItem('goodpanda_offer_' + window.restaurantId);
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof feather !== 'undefined') feather.replace();
@@ -365,6 +425,12 @@
 
             // Offers Modal Triggers
             document.getElementById('openOffersBtn').addEventListener('click', openOffersModal);
+
+            // Re-apply visual state from saved sessions
+            if(window.activeOffer) {
+                updateGridPrices();
+            }
+            renderCart();
         });
 
         // --- Modals & Overlays Controller ---
@@ -394,13 +460,96 @@
 
         overlay.addEventListener('click', closeModals);
 
+        // --- Offer Calculation Logic ---
+        function calculateDiscount(basePrice, testCategory = null, testItem = null) {
+            if (!window.activeOffer) return basePrice;
+            const offer = window.activeOffer;
+            
+            // Cart-level rules that don't affect unit display prices individually
+            if (offer.discount_type === 'free_delivery') return basePrice;
+            if (offer.target_type === 'restaurant' && offer.discount_type === 'flat') return basePrice;
+            if (offer.target_type === 'restaurant' && offer.discount_type === 'percentage' && parseFloat(offer.min_order_amount) > 0) return basePrice;
+
+            let isApplicable = false;
+            // Use loose equality (==) for IDs to prevent String/Int mismatch from DB JSON payload
+            if (offer.target_type === 'restaurant') isApplicable = true;
+            else if (offer.target_type === 'category' && offer.target_category_id == testCategory) isApplicable = true;
+            else if (offer.target_type === 'item' && offer.target_item_id == testItem) isApplicable = true;
+
+            if (isApplicable) {
+                if (offer.discount_type === 'percentage') {
+                    return Math.max(0, basePrice - (basePrice * (offer.discount_value / 100)));
+                } else if (offer.discount_type === 'flat') {
+                    return Math.max(0, basePrice - offer.discount_value);
+                }
+            }
+            return basePrice;
+        }
+
+        window.availOffer = function(offerId) {
+            const newOffer = window.activeOffersList.find(o => parseInt(o.offer_id) === parseInt(offerId));
+            
+            if(!newOffer) {
+                console.error("Offer not found in activeOffersList!");
+                return;
+            }
+
+            // Anti-Stacking Check
+            if (window.activeOffer && window.activeOffer.offer_id !== newOffer.offer_id) {
+                if(!confirm(`You currently have "${window.activeOffer.offer_title}" applied. Do you want to replace it with "${newOffer.offer_title}"? Offers cannot be stacked.`)) {
+                    return;
+                }
+            }
+
+            window.activeOffer = newOffer;
+
+            closeModals();
+            updateGridPrices();
+            saveState(); // Persist the active offer
+            renderCart(); // Rematch cart if items are already present
+            
+            // Notification toast
+            alert(`Offer "${window.activeOffer.offer_title}" successfully applied!`);
+        }
+
+        function updateGridPrices() {
+            const itemCards = document.querySelectorAll('.item-card');
+            itemCards.forEach(card => {
+                const basePrice = parseFloat(card.dataset.price);
+                const categoryId = card.dataset.categoryId;
+                const itemId = card.dataset.itemId;
+                const priceDisplay = card.querySelector('.item-price-display');
+                
+                const discountedPrice = calculateDiscount(basePrice, categoryId, itemId);
+                
+                if (discountedPrice < basePrice) {
+                    priceDisplay.innerHTML = `<span class="line-through text-gray-400 text-sm mr-1">$${basePrice.toFixed(2)}</span> <span class="text-orange-500">$${discountedPrice.toFixed(2)}</span>`;
+                } else {
+                    priceDisplay.innerHTML = `$${basePrice.toFixed(2)}`;
+                }
+            });
+        }
+
         // --- Item Detail Modal Logic ---
-        window.openItemModal = function (id, name, desc, price, img) {
-            currentModalItem = { id, name, price, qty: 1 };
+        window.openItemModal = function (itemId, categoryId, name, desc, price, img) {
+            currentModalItem = { id: itemId, category_id: categoryId, name: name, price: price, qty: 1 };
 
             document.getElementById('modalTitle').innerText = name;
             document.getElementById('modalDesc').innerText = desc;
-            document.getElementById('modalPrice').innerText = `$${price.toFixed(2)}`;
+            
+            const discountedPrice = calculateDiscount(price, categoryId, itemId);
+            document.getElementById('modalPrice').innerText = `$${discountedPrice.toFixed(2)}`;
+            
+            const originPriceEl = document.getElementById('modalPriceOriginal');
+            if (discountedPrice < price) {
+                originPriceEl.innerText = `$${price.toFixed(2)}`;
+                originPriceEl.classList.remove('hidden');
+                currentModalItem.calculatedPrice = discountedPrice;
+            } else {
+                originPriceEl.classList.add('hidden');
+                currentModalItem.calculatedPrice = price;
+            }
+            
             document.getElementById('modalImg').src = img;
 
             updateModalUI();
@@ -423,7 +572,8 @@
         function updateModalUI() {
             if (!currentModalItem) return;
             document.getElementById('modalQty').innerText = currentModalItem.qty;
-            const total = currentModalItem.price * currentModalItem.qty;
+            const priceToUse = currentModalItem.calculatedPrice || currentModalItem.price;
+            const total = priceToUse * currentModalItem.qty;
             document.getElementById('modalBtnTotal').innerText = `$${total.toFixed(2)}`;
         }
 
@@ -447,45 +597,52 @@
         function openCart() {
             const dropdown = document.getElementById('cartDropdown');
             dropdown.classList.remove('hidden');
-            setTimeout(() => {
-                dropdown.classList.remove('opacity-0', 'scale-95');
-                dropdown.classList.add('opacity-100', 'scale-100');
-            }, 10);
+            setTimeout(() => dropdown.classList.replace('opacity-0', 'opacity-100'), 10);
+            setTimeout(() => dropdown.classList.replace('translate-y-4', 'translate-y-0'), 10);
         }
 
         function closeCart() {
             const dropdown = document.getElementById('cartDropdown');
-            dropdown.classList.remove('opacity-100', 'scale-100');
-            dropdown.classList.add('opacity-0', 'scale-95');
+            dropdown.classList.replace('opacity-100', 'opacity-0');
+            dropdown.classList.replace('translate-y-0', 'translate-y-4');
             setTimeout(() => dropdown.classList.add('hidden'), 200);
         }
 
-        function addToCart(item) {
-            const existing = cart.find(i => i.id === item.id);
+        function addToCart(item) {            // Add to cart
+            const existing = cart.find(i => i.id === currentModalItem.id);
             if (existing) {
-                existing.qty += item.qty;
+                existing.qty += currentModalItem.qty;
             } else {
-                cart.push({ ...item });
+                cart.push({ ...currentModalItem });
             }
+
+            saveState(); // Persist Cart
             renderCart();
+            closeModals();
             openCart();
-        }
+        };
 
         window.updateCartQty = function (id, change) {
             const item = cart.find(i => i.id === id);
-            if (item) {
-                item.qty += change;
-                if (item.qty <= 0) {
-                    cart = cart.filter(i => i.id !== id);
-                }
-                renderCart();
+            if (!item) return;
+
+            item.qty += change;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
             }
+            
+            saveState(); // Persist Cart
+            renderCart();
         }
 
-        function clearCart() {
+        window.clearCart = function () {
             cart = [];
-
+            window.activeOffer = null; // Purge offer
+            
+            saveState(); // Purge Sessions
+            updateGridPrices(); // Revert UI
             renderCart();
+            closeCart();
         }
 
         function renderCart() {
@@ -494,6 +651,11 @@
             const countEl = document.getElementById('cartCount');
             const checkoutBtn = document.getElementById('checkoutBtn');
             const clearCartBtn = document.getElementById('clearCartBtn');
+            
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const deliveryEl = document.getElementById('cartDelivery');
+            const discountRow = document.getElementById('cartDiscountRow');
+            const discountEl = document.getElementById('cartDiscount');
 
             // Reset UI cleanly
             if (cart.length === 0) {
@@ -506,6 +668,9 @@
                         <p class="text-xs mt-1">Add some delicious items!</p>
                     </div>
                 `;
+                subtotalEl.innerText = '$0.00';
+                deliveryEl.innerText = '$0.00';
+                discountRow.classList.add('hidden');
                 totalEl.innerText = '$0.00';
                 countEl.innerText = '0';
                 countEl.classList.add('hidden');
@@ -519,20 +684,50 @@
             checkoutBtn.disabled = false;
             clearCartBtn.disabled = false;
 
-            let total = 0;
+            let subtotal = 0;
+            let undiscountedSubtotal = 0;
             let count = 0;
 
+            // PRE-CALCULATION LOOP: Determine if subtotal meets the minimum order threshold natively before calculating discounts
             cart.forEach(item => {
-                const itemTotal = item.price * item.qty;
-                total += itemTotal;
+                undiscountedSubtotal += (item.price * item.qty);
                 count += item.qty;
+            });
+
+            // Minimum order enforcement check
+            let isOfferMathValid = true;
+            if (window.activeOffer) {
+                const minOrder = parseFloat(window.activeOffer.min_order_amount) || 0;
+                if (undiscountedSubtotal < minOrder && minOrder > 0) {
+                    isOfferMathValid = false;
+                }
+            }
+
+            // Temporarily suppress the active offer if the minimum order threshold failed
+            const tempOfferBackup = window.activeOffer;
+            if (!isOfferMathValid) {
+                window.activeOffer = null;
+            }
+
+            // Primary UI generation loop
+            cart.forEach(item => {
+                const discountedUnit = calculateDiscount(item.price, item.category_id, item.id);
+                const itemTotal = discountedUnit * item.qty;
+                
+                subtotal += itemTotal;
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm';
+                
+                let priceHTML = `<div class="text-orange-500 font-black text-sm">$${discountedUnit.toFixed(2)}</div>`;
+                if(discountedUnit < item.price) {
+                    priceHTML = `<div class="text-orange-500 font-black text-sm"><span class="line-through text-gray-400 mr-1 text-xs">$${item.price.toFixed(2)}</span>$${discountedUnit.toFixed(2)}</div>`;
+                }
+
                 itemDiv.innerHTML = `
                     <div class="flex-1 pr-3">
                         <h4 class="font-bold text-sm text-gray-800 line-clamp-1 mb-1">${item.name}</h4>
-                        <div class="text-orange-500 font-black text-sm">$${item.price.toFixed(2)}</div>
+                        ${priceHTML}
                     </div>
                     <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100 flex-shrink-0">
                         <button onclick="updateCartQty(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><i data-feather="minus" class="w-3 h-3"></i></button>
@@ -543,7 +738,59 @@
                 list.appendChild(itemDiv);
             });
 
-            totalEl.innerText = `$${total.toFixed(2)}`;
+            // Restore the active offer configuration
+            window.activeOffer = tempOfferBackup;
+
+            // Delivery & Order Level Logic
+            let deliveryFee = 70.00;
+            let deliveryDiscounted = false;
+            let orderDiscountValue = 0;
+
+            if (window.activeOffer && isOfferMathValid) {
+                // If the offer has a minimum requirement, check subtotal against it
+                const minOrder = parseFloat(window.activeOffer.min_order_amount) || 0;
+                
+                // For cart level rules evaluate against subtotal. Item level rules bypass the subtotal check on the grid,
+                // but if an item deal has a high min order we enforce it strictly here in the cart.
+                if (subtotal >= minOrder || minOrder === 0) {
+                    if (window.activeOffer.discount_type === 'free_delivery') {
+                        deliveryFee = 0.00;
+                        deliveryDiscounted = true;
+                    }
+                    if (window.activeOffer.target_type === 'restaurant') {
+                        if (window.activeOffer.discount_type === 'flat') {
+                            orderDiscountValue = parseFloat(window.activeOffer.discount_value);
+                        } else if (window.activeOffer.discount_type === 'percentage' && minOrder > 0) {
+                            // Because we prevented this percentage rule from slashing unit grid prices (cart evaluation needed),
+                            // we deduct it manually from the subtotal.
+                            orderDiscountValue = subtotal * (parseFloat(window.activeOffer.discount_value) / 100);
+                        }
+                    }
+                }
+            }
+
+            // Calculations
+            subtotal = Math.max(0, subtotal - orderDiscountValue);
+            const finalTotal = subtotal + deliveryFee;
+            const savings = undiscountedSubtotal - subtotal;
+
+            // UI Rendering
+            subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+            
+            if (deliveryDiscounted) {
+                deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">$70.00</span> <span class="text-green-500 font-black">FREE</span>`;
+            } else {
+                deliveryEl.innerText = `$${deliveryFee.toFixed(2)}`;
+            }
+
+            if (savings > 0) {
+                discountRow.classList.remove('hidden');
+                discountEl.innerText = `-$${savings.toFixed(2)}`;
+            } else {
+                discountRow.classList.add('hidden');
+            }
+
+            totalEl.innerText = `$${finalTotal.toFixed(2)}`;
             countEl.innerText = count;
             countEl.classList.remove('hidden');
 
