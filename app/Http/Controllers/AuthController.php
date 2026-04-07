@@ -58,8 +58,8 @@ class AuthController extends Controller
         $request->validate([
             'role' => 'required|in:customer,restaurant_owner,delivery_partner',
             'name' => 'required|string|max:100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'number' => 'required|string|max:20|unique:users,phone_number',
+            'email' => ['required','string','email','max:100', \Illuminate\Validation\Rule::unique('users','email')->where('is_active', 1)],
+            'number' => ['required','string','max:20', \Illuminate\Validation\Rule::unique('users','phone_number')->where('is_active', 1)],
             'address' => 'required|string|max:255',
             'password' => 'required|string|min:8',
 
