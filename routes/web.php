@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -115,6 +116,10 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::post('/api/cart/update', [App\Http\Controllers\CartController::class, 'updateQuantity'])->name('cart.update');
     Route::delete('/api/cart/remove', [App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::post('/api/cart/clear', [App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
+
+    // --- Checkout Routes ---
+    Route::get('/checkout/{restaurantId}', [CheckoutController::class, 'showCheckout'])->name('checkout.show');
+    Route::post('/checkout/{restaurantId}/place', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
 
 });
 

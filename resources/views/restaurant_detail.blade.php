@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -41,7 +41,7 @@
                     class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full hidden">0</span>
             </button>
 
-            <!-- Cart Dropdown (Visible on hover/click) -->
+            <!-- Cart Dropdown -->
             <div id="cartDropdown"
                 class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100 z-[100] transform opacity-0 scale-95 transition-all duration-200 origin-top-right">
                 <div class="p-5 bg-gradient-to-r from-orange-400 to-orange-500 text-white flex justify-between items-center">
@@ -452,8 +452,15 @@
             // Cart footer buttons
             document.getElementById('clearCartBtn').addEventListener('click', clearCart);
             document.getElementById('checkoutBtn').addEventListener('click', () => {
-                if (cart.length > 0) alert('Proceeding to checkout...');
-                else alert('Add items to your cart first!');
+                if (cart.length > 0) {
+                    let url = "{{ route('checkout.show', $restaurant->restaurant_id) }}";
+                    if (window.activeOffer) {
+                        url += "?offer_id=" + window.activeOffer.offer_id;
+                    }
+                    window.location.href = url;
+                } else {
+                    alert('Add items to your cart first!');
+                }
             });
             document.getElementById('closeCartBtn').addEventListener('click', (e) => {
                 e.stopPropagation();

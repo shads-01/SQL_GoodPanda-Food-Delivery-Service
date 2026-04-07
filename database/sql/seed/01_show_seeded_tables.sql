@@ -29,7 +29,6 @@ GO
 SELECT * FROM cart;
 SELECT * FROM cart_items;
 SELECT * FROM orders;
-SELECT * FROM order_details;
 GO
 
 -- 6. View data from Fulfillment (Payments, Delivery, Reviews)

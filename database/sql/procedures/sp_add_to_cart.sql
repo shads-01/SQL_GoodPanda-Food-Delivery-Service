@@ -8,12 +8,10 @@ AS
 BEGIN
     DECLARE @cart_id INT;
 
-    -- Check if active cart exists for this customer and restaurant
-    SELECT @cart_id = cart_id 
-    FROM cart 
+    SELECT @cart_id = cart_id FROM cart 
     WHERE customer_id = @customer_id AND restaurant_id = @restaurant_id AND status = 'active';
 
-    -- If not, create cart
+    -- If cart does not exist, create cart
     IF @cart_id IS NULL
     BEGIN
         INSERT INTO cart (customer_id, restaurant_id, status)
