@@ -238,30 +238,58 @@ class RestaurantController extends Controller
             ->select('item_id', 'item_name')
             ->get();
 
-        return view('restaurant.add_offer', compact('items'));
+        $categories = DB::table('menu_categories')
+            ->where('restaurant_id', $restaurant->restaurant_id)
+            ->select('category_id', 'category_name')
+            ->get();
+
+        return view('restaurant.add_offer', compact('items', 'categories'));
     }
 
     // Store Offer
     public function storeOffer(Request $request)
     {
         $request->validate([
-            'item_id' => 'required|integer',
-            'discount_percentage' => 'required|integer|min:1|max:100',
-            'start_date' => 'required',
-            'end_date' => 'required',
+            'offer_title' => 'required|string|min:3|max:150',
+            'discount_type' => 'required|in:percentage,flat,free_delivery',
+            'discount_value' => 'nullable|numeric|min:0.01',
+            'target_type' => 'required|in:item,category,restaurant',
+            'target_item_id' => 'nullable|integer',
+            'target_category_id' => 'nullable|integer',
+            'min_order_amount' => 'nullable|numeric|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
         ]);
 
+        // Enforcement of discount requirements
+        if ($request->discount_type !== 'free_delivery' && empty($request->discount_value)) {
+            return redirect()->back()->withErrors(['discount_value' => 'Discount value is required for this type.']);
+        }
+        
+        // Enforcement of target requirements
+        if ($request->target_type === 'item' && empty($request->target_item_id)) {
+            return redirect()->back()->withErrors(['target_item_id' => 'An item must be selected.']);
+        }
+        if ($request->target_type === 'category' && empty($request->target_category_id)) {
+            return redirect()->back()->withErrors(['target_category_id' => 'A category must be selected.']);
+        }
+
+        // Target nullification
+        $targetItemId = $request->target_type === 'item' ? $request->target_item_id : null;
+        $targetCategoryId = $request->target_type === 'category' ? $request->target_category_id : null;
+        $discountValue = $request->discount_type === 'free_delivery' ? null : $request->discount_value;
+
         // Additional validation for date comparison
-        $startDateTime = new DateTime($request->start_date);
-        $endDateTime = new DateTime($request->end_date);
-        $now = new DateTime();
+        $startDateTime = new \DateTime($request->start_date);
+        $endDateTime = new \DateTime($request->end_date);
+        $now = new \DateTime();
 
         if ($endDateTime <= $startDateTime) {
             return redirect()->back()->withErrors(['end_date' => 'End date must be after start date.']);
         }
 
-        if ($startDateTime > $now) {
-            return redirect()->back()->withErrors(['start_date' => 'Start date cannot be in the future. Offers must start immediately or in the past.']);
+        if ($startDateTime < $now) {
+            return redirect()->back()->withErrors(['start_date' => 'Start date cannot be in the past.']);
         }
 
         $ownerId = session('user_id');
@@ -271,40 +299,42 @@ class RestaurantController extends Controller
             ->first();
 
         if (!$restaurant) {
-            return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
         }
 
-        // Check if item belongs to this restaurant
-        $item = DB::table('menu_items')
-            ->where('item_id', $request->item_id)
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->first();
-
-        if (!$item) {
-            return redirect()->back()->with('error', 'Invalid item selected.');
-        }
-
-        // Format dates for SQL Server - ensure they include seconds and are in correct format
-        $startDateTime = new DateTime($request->start_date);
-        $endDateTime = new DateTime($request->end_date);
+        // Format dates for SQL Server requirements
         $startDate = $startDateTime->format('Y-m-d H:i:s');
         $endDate = $endDateTime->format('Y-m-d H:i:s');
 
-        DB::table('offers')->insert([
-            'restaurant_id' => $restaurant->restaurant_id,
-            'offer_title' => 'Discount on ' . $item->item_name,
-            'discount_type' => 'percentage',
-            'discount_value' => $request->discount_percentage,
-            'target_type' => 'item',
-            'target_item_id' => $request->item_id,
-            'start_datetime' => $startDate,
-            'end_datetime' => $endDate,
-            'is_active' => 1,
-            'created_at' => DB::raw('GETDATE()'),
-        ]);
+        $sqlPath = base_path('database/sql/queries/insert_offer.sql');
+        
+        if (!file_exists($sqlPath)) {
+            return redirect()->back()->with('error', 'SQL script for inserting offers not found.');
+        }
 
-        return redirect()->route('restaurant.items')
-            ->with('success', 'Offer created successfully!');
+        try {
+            $sql = file_get_contents($sqlPath);
+            
+            DB::insert($sql, [
+                $restaurant->restaurant_id,
+                $request->offer_title,
+                $request->discount_type,
+                $discountValue,
+                $request->target_type,
+                $targetItemId,
+                $targetCategoryId,
+                $request->min_order_amount,
+                $startDate,
+                $endDate
+            ]);
+
+            return redirect()->route('restaurant.items')
+                ->with('success', 'Offer created successfully using custom SQL script!');
+                
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Offer insertion failed: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Database Error: Could not save the offer.');
+        }
     }
 
     // Edit Item Page
