@@ -1,5 +1,5 @@
--- Fetches all active offer items, optionally filtered by cuisine_id list
--- Used for the offers page (grouped by restaurant in PHP)
+-- Fetches all active offer items for the offers page
+-- No base params — cuisine filter and ORDER BY appended dynamically in PHP
 SELECT
     mi.item_id,
     mi.item_name,
@@ -21,4 +21,3 @@ INNER JOIN offers o ON o.target_item_id = mi.item_id
 INNER JOIN restaurants r ON mi.restaurant_id = r.restaurant_id
 LEFT JOIN cuisine_types ct ON mi.cuisine_id = ct.cuisine_id
 WHERE mi.is_available = 1
-ORDER BY r.restaurant_id, mi.item_name;

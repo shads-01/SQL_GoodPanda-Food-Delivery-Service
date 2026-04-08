@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\RiderController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -95,9 +96,14 @@ Route::middleware(['custom.auth'])->group(function () {
     })->name('restaurant.details');
 
     // --- Rider ---
-    Route::get('/rider/dashboard', function () {
-        return view('rider.dashboard');
-    })->name('rider.dashboard');
+    Route::get('/rider/dashboard', [RiderController::class, 'dashboard'])->name('rider.dashboard');
+    Route::post('/rider/deliveries/accept', [RiderController::class, 'acceptDelivery'])->name('rider.deliveries.accept');
+    Route::patch('/rider/deliveries/{id}/status', [RiderController::class, 'updateDeliveryStatus'])->name('rider.deliveries.status');
+    Route::get('/rider/delivery-history', [RiderController::class, 'deliveryHistory'])->name('rider.delivery-history');
+    Route::get('/rider/profile', [RiderController::class, 'profile'])->name('rider.profile');
+    Route::put('/rider/profile', [RiderController::class, 'updateProfile'])->name('rider.profile.update');
+    Route::put('/rider/vehicle', [RiderController::class, 'updateVehicle'])->name('rider.vehicle.update');
+    Route::delete('/rider/account', [RiderController::class, 'deleteAccount'])->name('rider.account.delete');
 
     // --- Restaurant ---
     Route::get('/restaurant/dashboard', [RestaurantController::class, 'dashboard'])

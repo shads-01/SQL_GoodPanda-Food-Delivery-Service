@@ -5,19 +5,44 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class CustomerController extends Controller
 {
+    /**
+     * Helper – load a raw SQL file from the customer queries folder.
+     */
+    private function getQuery(string $filename): string
+    {
+        return file_get_contents(database_path('sql/queries/customer/' . $filename));
+    }
+
+    /**
+     * Helper – manual array-based pagination for raw SQL result sets.
+     * Replaces Laravel's ->paginate() which only works with QueryBuilder.
+     */
+    private function manualPaginate(array $results, int $perPage, string $pageName = 'page'): LengthAwarePaginator
+    {
+        $page  = Paginator::resolveCurrentPage($pageName);
+        $total = count($results);
+        $items = array_slice($results, ($page - 1) * $perPage, $perPage);
+
+        return new LengthAwarePaginator(
+            $items, $total, $perPage, $page,
+            ['path' => request()->url(), 'pageName' => $pageName, 'query' => request()->query()]
+        );
+    }
+
     // -------------------------------------------------------
-    // HOME PAGE
+    // HOME PAGE (uses aggregate_top_restaurants.sql + get_top_offers.sql)
     // -------------------------------------------------------
     public function home()
     {
-        $topRestaurantsSql = file_get_contents(database_path('sql/queries/customer/aggregate_top_restaurants.sql'));
+        $topRestaurantsSql = $this->getQuery('aggregate_top_restaurants.sql');
         $topRestaurants    = DB::select($topRestaurantsSql);
 
-        $topOffersSql = file_get_contents(database_path('sql/queries/customer/get_top_offers.sql'));
-        $topOffers    = DB::select($topOffersSql);
+        $topOffersSql = $this->getQuery('get_top_offers.sql');
         $topOffers    = DB::select($topOffersSql);
 
         return view('home', compact('topRestaurants', 'topOffers'));
@@ -53,108 +78,78 @@ class CustomerController extends Controller
     }
 
     // -------------------------------------------------------
-    // SEARCH RESULTS PAGE
+    // SEARCH RESULTS PAGE (uses search_items_restaurants.sql + search_restaurants.sql)
     // -------------------------------------------------------
     public function search(Request $request)
     {
-        $q          = $request->input('q', '');
-        $cuisines   = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
+        $q              = $request->input('q', '');
+        $cuisines       = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
         $filterCuisines = $request->input('cuisine', []);
-        $offersOnly = $request->input('offers_only', 0);
-        $sort       = $request->input('sort', 'popular');
+        $offersOnly     = $request->input('offers_only', 0);
+        $sort           = $request->input('sort', 'popular');
 
         if (empty($q)) {
             return view('customer.search', [
                 'query'       => '',
-                'items'       => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12)),
-                'restaurants' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)),
+                'items'       => new LengthAwarePaginator([], 0, 12),
+                'restaurants' => new LengthAwarePaginator([], 0, 10),
                 'cuisines'    => $cuisines,
             ]);
         }
 
-        // --- Items query ---
-        $itemQuery = DB::table('menu_items as mi')
-            ->leftJoin('offers as o', function($j){
-                $j->on('o.target_item_id','=','mi.item_id')
-                  ->where('o.is_active',1)
-                  ->where('o.target_type','item')
-                  ->whereRaw('GETDATE() BETWEEN o.start_datetime AND o.end_datetime');
-            })
-            ->leftJoin('cuisine_types as ct','mi.cuisine_id','=','ct.cuisine_id')
-            ->join('restaurants as r','mi.restaurant_id','=','r.restaurant_id')
-            ->select(
-                'mi.item_id','mi.item_name','mi.item_image','mi.description',
-                'mi.price',
-                DB::raw("CASE WHEN o.offer_id IS NOT NULL THEN ROUND(mi.price - (mi.price * o.discount_value / 100), 2) ELSE NULL END AS offer_price"),
-                'ct.cuisine_name as cuisine_names','ct.cuisine_id',
-                'r.name as restaurant_name',
-                DB::raw("(SELECT COUNT(*) FROM cart_items ci WHERE ci.item_id = mi.item_id) AS order_count")
-            )
-            ->where('mi.is_available', 1)
-            ->where('mi.item_name', 'like', "%{$q}%");
+        // --- Items: load SQL file and append dynamic conditions ---
+        $itemSql    = $this->getQuery('search_items_restaurants.sql');
+        $itemParams = ["%{$q}%", $offersOnly];
 
         if (!empty($filterCuisines)) {
-            $itemQuery->whereIn('mi.cuisine_id', $filterCuisines);
-        }
-        if ($offersOnly) {
-            $itemQuery->whereNotNull('o.offer_id');
+            $placeholders = implode(',', array_fill(0, count($filterCuisines), '?'));
+            $itemSql     .= " AND mi.cuisine_id IN ({$placeholders})";
+            $itemParams   = array_merge($itemParams, $filterCuisines);
         }
 
-        $itemQuery = match($sort) {
-            'price_asc'  => $itemQuery->orderBy('mi.price'),
-            'price_desc' => $itemQuery->orderByDesc('mi.price'),
-            default      => $itemQuery->orderByDesc('order_count'),
+        // Dynamic sort appended to the raw SQL
+        $itemSql .= match ($sort) {
+            'price_asc'  => ' ORDER BY mi.price ASC',
+            'price_desc' => ' ORDER BY mi.price DESC',
+            default      => ' ORDER BY order_count DESC',
         };
 
-        $items = $itemQuery->paginate(12, ['*'], 'item_page');
+        $allItems = DB::select($itemSql, $itemParams);
+        $items    = $this->manualPaginate($allItems, 12, 'item_page');
 
-        // --- Restaurants query ---
-        $restQuery = DB::table('restaurants as r')
-            ->leftJoin('restaurant_ratings as rr','r.restaurant_id','=','rr.restaurant_id')
-            ->select(
-                'r.restaurant_id','r.name','r.location','r.cover_image',
-                DB::raw("ISNULL(rr.avg_rating,0) AS avg_rating"),
-                DB::raw("ISNULL(rr.total_reviews,0) AS total_reviews"),
-                DB::raw("(SELECT COUNT(*) FROM orders o WHERE o.restaurant_id = r.restaurant_id) AS order_count")
-            )
-            ->where('r.name','like',"%{$q}%")
-            ->orderByDesc('order_count');
+        // --- Restaurants: load SQL file ---
+        $restSql        = $this->getQuery('search_restaurants.sql');
+        $allRestaurants = DB::select($restSql, ["%{$q}%"]);
+        $restaurants    = $this->manualPaginate($allRestaurants, 10, 'rest_page');
 
-        $restaurants = $restQuery->paginate(10, ['*'], 'rest_page');
-
-        return view('customer.search', compact('q','items','restaurants','cuisines','sort'));
+        return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
     }
 
     // -------------------------------------------------------
-    // OFFERS PAGE
+    // OFFERS PAGE (uses get_offers_page.sql)
     // -------------------------------------------------------
     public function offers(Request $request)
     {
         $cuisines       = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
         $filterCuisines = $request->input('cuisine', []);
 
-        $query = DB::table('menu_items as mi')
-            ->join('offers as o', function($j){
-                $j->on('o.target_item_id','=','mi.item_id')
-                  ->where('o.is_active',1)->where('o.target_type','item')
-                  ->whereRaw('GETDATE() BETWEEN o.start_datetime AND o.end_datetime');
-            })
-            ->join('restaurants as r','mi.restaurant_id','=','r.restaurant_id')
-            ->leftJoin('cuisine_types as ct','mi.cuisine_id','=','ct.cuisine_id')
-            ->select(
-                'mi.item_id','mi.item_name','mi.item_image','mi.description','mi.price',
-                DB::raw("ROUND(mi.price - (mi.price * o.discount_value / 100), 2) AS offer_price"),
-                'ct.cuisine_name as cuisine_names','mi.cuisine_id',
-                'r.restaurant_id','r.name as restaurant_name','r.cover_image'
-            )
-            ->where('mi.is_available',1);
+        // Load base SQL and append dynamic cuisine filter
+        $sql    = $this->getQuery('get_offers_page.sql');
+        $params = [];
 
         if (!empty($filterCuisines)) {
-            $query->whereIn('mi.cuisine_id', $filterCuisines);
+            $placeholders = implode(',', array_fill(0, count($filterCuisines), '?'));
+            $sql         .= " AND mi.cuisine_id IN ({$placeholders})";
+            $params       = $filterCuisines;
         }
 
-        $paginatedItems = $query->paginate(24);
-        $totalItems     = $paginatedItems->total();
+        $sql .= ' ORDER BY r.restaurant_id, mi.item_name';
+
+        $allResults = DB::select($sql, $params);
+        $totalItems = count($allResults);
+
+        // Paginate
+        $paginatedItems = $this->manualPaginate($allResults, 24);
 
         // Group by restaurant for display
         $groupedOffers = [];
@@ -170,29 +165,20 @@ class CustomerController extends Controller
             $groupedOffers[$rid]['items'][] = $item;
         }
 
-        return view('customer.offers', compact('groupedOffers','paginatedItems','cuisines','totalItems'));
+        return view('customer.offers', compact('groupedOffers', 'paginatedItems', 'cuisines', 'totalItems'));
     }
 
     // -------------------------------------------------------
-    // PROFILE
+    // PROFILE (uses get_user_by_id.sql, get_customer_addresses.sql, get_recent_orders.sql)
     // -------------------------------------------------------
     public function profile()
     {
         $userId      = session('user_id');
-        $user        = DB::table('users')->where('id', $userId)->first();
-        $addresses   = DB::table('customer_addresses')
-                          ->where('customer_id', $userId)
-                          ->orderByDesc('is_default')
-                          ->get();
-        $recentOrders = DB::table('orders as o')
-            ->join('restaurants as r','o.restaurant_id','=','r.restaurant_id')
-            ->select('o.*','r.name as restaurant_name')
-            ->where('o.customer_id', $userId)
-            ->orderByDesc('o.order_datetime')
-            ->limit(3)
-            ->get();
+        $user        = DB::selectOne($this->getQuery('get_user_by_id.sql'), [$userId]);
+        $addresses   = collect(DB::select($this->getQuery('get_customer_addresses.sql'), [$userId]));
+        $recentOrders = collect(DB::select($this->getQuery('get_recent_orders.sql'), [$userId]));
 
-        return view('customer.profile', compact('user','addresses','recentOrders'));
+        return view('customer.profile', compact('user', 'addresses', 'recentOrders'));
     }
 
     public function updateProfile(Request $request)
@@ -252,16 +238,24 @@ class CustomerController extends Controller
 
     public function setDefaultAddress($id)
     {
-        $userId = session('user_id');
-        DB::transaction(function() use ($id, $userId) {
-            DB::statement(
-                "UPDATE customer_addresses SET is_default = 0 WHERE customer_id = ?", [$userId]
-            );
-            DB::statement(
-                "UPDATE customer_addresses SET is_default = 1 WHERE address_id = ? AND customer_id = ?",
-                [$id, $userId]
-            );
+        $userId  = session('user_id');
+        $sqlFile = $this->getQuery('set_default_address.sql');
+
+        // Strip comment-only lines to avoid PDO parameter confusion, then split on ;
+        $cleanSql = implode("\n", array_filter(
+            explode("\n", $sqlFile),
+            fn($line) => !str_starts_with(trim($line), '--')
+        ));
+        $statements = array_values(array_filter(
+            array_map('trim', explode(';', $cleanSql)),
+            fn($s) => !empty($s)
+        ));
+
+        DB::transaction(function () use ($statements, $id, $userId) {
+            DB::statement($statements[0], [$userId]);       // Clear all defaults
+            DB::statement($statements[1], [$id, $userId]);  // Set new default
         });
+
         return redirect()->route('customer_profile')->with('success', 'Default address updated.');
     }
 
@@ -274,39 +268,26 @@ class CustomerController extends Controller
     }
 
     // -------------------------------------------------------
-    // ORDER HISTORY (full page)
+    // ORDER HISTORY (uses get_customer_orders.sql)
     // -------------------------------------------------------
     public function orderHistory()
     {
-        $userId = session('user_id');
-        $orders = DB::table('orders as o')
-            ->join('restaurants as r','o.restaurant_id','=','r.restaurant_id')
-            ->select('o.*','r.name as restaurant_name')
-            ->where('o.customer_id', $userId)
-            ->orderByDesc('o.order_datetime')
-            ->paginate(10);
+        $userId    = session('user_id');
+        $sql       = $this->getQuery('get_customer_orders.sql');
+        $allOrders = DB::select($sql, [$userId]);
+        $orders    = $this->manualPaginate($allOrders, 10);
 
         return view('customer.order_history', compact('orders'));
     }
 
     // -------------------------------------------------------
-    // DELETE ACCOUNT
+    // DELETE ACCOUNT (uses soft_delete_account.sql)
     // -------------------------------------------------------
     public function deleteAccount(Request $request)
     {
         $userId = session('user_id');
-        // Soft-delete: deactivate + mangle email & phone so the UNIQUE constraints
-        // no longer block re-registration with the same credentials.
-        // The DB trigger (trg_AfterAccountDeactivation) does the same thing as a
-        // safety net, but we also handle it here in PHP to be sure.
-        DB::statement(
-            "UPDATE users
-             SET is_active    = 0,
-                 email        = CONCAT('deleted_', CAST(id AS VARCHAR), '_', email),
-                 phone_number = '010' + RIGHT('00000000' + CAST(id AS VARCHAR(8)), 8)
-             WHERE id = ? AND is_active = 1",
-            [$userId]
-        );
+        $sql    = $this->getQuery('soft_delete_account.sql');
+        DB::statement($sql, [$userId]);
         Session::flush();
         return redirect()->route('login')->with('success', 'Your account has been deleted. You may register again anytime.');
     }

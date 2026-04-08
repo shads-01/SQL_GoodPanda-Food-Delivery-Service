@@ -5,15 +5,23 @@ GO
 -- CLEANUP
 -- ============================================================
 DELETE FROM failed_jobs;
-DELETE FROM reviews; DELETE FROM deliveries; DELETE FROM payments; 
-DELETE FROM cart_items; DELETE FROM cart; 
+DELETE FROM reviews; 
+DELETE FROM deliveries; 
+DELETE FROM payments; 
+DELETE FROM cart_items; 
+DELETE FROM cart; 
 DELETE FROM orders;
 DELETE FROM offers;
-DELETE FROM menu_items; DELETE FROM menu_categories;
-DELETE FROM restaurant_ratings; DELETE FROM restaurant_cuisines; DELETE FROM cuisine_types;
+DELETE FROM menu_items; 
+DELETE FROM menu_categories;
+DELETE FROM restaurant_ratings; 
+DELETE FROM restaurant_cuisines; 
+DELETE FROM cuisine_types;
 DELETE FROM restaurants; 
 DELETE FROM customer_addresses;
-DELETE FROM customer_profiles; DELETE FROM restaurant_owner_profiles; DELETE FROM delivery_partner_profiles;
+DELETE FROM customer_profiles; 
+DELETE FROM restaurant_owner_profiles; 
+DELETE FROM delivery_partner_profiles;
 DELETE FROM users;
 
 DBCC CHECKIDENT ('users', RESEED, 0);
@@ -24,46 +32,49 @@ DBCC CHECKIDENT ('menu_items', RESEED, 0);
 DBCC CHECKIDENT ('offers', RESEED, 0);
 DBCC CHECKIDENT ('orders', RESEED, 0);
 DBCC CHECKIDENT ('cart', RESEED, 0);
+DBCC CHECKIDENT ('deliveries', RESEED, 0);
 
 
 -- ============================================================
 -- 1. USERS
 -- ============================================================
+-- All passwords are set to 'password' using hash $2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6
+
 INSERT INTO users (role, name, email, phone_number, password, is_active, created_at)
 VALUES 
 -- Customers
 ('customer', 'Shahadat Hasan', 'shahadat@example.com', '01711000001', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
-('customer', 'John Doe', 'john@customer.com', '01811000002', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Sarah Connor', 'sarah@customer.com', '01911000003', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Mike Tyson', 'mike@customer.com', '01611000004', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Emily Blunt', 'emily@customer.com', '01511000005', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'David Beckham', 'david@customer.com', '01722000006', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Lisa Kudrow', 'lisa@customer.com', '01822000007', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'James Bond', 'james@customer.com', '01922000008', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Anna Smith', 'anna@customer.com', '01622000009', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Robert Stark', 'robert@customer.com', '01522000010', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Walter White', 'walter@customer.com', '01733000011', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Jesse Pinkman', 'jesse@customer.com', '01833000012', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Saul Goodman', 'saul@customer.com', '01933000013', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Gus Fring', 'gus@customer.com', '01633000014', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('customer', 'Mike Ehrmantraut','mike.e@customer.com','01533000015', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
+('customer', 'John Doe', 'john@customer.com', '01811000002', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Sarah Connor', 'sarah@customer.com', '01911000003', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Mike Tyson', 'mike@customer.com', '01611000004', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Emily Blunt', 'emily@customer.com', '01511000005', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'David Beckham', 'david@customer.com', '01722000006', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Lisa Kudrow', 'lisa@customer.com', '01822000007', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'James Bond', 'james@customer.com', '01922000008', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Anna Smith', 'anna@customer.com', '01622000009', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Robert Stark', 'robert@customer.com', '01522000010', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Walter White', 'walter@customer.com', '01733000011', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Jesse Pinkman', 'jesse@customer.com', '01833000012', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Saul Goodman', 'saul@customer.com', '01933000013', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Gus Fring', 'gus@customer.com', '01633000014', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('customer', 'Mike Ehrmantraut','mike.e@customer.com','01533000015', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
 
 -- Owners
-('restaurant_owner', 'Lab Instructor', 'instructor@aust.edu', '01744000001', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Jane Smith', 'jane@owner.com', '01844000002', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Mario Rossi', 'mario@owner.com', '01944000003', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Luigi Bros', 'luigi@owner.com', '01644000004', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Gordon Ramsay', 'gordon@owner.com', '01544000005', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Jamie Oliver', 'jamie@owner.com', '01755000006', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Antony Bourn', 'antony@owner.com', '01855000007', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('restaurant_owner', 'Maria Garcia', 'maria@owner.com', '01955000008', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
+('restaurant_owner', 'Lab Instructor', 'instructor@aust.edu', '01744000001', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Jane Smith', 'jane@owner.com', '01844000002', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Mario Rossi', 'mario@owner.com', '01944000003', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Luigi Bros', 'luigi@owner.com', '01644000004', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Gordon Ramsay', 'gordon@owner.com', '01544000005', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Jamie Oliver', 'jamie@owner.com', '01755000006', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Antony Bourn', 'antony@owner.com', '01855000007', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('restaurant_owner', 'Maria Garcia', 'maria@owner.com', '01955000008', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
 
 -- Riders
-('delivery_partner', 'Rahim Delivery', 'rahim@rider.com', '01666000001', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('delivery_partner', 'Karim Logistics', 'karim@rider.com', '01566000002', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('delivery_partner', 'Jabbar Fast', 'jabbar@rider.com', '01766000003', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('delivery_partner', 'Salam Go', 'salam@rider.com', '01866000004', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE()),
-('delivery_partner', 'Rafique Dash', 'rafique@rider.com', '01966000005', '$2y$12$imBxiNOY7V1a1gqnO3SZCu.ousibNa1HhQSLp4BWHVEwBCoMKZyPS', 1, GETDATE());
+('delivery_partner', 'Rahim Delivery', 'rahim@rider.com', '01666000001', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('delivery_partner', 'Karim Logistics', 'karim@rider.com', '01566000002', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('delivery_partner', 'Jabbar Fast', 'jabbar@rider.com', '01766000003', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('delivery_partner', 'Salam Go', 'salam@rider.com', '01866000004', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE()),
+('delivery_partner', 'Rafique Dash', 'rafique@rider.com', '01966000005', '$2y$12$sXPAVjM63yCR2UJOh.f20e.c4ag3R7PAv4S1clnBpOrsJRv02wXE6', 1, GETDATE());
 
 -- ============================================================
 -- 2. PROFILES
@@ -71,8 +82,12 @@ VALUES
 INSERT INTO customer_profiles (customer_id, created_at) SELECT id, GETDATE() FROM users WHERE role = 'customer';
 INSERT INTO restaurant_owner_profiles (owner_id, created_at) SELECT id, GETDATE() FROM users WHERE role = 'restaurant_owner';
 
-INSERT INTO delivery_partner_profiles (partner_id, vehicle_type, is_available, avg_rating, created_at)
-SELECT id, 'bike', 1, 4.80, GETDATE() FROM users WHERE role = 'delivery_partner';
+-- For Rahim Delivery, we'll assign some mock earnings from deliveries below (50 + 50 + 60 = 160)
+INSERT INTO delivery_partner_profiles (partner_id, vehicle_type, is_available, avg_rating, total_earnings, created_at)
+SELECT id, 'bike', 1, 4.80, 160.00, GETDATE() FROM users WHERE email = 'rahim@rider.com';
+
+INSERT INTO delivery_partner_profiles (partner_id, vehicle_type, is_available, avg_rating, total_earnings, created_at)
+SELECT id, 'scooter', 1, 4.50, 0.00, GETDATE() FROM users WHERE email IN ('karim@rider.com', 'jabbar@rider.com', 'salam@rider.com', 'rafique@rider.com');
 
 -- ============================================================
 -- 3. ADDRESSES
@@ -261,26 +276,59 @@ VALUES
 DECLARE @c_shahadat BIGINT;
 SELECT @c_shahadat = id FROM users WHERE email = 'shahadat@example.com';
 
-INSERT INTO orders (customer_id, restaurant_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
-VALUES
-(@c_shahadat, @r_panda, DATEADD(day, -15, GETDATE()), 'delivered', 850.00, 0, 50.00, 900.00),
-(@c_shahadat, @r_bk, DATEADD(day, -10, GETDATE()), 'delivered', 1550.00, 100.00, 50.00, 1500.00),
-(@c_shahadat, @r_spice, DATEADD(day, -5, GETDATE()), 'delivered', 1250.00, 50.00, 60.00, 1260.00),
-(@c_shahadat, @r_luigi, DATEADD(day, -1, GETDATE()), 'delivered', 1050.00, 0, 60.00, 1110.00),
-(@c_shahadat, @r_mex, DATEADD(hour, -2, GETDATE()), 'pending', 750.00, 25.00, 50.00, 775.00),
-(@c_shahadat, @r_sushi, DATEADD(month, -1, GETDATE()), 'cancelled', 2300.00, 0, 80.00, 2380.00);
+DECLARE @a_shahadat BIGINT;
+SELECT TOP 1 @a_shahadat = address_id FROM customer_addresses WHERE customer_id = @c_shahadat AND label = 'Home';
 
--- Provide some diverse orders for John Doe
-DECLARE @c_john BIGINT;
+INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
+VALUES
+(@c_shahadat, @r_panda, @a_shahadat, DATEADD(day, -15, GETDATE()), 'delivered', 850.00, 0, 50.00, 900.00),
+(@c_shahadat, @r_bk, @a_shahadat, DATEADD(day, -10, GETDATE()), 'delivered', 1550.00, 100.00, 50.00, 1500.00),
+(@c_shahadat, @r_spice, @a_shahadat, DATEADD(day, -5, GETDATE()), 'delivered', 1250.00, 50.00, 60.00, 1260.00),
+(@c_shahadat, @r_luigi, @a_shahadat, DATEADD(day, -1, GETDATE()), 'on_the_way', 1050.00, 0, 60.00, 1110.00),
+(@c_shahadat, @r_mex, @a_shahadat, DATEADD(hour, -2, GETDATE()), 'ready', 750.00, 25.00, 50.00, 775.00),
+(@c_shahadat, @r_sushi, @a_shahadat, DATEADD(month, -1, GETDATE()), 'cancelled', 2300.00, 0, 80.00, 2380.00);
+
+DECLARE @o1 INT, @o2 INT, @o3 INT, @o4 INT, @o5 INT;
+SET @o1 = SCOPE_IDENTITY() - 5; -- First order inserted
+SET @o2 = @o1 + 1;
+SET @o3 = @o1 + 2;
+SET @o4 = @o1 + 3;
+SET @o5 = @o1 + 4; -- Ready order
+
+DECLARE @c_john BIGINT, @a_john BIGINT;
 SELECT @c_john = id FROM users WHERE email = 'john@customer.com';
+SELECT TOP 1 @a_john = address_id FROM customer_addresses WHERE customer_id = @c_john;
 
-INSERT INTO orders (customer_id, restaurant_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
+INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
 VALUES
-(@c_john, @r_gordon, DATEADD(day, -3, GETDATE()), 'delivered', 4300.00, 0, 100.00, 4400.00),
-(@c_john, @r_jamie, DATEADD(day, -1, GETDATE()), 'delivered', 1200.00, 0, 60.00, 1260.00);
+(@c_john, @r_gordon, @a_john, DATEADD(day, -3, GETDATE()), 'delivered', 4300.00, 0, 100.00, 4400.00),
+(@c_john, @r_jamie, @a_john, DATEADD(minute, -30, GETDATE()), 'preparing', 1200.00, 0, 60.00, 1260.00);
+
+
+-- ============================================================
+-- 11. DELIVERIES
+-- ============================================================
+DECLARE @u_rahim BIGINT;
+SELECT @u_rahim = id FROM users WHERE email = 'rahim@rider.com';
+
+-- Completed Deliveries for Rahim
+INSERT INTO deliveries (order_id, partner_id, delivery_address_id, delivery_status, pickup_time, delivered_time)
+VALUES
+(@o1, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 20, DATEADD(day, -15, GETDATE())), DATEADD(minute, 45, DATEADD(day, -15, GETDATE()))),
+(@o2, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 15, DATEADD(day, -10, GETDATE())), DATEADD(minute, 35, DATEADD(day, -10, GETDATE()))),
+(@o3, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 30, DATEADD(day, -5, GETDATE())), DATEADD(minute, 60, DATEADD(day, -5, GETDATE())));
+
+-- Active Delivery for Rahim (On the Way)
+INSERT INTO deliveries (order_id, partner_id, delivery_address_id, delivery_status, pickup_time)
+VALUES
+(@o4, @u_rahim, @a_shahadat, 'on_the_way', DATEADD(minute, -15, GETDATE()));
+
+-- Note: The orders for @o5 ('ready') and John Doe's second order ('preparing') 
+-- do not have delivery records yet, they will populate the "Available Deliveries" market!
+
 
 -- ============================================================
 -- DONE
 -- ============================================================
-PRINT 'Seed generation complete: Massively populated tables.';
+PRINT 'Seed generation complete: Massively populated tables with rider integrations.';
 GO
