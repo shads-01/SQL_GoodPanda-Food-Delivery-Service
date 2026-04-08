@@ -10,6 +10,7 @@ BEGIN
     ON r.restaurant_id = rr.restaurant_id
     WHERE r.restaurant_id = @restaurant_id;
 END;
+GO
 
 CREATE OR ALTER PROCEDURE sp_get_restaurant_items
     @restaurant_id INT
@@ -22,6 +23,7 @@ BEGIN
         AND mi.is_available = 1
     ORDER BY mc.display_order, mi.item_name;
 END;
+GO
 
 -- Restaurant specific categories
 CREATE OR ALTER PROCEDURE sp_get_categories_by_restaurant
@@ -33,6 +35,7 @@ BEGIN
     WHERE restaurant_id = @restaurant_id
     ORDER BY display_order;
 END;
+GO
 
 -- Items searching and filtering
 CREATE OR ALTER PROCEDURE sp_search_menu_items

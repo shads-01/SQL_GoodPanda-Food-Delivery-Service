@@ -331,6 +331,7 @@ BEGIN
         vehicle_type VARCHAR(50) NOT NULL CHECK (vehicle_type IN ('bike', 'scooter', 'bicycle', 'car')),
         is_available TINYINT NOT NULL DEFAULT 1 CHECK (is_available IN (0, 1)),
         avg_rating DECIMAL(3,2) NOT NULL DEFAULT 0.00 CHECK (avg_rating BETWEEN 0.00 AND 5.00),
+        total_earnings DECIMAL(10,2) NOT NULL DEFAULT 0.00,
         created_at DATETIME NULL
     );
 END

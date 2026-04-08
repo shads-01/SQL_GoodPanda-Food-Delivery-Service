@@ -289,8 +289,6 @@
         <div class="gp-profile-dropdown" id="gpProfileDropdown">
             <a href="{{ route('customer_profile') }}">👤 Profile</a>
             <a href="{{ route('customer.offers') }}">🏷️ Offers</a>
-            <a href="#">❓ Help</a>
-            <a href="#">ℹ️ About</a>
             <form action="{{ route('logout') }}" method="POST" style="margin:0;padding:0;">
                 @csrf
                 <button type="submit" class="danger">🚪 Logout</button>
