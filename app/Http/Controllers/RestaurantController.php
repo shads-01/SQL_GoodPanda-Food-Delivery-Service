@@ -22,40 +22,68 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        $itemCount = DB::table('menu_items')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->count();
+        $rid = $restaurant->restaurant_id;
 
-        // Get additional dashboard data
-        $availableItems = DB::table('menu_items')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->where('is_available', 1)
-            ->count();
+        // --- Basic counts ---
+        $itemCount = DB::table('menu_items')->where('restaurant_id', $rid)->count();
+        $availableItems = DB::table('menu_items')->where('restaurant_id', $rid)->where('is_available', 1)->count();
+        $unavailableItems = DB::table('menu_items')->where('restaurant_id', $rid)->where('is_available', 0)->count();
 
-        $unavailableItems = DB::table('menu_items')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->where('is_available', 0)
-            ->count();
-
-        // Get active offers
+        // --- Active offers ---
         $activeOffers = DB::table('offers')
             ->leftJoin('menu_items', 'offers.target_item_id', '=', 'menu_items.item_id')
-            ->where('offers.restaurant_id', $restaurant->restaurant_id)
+            ->where('offers.restaurant_id', $rid)
             ->where('offers.is_active', 1)
             ->where('offers.start_datetime', '<=', DB::raw('GETDATE()'))
             ->where('offers.end_datetime', '>=', DB::raw('GETDATE()'))
             ->select('offers.*', 'menu_items.item_name')
             ->orderBy('offers.created_at', 'desc')
             ->get();
-
         $itemsWithOffers = $activeOffers->unique('target_item_id')->count();
 
+        // --- 1. Top Selling Items ---
+        $topItems = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_top_items.sql')),
+            [$rid]
+        );
+
+        // --- 2. Revenue & Order Stats (COUNT + SUM + Scalar Subquery) ---
+        $revenueStats = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_revenue_stats.sql')),
+            [$rid, $rid]
+        );
+        $stats = $revenueStats[0] ?? null;
+
+        // --- 3. Recent Orders (JOIN) ---
+        $recentOrders = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_recent_orders.sql')),
+            [$rid]
+        );
+
+        // --- 4. Active/Pending Orders (IN clause) ---
+        $activeOrders = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_active_orders.sql')),
+            [$rid]
+        );
+
+        // --- 5. Recent Reviews (JOIN + Scalar Subquery) ---
+        $recentReviews = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_recent_reviews.sql')),
+            [$rid, $rid]
+        );
+
         return view('restaurant.dashboard', compact(
+            'restaurant',
             'itemCount',
             'availableItems',
             'unavailableItems',
             'activeOffers',
-            'itemsWithOffers'
+            'itemsWithOffers',
+            'topItems',
+            'stats',
+            'recentOrders',
+            'activeOrders',
+            'recentReviews'
         ));
     }
 
@@ -404,6 +432,27 @@ class RestaurantController extends Controller
 
         return redirect()->route('restaurant.items')
             ->with('success', 'Item updated successfully!');
+    }
+
+    // Orders List
+    public function orders()
+    {
+        $ownerId = session('user_id');
+
+        $restaurant = DB::table('restaurants')
+            ->where('owner_id', $ownerId)
+            ->first();
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        $orders = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_all_orders.sql')),
+            [$restaurant->restaurant_id]
+        );
+
+        return view('restaurant.orders', compact('orders'));
     }
 
     // Delete Item

@@ -108,9 +108,8 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/restaurant/items', [RestaurantController::class, 'items'])
         ->name('restaurant.items');
 
-    Route::get('/restaurant/orders', function () {
-        return view('restaurant.orders');
-    })->name('restaurant.orders');
+    Route::get('/restaurant/orders', [RestaurantController::class, 'orders'])
+        ->name('restaurant.orders');
 
     Route::get('/restaurant/analytics', function () {
         return view('restaurant.analytics');
