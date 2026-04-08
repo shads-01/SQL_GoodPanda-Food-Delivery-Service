@@ -7,7 +7,6 @@
         <a href="{{ route('restaurant.dashboard') }}">Dashboard</a>
         <a href="{{ route('restaurant.items') }}">Menu</a>
         <a href="{{ route('restaurant.orders') }}">Orders</a>
-        <a href="{{ route('restaurant.analytics') }}">Analytics</a>
     </div>
 
     <div class="flex items-center gap-4">
