@@ -836,6 +836,18 @@
                         <div style="text-align:right;">
                             <span class="order-status status-{{ $order->order_status }}">{{ ucfirst($order->order_status) }}</span>
                             <div class="order-amount">৳{{ number_format($order->total_amount,0) }}</div>
+                            @if($order->order_status == 'delivered')
+                                <div style="margin-top: 0.5rem;">
+                                    @if(!$order->review_id)
+                                        <button class="btn-text-orange" style="white-space: nowrap;" 
+                                                onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}')">
+                                            ⭐ Review
+                                        </button>
+                                    @else
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);">⭐ Reviewed</span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                     @empty
@@ -886,6 +898,8 @@
             </div>
         </div>
     </footer>
+
+    @include('components.review_modal')
 
     <script>
         // ---- Smooth scroll to section ----

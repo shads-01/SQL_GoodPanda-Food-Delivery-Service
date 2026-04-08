@@ -428,12 +428,19 @@
                         🍽️
                         @endif
                     </div>
-                    <div class="rest-result-info">
-                        <div class="rname">{{ $r->name }}</div>
-                        <div class="rloc">📍 {{ $r->location }}</div>
-                        <div class="rrating">★ {{ number_format($r->avg_rating ?? 0, 1) }}</div>
+                    <div class="rest-result-info flex-1">
+                        <div class="rname text-lg font-bold text-gray-900 mb-0.5">{{ $r->name }}</div>
+                        <div class="rloc text-sm text-gray-500 mb-2">📍 {{ $r->location }}</div>
+                        <div class="rrating text-orange-500 font-bold text-sm flex items-center gap-1">
+                            ★ {{ number_format($r->avg_rating ?? 0, 1) }}
+                        </div>
                     </div>
-                </div>
+                    <div class="pl-8 border-l border-gray-100/80 ml-4 py-2">
+                        <a href="{{ route('restaurant.details', $r->restaurant_id) }}" 
+                           class="bg-orange-500 text-white px-12 py-4 rounded-2xl text-base font-black shadow-xl shadow-orange-100/50 hover:bg-orange-600 hover:-translate-y-0.5 transition-all uppercase tracking-widest active:scale-95 whitespace-nowrap block text-center min-w-[200px]">
+                           Order Now
+                        </a>
+                    </div>
                 @endforeach
             </div>
             <div class="pagination">

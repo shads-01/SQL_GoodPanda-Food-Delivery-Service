@@ -34,28 +34,28 @@
                         @foreach($cartItems as $item)
                         <li class="flex justify-between items-center text-sm">
                             <span class="font-medium text-gray-700"><span class="font-bold text-gray-900 bg-white px-2 py-1 rounded shadow-sm border">{{ $item->quantity }}x</span> &nbsp; {{ $item->item_name }}</span>
-                            <span class="font-bold text-gray-900">${{ number_format($item->unit_price * $item->quantity, 2) }}</span>
+                            <span class="font-bold text-gray-900">৳{{ number_format($item->unit_price * $item->quantity, 2) }}</span>
                         </li>
                         @endforeach
                     </ul>
                     <div class="space-y-3 text-sm text-gray-600">
                         <div class="flex justify-between">
                             <span>Subtotal</span>
-                            <span class="font-bold text-gray-800">${{ number_format($subtotal, 2) }}</span>
+                            <span class="font-bold text-gray-800">৳{{ number_format($subtotal, 2) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Delivery Fee</span>
-                            <span class="font-bold text-gray-800">${{ number_format($delivery, 2) }}</span>
+                            <span class="font-bold text-gray-800">৳{{ number_format($delivery, 2) }}</span>
                         </div>
                         @if($discount > 0)
                         <div class="flex justify-between text-orange-500">
                             <span>Discount</span>
-                            <span class="font-bold">-${{ number_format($discount, 2) }}</span>
+                            <span class="font-bold">-৳{{ number_format($discount, 2) }}</span>
                         </div>
                         @endif
                         <div class="flex justify-between pt-4 border-t border-gray-200 mt-2 text-xl">
                             <span class="font-black text-gray-800 uppercase tracking-wide">Total</span>
-                            <span class="font-black text-orange-500">${{ number_format($total, 2) }}</span>
+                            <span class="font-black text-orange-500">৳{{ number_format($total, 2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
 
             <div class="flex flex-col gap-3">
                 <button type="submit" class="w-full bg-orange-500 text-white font-black py-4 rounded-xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200 disabled:opacity-50 tracking-wider text-lg" {{ count($addresses) == 0 ? 'disabled' : '' }}>
-                    Place Order (${{ number_format($total, 2) }})
+                    Place Order (৳{{ number_format($total, 2) }})
                 </button>
                 <a href="{{ route('restaurant.details', $restaurantId) }}" class="block text-center mt-2 text-gray-500 font-bold hover:text-orange-500 transition-colors">
                     Back to Menu

@@ -54,7 +54,8 @@ class CustomerController extends Controller
     public function searchSuggestions(Request $request)
     {
         $q = $request->input('q', '');
-        if (strlen($q) < 2) return response()->json([]);
+        if (strlen($q) < 2)
+            return response()->json([]);
 
         $items = DB::select(
             "SELECT TOP 5 item_name AS label, 'item' AS type FROM menu_items
@@ -70,9 +71,13 @@ class CustomerController extends Controller
 
         $results = array_merge($items, $restaurants);
         // Remove duplicates by label
-        $seen = []; $unique = [];
+        $seen = [];
+        $unique = [];
         foreach ($results as $r) {
-            if (!in_array($r->label, $seen)) { $seen[] = $r->label; $unique[] = $r; }
+            if (!in_array($r->label, $seen)) {
+                $seen[] = $r->label;
+                $unique[] = $r;
+            }
         }
         return response()->json(array_slice($unique, 0, 8));
     }
@@ -90,6 +95,10 @@ class CustomerController extends Controller
 
         if (empty($q)) {
             return view('customer.search', [
+                'query' => '',
+                'items' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12)),
+                'restaurants' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)),
+                'cuisines' => $cuisines,
                 'query'       => '',
                 'items'       => new LengthAwarePaginator([], 0, 12),
                 'restaurants' => new LengthAwarePaginator([], 0, 10),
@@ -123,6 +132,7 @@ class CustomerController extends Controller
         $restaurants    = $this->manualPaginate($allRestaurants, 10, 'rest_page');
 
         return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
+        return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
     }
 
     // -------------------------------------------------------
@@ -130,7 +140,7 @@ class CustomerController extends Controller
     // -------------------------------------------------------
     public function offers(Request $request)
     {
-        $cuisines       = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
+        $cuisines = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
         $filterCuisines = $request->input('cuisine', []);
 
         // Load base SQL and append dynamic cuisine filter
@@ -157,14 +167,15 @@ class CustomerController extends Controller
             $rid = $item->restaurant_id;
             if (!isset($groupedOffers[$rid])) {
                 $groupedOffers[$rid] = [
-                    'name'        => $item->restaurant_name,
+                    'name' => $item->restaurant_name,
                     'cover_image' => $item->cover_image,
-                    'items'       => [],
+                    'items' => [],
                 ];
             }
             $groupedOffers[$rid]['items'][] = $item;
         }
 
+        return view('customer.offers', compact('groupedOffers', 'paginatedItems', 'cuisines', 'totalItems'));
         return view('customer.offers', compact('groupedOffers', 'paginatedItems', 'cuisines', 'totalItems'));
     }
 
@@ -184,17 +195,17 @@ class CustomerController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'name'         => 'required|string|min:2|max:100',
-            'email'        => 'required|email|max:100',
-            'phone_number' => ['required','regex:/^01[0-9]{9}$/'],
+            'name' => 'required|string|min:2|max:100',
+            'email' => 'required|email|max:100',
+            'phone_number' => ['required', 'regex:/^01[0-9]{9}$/'],
         ]);
 
         $userId = session('user_id');
-        $sql    = file_get_contents(database_path('sql/queries/customer/update_profile.sql'));
+        $sql = file_get_contents(database_path('sql/queries/customer/update_profile.sql'));
         DB::statement($sql, [
-            'name'   => $request->name,
-            'email'  => $request->email,
-            'phone'  => $request->phone_number,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone_number,
             'userId' => $userId,
         ]);
 
@@ -207,12 +218,12 @@ class CustomerController extends Controller
     public function storeAddress(Request $request)
     {
         $request->validate([
-            'label'        => 'required|string|max:50',
+            'label' => 'required|string|max:50',
             'address_line' => 'required|string|max:255',
-            'city'         => 'required|string|max:100',
+            'city' => 'required|string|max:100',
         ]);
         $userId = session('user_id');
-        $sql    = file_get_contents(database_path('sql/queries/auth/insert_address.sql'));
+        $sql = file_get_contents(database_path('sql/queries/auth/insert_address.sql'));
         DB::statement($sql, [$userId, $request->label, $request->address_line, $request->city, 0]);
         return redirect()->route('customer_profile')->with('success', 'Address added.');
     }
@@ -220,18 +231,18 @@ class CustomerController extends Controller
     public function updateAddress(Request $request, $id)
     {
         $request->validate([
-            'label'        => 'required|string|max:50',
+            'label' => 'required|string|max:50',
             'address_line' => 'required|string|max:255',
-            'city'         => 'required|string|max:100',
+            'city' => 'required|string|max:100',
         ]);
         $userId = session('user_id');
-        $sql    = file_get_contents(database_path('sql/queries/customer/update_address.sql'));
+        $sql = file_get_contents(database_path('sql/queries/customer/update_address.sql'));
         DB::statement($sql, [
-            'label'       => $request->label,
+            'label' => $request->label,
             'addressLine' => $request->address_line,
-            'city'        => $request->city,
-            'addressId'   => $id,
-            'customerId'  => $userId,
+            'city' => $request->city,
+            'addressId' => $id,
+            'customerId' => $userId,
         ]);
         return redirect()->route('customer_profile')->with('success', 'Address updated.');
     }
@@ -262,7 +273,7 @@ class CustomerController extends Controller
     public function deleteAddress($id)
     {
         $userId = session('user_id');
-        $sql    = file_get_contents(database_path('sql/queries/customer/delete_address.sql'));
+        $sql = file_get_contents(database_path('sql/queries/customer/delete_address.sql'));
         DB::statement($sql, ['addressId' => $id, 'customerId' => $userId]);
         return redirect()->route('customer_profile')->with('success', 'Address removed.');
     }
@@ -277,7 +288,7 @@ class CustomerController extends Controller
         $allOrders = DB::select($sql, [$userId]);
         $orders    = $this->manualPaginate($allOrders, 10);
 
-        return view('customer.order_history', compact('orders'));
+        return view('customer.order_history', compact('orders', 'partners'));
     }
 
     // -------------------------------------------------------

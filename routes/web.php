@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RiderController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -67,6 +68,7 @@ Route::middleware(['custom.auth'])->group(function () {
 
     // Customer order history (full page)
     Route::get('/customer/orders', [CustomerController::class, 'orderHistory'])->name('customer.order_history');
+    Route::post('/customer/reviews', [ReviewController::class, 'store'])->name('customer.review.store');
 
     // Customer account deletion
     Route::delete('/customer/account', [CustomerController::class, 'deleteAccount'])->name('customer.account.delete');
@@ -112,9 +114,8 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/restaurant/items', [RestaurantController::class, 'items'])
         ->name('restaurant.items');
 
-    Route::get('/restaurant/orders', function () {
-        return view('restaurant.orders');
-    })->name('restaurant.orders');
+    Route::get('/restaurant/orders', [RestaurantController::class, 'orders'])
+        ->name('restaurant.orders');
 
     Route::get('/restaurant/analytics', function () {
         return view('restaurant.analytics');
