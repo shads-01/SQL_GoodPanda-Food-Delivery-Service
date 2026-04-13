@@ -9,4 +9,4 @@ SELECT TOP 3
     (SELECT COUNT(*) FROM orders o WHERE o.restaurant_id = r.restaurant_id) AS order_count
 FROM restaurants r
 LEFT JOIN restaurant_ratings rr ON r.restaurant_id = rr.restaurant_id
-ORDER BY rr.total_reviews DESC, rr.avg_rating DESC, order_count DESC;
+ORDER BY rr.avg_rating DESC, rr.total_reviews DESC, order_count DESC;

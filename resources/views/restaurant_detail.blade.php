@@ -140,7 +140,7 @@
                     Contact: {{ $restaurant->phone_number }} <br>
                     Welcome to {{ $restaurant->name }}! Explore our delicious offerings below.
                 </p>
-                <button
+                <button onclick="openReviewsModal()"
                     class="bg-white border-2 border-gray-200 text-gray-700 font-bold px-6 py-2.5 rounded-xl hover:border-orange-500 hover:text-orange-500 transition-all text-sm shadow-sm flex items-center gap-2 group">
                     <i data-feather="message-square"
                         class="w-4 h-4 text-gray-400 group-hover:text-orange-500 transition-colors"></i> Read User
@@ -349,7 +349,7 @@
 
     <!-- 2. Offers Modal -->
     <div id="offersModal"
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2rem] shadow-2xl z-[120] hidden opacity-0 scale-95 transition-all duration-300 p-8">
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white rounded-[2rem] shadow-2xl z-[120] hidden opacity-0 scale-95 transition-all duration-300 p-8 overflow-hidden">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-black text-gray-800 flex items-center gap-2">
                 Active Offers
@@ -415,6 +415,66 @@
         </div>
     </div>
 
+    <!-- 3. Reviews Modal -->
+    <div id="reviewsModal"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-lg bg-white rounded-[2rem] shadow-2xl z-[120] hidden opacity-0 scale-95 transition-all duration-300 flex flex-col max-h-[85vh] overflow-hidden">
+        <div class="p-6 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div>
+                <h2 class="text-xl font-black text-gray-800 flex items-center gap-2">
+                    <i data-feather="message-circle" class="w-5 h-5 text-orange-500"></i> Recent Reviews
+                </h2>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Showing last 10 reviews</p>
+            </div>
+            <button onclick="closeModals()"
+                class="p-2 bg-white border border-gray-100 rounded-full hover:bg-red-50 hover:text-red-500 transition-all hover:rotate-90">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-6">
+            @forelse($reviews as $rev)
+            <div class="bg-gray-50/30 rounded-2xl p-5 border border-gray-100/50 hover:bg-white hover:shadow-md transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-black">
+                            {{ strtoupper(substr($rev->reviewer_name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <h4 class="font-black text-gray-800 text-sm">{{ $rev->reviewer_name }}</h4>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ \Carbon\Carbon::parse($rev->review_datetime)->diffForHumans() }}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                        <div class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg shadow-sm border border-gray-50">
+                            <i data-feather="star" class="w-3 h-3 text-orange-500 fill-orange-500"></i>
+                            <span class="text-xs font-black text-gray-800">{{ number_format($rev->restaurant_rating, 1) }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                @if($rev->comment)
+                <div class="relative pl-4 border-l-2 border-orange-200 py-1">
+                    <p class="text-sm text-gray-600 font-medium leading-relaxed italic">"{{ $rev->comment }}"</p>
+                </div>
+                @else
+                <p class="text-xs text-gray-300 italic font-medium">No comment provided.</p>
+                @endif
+            </div>
+            @empty
+            <div class="text-center py-12 px-6">
+                <div class="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
+                    <i data-feather="message-square" class="w-8 h-8 text-gray-300 opacity-50"></i>
+                </div>
+                <h3 class="text-xl font-black mb-2 tracking-tight text-gray-800">No reviews yet</h3>
+                <p class="font-medium text-gray-500 text-sm max-w-[200px] mx-auto">Be the first to share your experience after ordering!</p>
+            </div>
+            @endforelse
+        </div>
+        
+        <div class="p-6 bg-gray-50/50 border-t border-gray-100 mt-auto flex justify-center flex-shrink-0">
+             <button onclick="closeModals()" class="px-8 py-3 bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-black transition-all shadow-lg active:scale-95">Close</button>
+        </div>
+    </div>
 
     <script>
         const CSRF_TOKEN      = document.querySelector('meta[name="csrf-token"]').content;
@@ -525,6 +585,7 @@
         const overlay     = document.getElementById('modalOverlay');
         const itemModal   = document.getElementById('itemModal');
         const offersModal = document.getElementById('offersModal');
+        const reviewsModal = document.getElementById('reviewsModal');
 
         function toggleOverlay(show) {
             if (show) {
@@ -538,7 +599,7 @@
 
         function closeModals() {
             toggleOverlay(false);
-            [itemModal, offersModal].forEach(modal => {
+            [itemModal, offersModal, reviewsModal].forEach(modal => {
                 modal.classList.remove('opacity-100', 'scale-100');
                 modal.classList.add('opacity-0', 'scale-95');
                 setTimeout(() => modal.classList.add('hidden'), 300);
@@ -649,6 +710,14 @@
             offersModal.classList.remove('hidden');
             setTimeout(() => offersModal.classList.replace('scale-95',  'scale-100'), 10);
             setTimeout(() => offersModal.classList.replace('opacity-0', 'opacity-100'), 10);
+        }
+
+        window.openReviewsModal = function() {
+            toggleOverlay(true);
+            reviewsModal.classList.remove('hidden');
+            if (typeof feather !== 'undefined') feather.replace();
+            setTimeout(() => reviewsModal.classList.replace('scale-95',  'scale-100'), 10);
+            setTimeout(() => reviewsModal.classList.replace('opacity-0', 'opacity-100'), 10);
         }
 
         function openCart() {

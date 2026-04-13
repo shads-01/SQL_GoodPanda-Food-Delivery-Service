@@ -112,7 +112,11 @@
                             @endif
                         </div>
                         <span class="order-status-badge status-{{ strtolower($order->order_status) }}">
-                            {{ ucfirst($order->order_status) }}
+                            @if($order->order_status === 'on_the_way')
+                                ON THE WAY
+                            @else
+                                {{ ucfirst($order->order_status) }}
+                            @endif
                         </span>
                     </div>
                     

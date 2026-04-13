@@ -833,7 +833,13 @@
                             @endif
                         </div>
                         <div style="text-align:right;">
-                            <span class="order-status status-{{ $order->order_status }}">{{ ucfirst($order->order_status) }}</span>
+                            <span class="order-status status-{{ $order->order_status }}">
+                                @if($order->order_status === 'on_the_way')
+                                    ON THE WAY
+                                @else
+                                    {{ ucfirst($order->order_status) }}
+                                @endif
+                            </span>
                             <div class="order-amount">৳{{ number_format($order->total_amount,0) }}</div>
                             @if($order->order_status == 'delivered')
                                 <div style="margin-top: 0.5rem;">

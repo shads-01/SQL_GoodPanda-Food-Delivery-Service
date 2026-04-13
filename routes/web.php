@@ -93,8 +93,9 @@ Route::middleware(['custom.auth'])->group(function () {
         $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
         $cuisines = DB::select("EXEC sp_get_cuisines_by_restaurant ?", [$id]);
         $offers = DB::select("EXEC sp_get_active_offers ?", [$id]);
+        $reviews = DB::select("EXEC sp_get_recent_reviews ?", [$id]);
 
-        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers'));
+        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers', 'reviews'));
     })->name('restaurant.details');
 
     // --- Rider ---
