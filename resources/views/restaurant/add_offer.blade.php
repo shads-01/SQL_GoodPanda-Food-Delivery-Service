@@ -1,170 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    @vite('resources/css/app.css')
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Menu Item | {{ $restaurant->name ?? 'Restaurant' }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-sora {
+            font-family: 'Sora', sans-serif;
+        }
+
+        /* Fallback for browsers that don't support tailwind's appearance-none */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-[#FAFAF9] text-gray-800">
 
-@include('restaurant.navbar')
+    <x-restaurant_navbar :restaurant="$restaurant" />
 
-<div class="max-w-2xl mx-auto p-8 bg-white mt-10 rounded shadow">
+    <div class="p-4 md:p-8 max-w-4xl mx-auto">
 
-<!DOCTYPE html>
-<html>
-<head>
-    @vite('resources/css/app.css')
-</head>
-
-<body class="bg-gray-100">
-
-<div class="max-w-3xl mx-auto p-8 bg-white mt-10 rounded shadow">
-
-    <h2 class="text-xl font-bold mb-6">Create New Offer</h2>
-
-    @if ($errors->any())
-        <div class="bg-red-50 text-red-500 p-4 rounded mb-6">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>- {{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form action="{{ route('restaurant.store_offer') }}" method="POST" class="space-y-5">
-        @csrf
-
-        <!-- Offer Title -->
-        <div>
-            <label class="block font-semibold mb-1 text-gray-700">Offer Title</label>
-            <input name="offer_title" type="text" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" placeholder="e.g., Summer Special Discount" required>
+        <div class="mb-10">
+            <a href="{{ route('restaurant.items') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-orange-600 mb-4 transition-colors bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Back to Menu
+            </a>
+            <h2 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight font-sora">
+                Add New Dish
+            </h2>
+            <p class="text-gray-500 mt-2 font-medium">Create a delicious new addition to your menu.</p>
         </div>
 
-        <!-- Target Configuration -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block font-semibold mb-1 text-gray-700">Applies To (Target)</label>
-                <select name="target_type" id="targetTypeSelect" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" required>
-                    <option value="item">Specific Item</option>
-                    <option value="category">Menu Category</option>
-                    <option value="restaurant">Entire Restaurant</option>
-                </select>
+        <form action="{{ route('restaurant.storeItem') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-10 space-y-8">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Item Name</label>
+                        <input type="text" name="name" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all placeholder-gray-400" placeholder="e.g. Spicy Miso Ramen" required>
+                        @error('name')<p class="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><i data-feather="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>@enderror
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Price (৳)</label>
+                        <div class="relative">
+                            <input type="number" name="price" class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all" placeholder="0.00" step="0.01" required>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold select-none text-base">৳</span>
+                        </div>
+                        @error('price')<p class="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><i data-feather="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Category</label>
+                        <div class="relative">
+                            <select name="category_id" class="w-full pl-4 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all appearance-none cursor-pointer" required>
+                                <option value="" disabled selected>Select Category</option>
+                                @foreach($categories as $cat)
+                                <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
+                                @endforeach
+                            </select>
+                            <i data-feather="chevron-down" class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        </div>
+                        @error('category_id')<p class="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><i data-feather="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Cuisine Type</label>
+                        <div class="relative">
+                            <select name="cuisine_id" class="w-full pl-4 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all appearance-none cursor-pointer" required>
+                                <option value="" disabled selected>Select Cuisine</option>
+                                @foreach($cuisines as $c)
+                                <option value="{{ $c->cuisine_id }}">{{ $c->cuisine_name }}</option>
+                                @endforeach
+                            </select>
+                            <i data-feather="chevron-down" class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        </div>
+                        @error('cuisine_id')<p class="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><i data-feather="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>@enderror
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Description</label>
+                    <textarea name="description" rows="3" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all resize-none placeholder-gray-400" placeholder="What makes this dish special? Add ingredients, flavors, and allergens..."></textarea>
+                    @error('description')<p class="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><i data-feather="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Item Photo</label>
+                    <div class="w-full h-48 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 group hover:bg-orange-50 hover:border-orange-300 hover:text-orange-500 transition-all relative overflow-hidden cursor-pointer">
+                        <i data-feather="image" class="w-10 h-10 mb-3 group-hover:scale-110 transition-transform duration-300"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest">Click to Upload Photo</span>
+                        <input type="file" name="item_image" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="previewImage(this)" required>
+                        <img id="imagePreview" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none">
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100">
+                    <button type="submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 hover:bg-orange-600 hover:shadow-orange-500/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i data-feather="check-circle" class="w-5 h-5"></i> Publish to Menu
+                    </button>
+                </div>
+
             </div>
+        </form>
+    </div>
 
-            <!-- Item Dropdown -->
-            <div id="targetItemContainer">
-                <label class="block font-semibold mb-1 text-gray-700">Select Item</label>
-                <select name="target_item_id" id="targetItemSelect" class="w-full border p-3 rounded bg-gray-50 focus:bg-white">
-                    <option value="">-- Choose Item --</option>
-                    @foreach($items as $item)
-                        <option value="{{ $item->item_id }}">{{ $item->item_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Category Dropdown -->
-            <div id="targetCategoryContainer" class="hidden">
-                <label class="block font-semibold mb-1 text-gray-700">Select Category</label>
-                <select name="target_category_id" id="targetCategorySelect" class="w-full border p-3 rounded bg-gray-50 focus:bg-white">
-                    <option value="">-- Choose Category --</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->category_id }}">{{ $category->category_name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-
-        <!-- Discount Configuration -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-5">
-            <div>
-                <label class="block font-semibold mb-1 text-gray-700">Discount Type</label>
-                <select name="discount_type" id="discountTypeSelect" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" required>
-                    <option value="percentage">Percentage (%)</option>
-                    <option value="flat">Flat Amount ($)</option>
-                    <option value="free_delivery">Free Delivery</option>
-                </select>
-            </div>
-
-            <div id="discountValueContainer">
-                <label class="block font-semibold mb-1 text-gray-700">Discount Value</label>
-                <input name="discount_value" id="discountValueInput" type="number" step="0.01" min="0.01" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" placeholder="e.g., 15 or 5.00">
-            </div>
-        </div>
-
-        <!-- Min Order & Dates -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-100 pt-5">
-            <div>
-                <label class="block font-semibold mb-1 text-gray-700">Min Order Amount <span class="font-normal text-gray-400 text-sm">(Optional)</span></label>
-                <input name="min_order_amount" type="number" step="0.01" min="1" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" placeholder="e.g., 50.00">
-            </div>
-            
-            <div>
-                <label class="block font-semibold mb-1 text-gray-700">Start Date & Time</label>
-                <input name="start_date" type="datetime-local" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" required>
-            </div>
-
-            <div>
-                <label class="block font-semibold mb-1 text-gray-700">End Date & Time</label>
-                <input name="end_date" type="datetime-local" class="w-full border p-3 rounded bg-gray-50 focus:bg-white" required>
-            </div>
-        </div>
-
-        <div class="pt-4">
-            <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 font-bold text-white px-6 py-4 rounded-xl transition-colors shadow-lg shadow-orange-200">
-                Create Offer
-            </button>
-        </div>
-
-    </form>
-
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const targetTypeSelect = document.getElementById('targetTypeSelect');
-        const itemContainer = document.getElementById('targetItemContainer');
-        const categoryContainer = document.getElementById('targetCategoryContainer');
-        
-        const discountTypeSelect = document.getElementById('discountTypeSelect');
-        const discountValueContainer = document.getElementById('discountValueContainer');
-        const discountValueInput = document.getElementById('discountValueInput');
-
-        // Target Logic
-        targetTypeSelect.addEventListener('change', function() {
-            itemContainer.classList.add('hidden');
-            categoryContainer.classList.add('hidden');
-            
-            if (this.value === 'item') {
-                itemContainer.classList.remove('hidden');
-            } else if (this.value === 'category') {
-                categoryContainer.classList.remove('hidden');
-            }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace({
+                'stroke-width': 2.5
+            });
         });
 
-        // Discount Logic
-        discountTypeSelect.addEventListener('change', function() {
-            if (this.value === 'free_delivery') {
-                discountValueContainer.classList.add('hidden');
-                discountValueInput.value = '';
-                discountValueInput.required = false;
-            } else {
-                discountValueContainer.classList.remove('hidden');
-                discountValueInput.required = true;
-                if(this.value === 'percentage') {
-                    discountValueInput.max = 100;
-                    discountValueInput.placeholder = 'e.g., 20 (%)';
-                } else {
-                    discountValueInput.removeAttribute('max');
-                    discountValueInput.placeholder = 'e.g., 5.00 ($)';
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
                 }
+                reader.readAsDataURL(input.files[0]);
             }
-        });
-        
-        // Trigger initial state
-        discountTypeSelect.dispatchEvent(new Event('change'));
-    });
-</script>
-
+        }
+    </script>
 </body>
+
 </html>

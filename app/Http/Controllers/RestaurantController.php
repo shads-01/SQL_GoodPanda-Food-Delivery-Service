@@ -15,7 +15,9 @@ class RestaurantController extends Controller
         $ownerId = session('user_id');
 
         $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
+            ->leftJoin('restaurant_ratings', 'restaurants.restaurant_id', '=', 'restaurant_ratings.restaurant_id')
+            ->where('restaurants.owner_id', $ownerId)
+            ->select('restaurants.*', 'restaurant_ratings.avg_rating', 'restaurant_ratings.total_reviews')
             ->first();
 
         if (!$restaurant) {
@@ -106,7 +108,7 @@ class RestaurantController extends Controller
 
         $cuisines = DB::table('cuisine_types')->get();
 
-        return view('restaurant.add_item', compact('categories', 'cuisines'));
+        return view('restaurant.add_item', compact('categories', 'cuisines', 'restaurant'));
     }
 
     // Store Item
@@ -207,11 +209,15 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        // Get items using stored procedure
-        $items = collect(DB::select("EXEC sp_get_items_by_res_id ?", [$restaurant->restaurant_id]));
+        // Get items with category name using Query Builder to support pagination
+        $items = DB::table('menu_items')
+            ->join('menu_categories', 'menu_items.category_id', '=', 'menu_categories.category_id')
+            ->where('menu_items.restaurant_id', $restaurant->restaurant_id)
+            ->select('menu_items.*', 'menu_categories.category_name')
+            ->paginate(12);
 
         // Get active offers for these items
-        $itemIds = $items->pluck('item_id');
+        $itemIds = collect($items->items())->pluck('item_id');
         $offers = DB::table('offers')
             ->whereIn('target_item_id', $itemIds)
             ->where('target_type', 'item')
@@ -244,7 +250,7 @@ class RestaurantController extends Controller
             }
         }
 
-        return view('restaurant.items', compact('items'));
+        return view('restaurant.items', compact('items', 'restaurant'));
     }
 
     // Add Offer Page
@@ -270,7 +276,7 @@ class RestaurantController extends Controller
             ->select('category_id', 'category_name')
             ->get();
 
-        return view('restaurant.add_offer', compact('items', 'categories'));
+        return view('restaurant.add_offer', compact('items', 'categories', 'restaurant'));
     }
 
     // Store Offer
@@ -388,7 +394,7 @@ class RestaurantController extends Controller
             ->where('restaurant_id', $restaurant->restaurant_id)
             ->get();
 
-        return view('restaurant.item_details', compact('item', 'categories'));
+        return view('restaurant.item_details', compact('item', 'categories', 'restaurant'));
     }
 
     // Update Item
@@ -447,12 +453,22 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
         }
 
-        $orders = DB::select(
-            file_get_contents(database_path('sql/queries/restaurant/get_all_orders.sql')),
-            [$restaurant->restaurant_id]
-        );
+        $orders = DB::table('orders as o')
+            ->join('users as u', 'o.customer_id', '=', 'u.id')
+            ->leftJoin('customer_addresses as ca', 'o.delivery_address_id', '=', 'ca.address_id')
+            ->where('o.restaurant_id', $restaurant->restaurant_id)
+            ->select(
+                'o.order_id',
+                'u.name as customer_name',
+                'o.total_amount',
+                'o.order_status',
+                'o.order_datetime',
+                'ca.address_line as delivery_address'
+            )
+            ->orderBy('o.order_datetime', 'desc')
+            ->paginate(10);
 
-        return view('restaurant.orders', compact('orders'));
+        return view('restaurant.orders', compact('orders', 'restaurant'));
     }
 
     // Delete Item
@@ -484,5 +500,50 @@ class RestaurantController extends Controller
 
         return redirect()->route('restaurant.items')
             ->with('success', 'Item deleted successfully!');
+    }
+
+    // Analytics Page
+    public function analytics()
+    {
+        $ownerId = session('user_id');
+        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
+        if (!$restaurant) return redirect()->route('home');
+
+        $rid = $restaurant->restaurant_id;
+
+        // --- 1. Top Selling Items ---
+        $topItems = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_top_items.sql')),
+            [$rid]
+        );
+
+        // --- 2. Revenue & Order Stats ---
+        $revenueStats = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/dashboard_revenue_stats.sql')),
+            [$rid, $rid]
+        );
+        $stats = $revenueStats[0] ?? null;
+
+        return view('restaurant.analytics', compact('restaurant', 'topItems', 'stats'));
+    }
+
+    // Reviews Page
+    public function reviews()
+    {
+        $ownerId = session('user_id');
+        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
+        if (!$restaurant) return redirect()->route('home');
+
+        $rid = $restaurant->restaurant_id;
+
+        // Fetch all reviews with names
+        $reviews = DB::table('reviews as rev')
+            ->join('users as u', 'rev.customer_id', '=', 'u.id')
+            ->where('rev.restaurant_id', $rid)
+            ->select('rev.*', 'u.name as reviewer_name')
+            ->orderBy('rev.review_datetime', 'desc')
+            ->paginate(15);
+
+        return view('restaurant.reviews', compact('restaurant', 'reviews'));
     }
 }

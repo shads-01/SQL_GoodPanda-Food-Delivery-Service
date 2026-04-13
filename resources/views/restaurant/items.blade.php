@@ -1,76 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Menu</title>
-    @vite('resources/css/app.css')
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Management | {{ $restaurant->name ?? 'Restaurant' }}</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-sora {
+            font-family: 'Sora', sans-serif;
+        }
+
+        /* Custom Pagination Styling */
+        .pagination-container nav div:first-child {
+            display: none;
+        }
+
+        .pagination-container nav div:last-child {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pagination-container nav span[aria-current="page"] span {
+            background-color: #F97316 !important;
+            color: white !important;
+            border-color: #F97316 !important;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+        }
+
+        .pagination-container nav a,
+        .pagination-container nav span {
+            border-radius: 0.75rem !important;
+            padding: 0.5rem 1rem !important;
+            font-weight: 700 !important;
+            font-size: 0.875rem !important;
+            transition: all 0.2s !important;
+            border: 1.5px solid #F3F4F6 !important;
+            color: #6B7280 !important;
+        }
+
+        .pagination-container nav a:hover {
+            border-color: #F97316 !important;
+            color: #F97316 !important;
+            background-color: #FFF7ED !important;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-[#FAFAF9] text-gray-800">
 
-@include('restaurant.navbar')
+    <x-restaurant_navbar :restaurant="$restaurant" />
 
-<div class="p-8">
-
-@if(session('success'))
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-        {{ session('success') }}
-    </div>
-@endif
-
-<h2 class="text-2xl font-bold mb-6">Menu Management</h2>
-
-<div class="mb-4">
-    <a href="{{ route('restaurant.add_offer') }}" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
-        Create Offer
-    </a>
-</div>
-
-<table class="w-full bg-white shadow rounded text-left">
-
-<tr class="border-b text-gray-500 bg-gray-50">
-    <th class="p-3">Image</th>
-    <th class="p-3">Item</th>
-    <th class="p-3">Price</th>
-    <th class="p-3">Category</th>
-    <th class="p-3">Cuisine</th>
-    <th class="p-3">Status</th>
-    <th class="p-3">Actions</th>
-</tr>
-
-@foreach($items as $item)
-<tr class="border-b hover:bg-gray-50 transition-colors">
-    <td class="p-3">
-        <div class="w-20 h-20 rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-gray-50">
-            <img src="{{ $item->item_image }}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('{{ $item->item_name }}')+'&background=random'">
+    <div class="p-8 max-w-5xl mx-auto pb-20">
+        <div class="mb-10 flex items-end justify-between gap-6">
+            <div>
+                <p class="text-orange-500 font-bold uppercase tracking-widest text-xs mb-2">Inventory Control</p>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight font-sora">Menu Items</h2>
+            </div>
+            <a href="{{ route('restaurant.add_item') }}"
+                class="bg-orange-500 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:bg-orange-600 transition flex items-center gap-2">
+                <i data-feather="plus" class="w-4 h-4"></i> Add New Dish
+            </a>
         </div>
-    </td>
-    <td class="p-3 font-semibold text-gray-700">{{ $item->item_name }}</td>
-    <td class="p-3">
-        @if($item->has_offer)
-            <span class="line-through text-gray-500">${{ $item->original_price }}</span>
-            <span class="text-green-600 font-bold">${{ $item->discounted_price }}</span>
-            @if($item->discount_type === 'percentage')
-                <span class="text-sm text-green-600">({{ $item->discount_value }}% off)</span>
-            @endif
-        @else
-            ${{ $item->price }}
+
+        <div class="flex flex-col gap-4">
+            @foreach($items as $item)
+                {{-- ... (existing item card) ... --}}
+                <div
+                    class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 flex flex-row items-center gap-6 hover:shadow-md transition-shadow duration-300">
+
+                    <div class="flex-none w-32 h-32 rounded-xl overflow-hidden bg-gray-100 relative"
+                        style="min-width: 8rem;">
+                        <img src="{{ $item->item_image }}" alt="{{ $item->item_name }}" class="w-full h-full object-cover">
+                        @if($item->has_offer)
+                            <div
+                                class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black tracking-wider px-2 py-1 rounded shadow-sm">
+                                OFFER
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="flex-grow min-w-0 py-2">
+                        <div class="flex items-center gap-3 mb-1">
+                            <h4 class="font-bold text-gray-900 text-xl font-sora truncate">{{ $item->item_name }}</h4>
+                            <span
+                                class="bg-gray-100 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md">
+                                {{ $item->category_name }}
+                            </span>
+                        </div>
+
+                        <p class="text-sm text-gray-500 line-clamp-2 mb-3 pr-4">{{ $item->description }}</p>
+
+                        @if($item->is_available)
+                            <span class="text-emerald-600 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
+                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 me-1"></div> Live on Store
+                            </span>
+                        @else
+                            <span class="text-gray-400 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
+                                <div class="w-1.5 h-1.5 rounded-full bg-gray-400 me-1"></div> Hidden
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="flex-none ml-auto flex items-center gap-6 pl-4">
+
+                        <div class="text-right">
+                            @if($item->has_offer)
+                                <p class="text-xs text-gray-400 line-through mb-0.5">
+                                    ৳{{ number_format($item->original_price, 0) }}</p>
+                                <p class="text-2xl font-black text-orange-600 font-sora leading-none">
+                                    ৳{{ number_format($item->discounted_price, 0) }}</p>
+                            @else
+                                <p class="text-2xl font-black text-gray-900 font-sora leading-none">
+                                    ৳{{ number_format($item->price, 0) }}</p>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('restaurant.item.details', $item->item_id) }}" title="Edit Dish"
+                                class="p-2.5 bg-white text-gray-500 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-colors border border-gray-200 shadow-sm">
+                                <i data-feather="edit-2" class="w-4 h-4"></i>
+                            </a>
+                            <form action="{{ route('restaurant.deleteItem', $item->item_id) }}" method="POST"
+                                onsubmit="return confirm('Delete this dish?');" class="m-0">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="Delete Dish"
+                                    class="p-2.5 bg-white text-gray-500 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200 shadow-sm">
+                                    <i data-feather="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            @endforeach
+        </div>
+
+        @if($items->hasPages())
+            <div class="mt-12 pagination-container">
+                {{ $items->links() }}
+            </div>
         @endif
-    </td>
-    <td class="p-3">{{ $item->category_name ?? 'No Category' }}</td>
-    <td class="p-3">{{ $item->cuisine_name ?? 'No Cuisine' }}</td>
-    <td class="p-3 {{ $item->is_available ? 'text-green-500' : 'text-red-500' }}">
-        {{ $item->is_available ? 'Available' : 'Unavailable' }}
-    </td>
-    <td class="p-3">
-        <a href="{{ route('restaurant.item.details', $item->item_id) }}" class="text-orange-500">Edit</a>
-    </td>
-</tr>
-@endforeach
+    </div>
 
-</table>
-
-</div>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace({ 'stroke-width': 2.5 });
+        });
+    </script>
 </body>
+
 </html>

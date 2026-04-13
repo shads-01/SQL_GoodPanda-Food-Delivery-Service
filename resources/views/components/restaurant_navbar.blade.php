@@ -44,8 +44,8 @@
     .gp-nav-links {
         display: flex;
         gap: 1.5rem;
-        margin-left: 2rem;
         flex: 1;
+        justify-content: center;
     }
 
     .gp-nav-links a {
