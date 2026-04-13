@@ -832,6 +832,9 @@
                             <div class="order-id">Order #{{ $order->order_id }}</div>
                             <div class="order-rest">{{ $order->restaurant_name }}</div>
                             <div class="order-date">{{ \Carbon\Carbon::parse($order->order_datetime)->format('d M Y') }}</div>
+                            @if($order->partner_name)
+                                <div style="font-size: 0.75rem; color: var(--orange-main); font-weight: 600; margin-top: 4px;">🚴 Rider: {{ $order->partner_name }}</div>
+                            @endif
                         </div>
                         <div style="text-align:right;">
                             <span class="order-status status-{{ $order->order_status }}">{{ ucfirst($order->order_status) }}</span>
@@ -840,7 +843,7 @@
                                 <div style="margin-top: 0.5rem;">
                                     @if(!$order->review_id)
                                         <button class="btn-text-orange" style="white-space: nowrap;" 
-                                                onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}')">
+                                                onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}', '{{ addslashes($order->partner_name) }}')">
                                             ⭐ Review
                                         </button>
                                     @else

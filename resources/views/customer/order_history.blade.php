@@ -95,6 +95,9 @@
                         <div class="order-info">
                             <h3>{{ $order->restaurant_name ?? 'Unknown Restaurant' }}</h3>
                             <p>Order #{{ $order->order_id }} • {{ \Carbon\Carbon::parse($order->order_datetime)->format('M d, Y h:i A') }}</p>
+                            @if($order->partner_name)
+                                <p style="margin-top: 4px; color: var(--orange-main); font-weight: 600;">🚴 Rider: {{ $order->partner_name }}</p>
+                            @endif
                         </div>
                         <span class="order-status-badge status-{{ strtolower($order->order_status) }}">
                             {{ ucfirst($order->order_status) }}
@@ -109,7 +112,7 @@
                             @if($order->order_status == 'delivered')
                                 @if(!$order->review_id)
                                     <button class="btn btn-outline-orange" 
-                                            onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}')">
+                                            onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}', '{{ addslashes($order->partner_name) }}')">
                                         ⭐ Write a Review
                                     </button>
                                 @else

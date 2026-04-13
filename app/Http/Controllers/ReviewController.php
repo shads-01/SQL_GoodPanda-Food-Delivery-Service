@@ -29,17 +29,36 @@ class ReviewController extends Controller
             return back()->withErrors(['error' => 'You have already reviewed this order.']);
         }
 
-        // 3. Insert into the database using raw SQL file
-        $sql = file_get_contents(database_path('sql/queries/customer/insert_review.sql'));
-        DB::statement($sql, [
-            $validated['order_id'],
-            session('user_id'),
-            $validated['restaurant_id'],
-            $validated['partner_id'] ?: null,
-            $validated['restaurant_rating'],
-            $validated['delivery_rating'] ?: null,
-            $validated['comment']
-        ]);
+        // 3. Insert into the database and update ratings in a transaction
+        DB::transaction(function () use ($validated) {
+            $insertSql = file_get_contents(database_path('sql/queries/customer/insert_review.sql'));
+            DB::statement($insertSql, [
+                $validated['order_id'],
+                session('user_id'),
+                $validated['restaurant_id'],
+                $validated['partner_id'] ?: null,
+                $validated['restaurant_rating'],
+                $validated['delivery_rating'] ?: null,
+                $validated['comment']
+            ]);
+
+            // 3.1 Update Restaurant Average Rating
+            $updateRestSql = file_get_contents(database_path('sql/queries/customer/update_restaurant_rating.sql'));
+            DB::statement($updateRestSql, [
+                $validated['restaurant_id'],
+                $validated['restaurant_id'],
+                $validated['restaurant_id']
+            ]);
+
+            // 3.2 Update Partner Average Rating (if assigned)
+            if ($validated['partner_id']) {
+                $updatePartnerSql = file_get_contents(database_path('sql/queries/customer/update_partner_rating.sql'));
+                DB::statement($updatePartnerSql, [
+                    $validated['partner_id'],
+                    $validated['partner_id']
+                ]);
+            }
+        });
 
         // 4. Redirect back with success message
         return redirect()->route('customer.order_history')->with('success', 'Thank you! Your review has been submitted.');
