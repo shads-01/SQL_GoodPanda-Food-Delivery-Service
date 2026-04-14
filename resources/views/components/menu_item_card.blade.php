@@ -9,6 +9,7 @@
     'offer_price'   => $item->offer_price ?? null,
     'cuisine_names' => $item->cuisine_names ?? null,
     'description'   => $item->description ?? null,
+    'restaurant_id' => $item->restaurant_id ?? null,
 ]) }})" style="cursor:pointer;">
     <div class="mic-image">
         @if(!empty($item->item_image) && str_starts_with($item->item_image,'http'))

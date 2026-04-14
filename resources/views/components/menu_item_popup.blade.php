@@ -31,11 +31,15 @@
                     <button onclick="changeQty(1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #E7E5E4;background:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
                 </div>
                 <span style="font-size:0.9rem;color:#78716C;">Total: <strong id="popupLineTotal" style="color:#1C1917;"></strong></span>
-            </div>
-
-            <!-- Add to Cart -->
-            <button onclick="addToCart()" style="width:100%;padding:0.85rem;background:#F97316;color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#EA580C'" onmouseout="this.style.background='#F97316'">
-                Add to Cart
+                       <!-- Add to Cart -->
+            <button id="popupAddToCartBtn" onclick="addToCart()" style="width:100%;padding:0.85rem;background:#F97316;color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;" onmouseover="this.style.background='#EA580C'" onmouseout="this.style.background='#F97316'">
+                <span id="popupAddToCartText">Add to Cart</span>
+                <div id="popupAddToCartLoading" class="hidden">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
             </button>
         </div>
     </div>
@@ -76,6 +80,14 @@
         document.getElementById('popupQty').textContent = 1;
         document.getElementById('popupLineTotal').textContent = '৳' + unitPrice.toFixed(0);
 
+        // Reset button state
+        const btn = document.getElementById('popupAddToCartBtn');
+        const btnText = document.getElementById('popupAddToCartText');
+        const btnLoading = document.getElementById('popupAddToCartLoading');
+        btn.disabled = false;
+        btnText.textContent = 'Add to Cart';
+        btnLoading.classList.add('hidden');
+
         const ov = document.getElementById('itemPopupOverlay');
         ov.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -94,17 +106,76 @@
         document.getElementById('popupLineTotal').textContent = '৳' + (unitPrice * _popupQty).toFixed(0);
     }
 
-    function addToCart() {
+    async function addToCart() {
         if (!_popupItem) return;
-        // Cart wiring by teammate – we just log for now
-        console.log('Add to cart:', _popupItem.item_id, 'qty:', _popupQty);
+
+        const btn = document.getElementById('popupAddToCartBtn');
+        const btnText = document.getElementById('popupAddToCartText');
+        const btnLoading = document.getElementById('popupAddToCartLoading');
+
+        const restaurantId = _popupItem.restaurant_id;
+        if (!restaurantId) {
+            alert('Cannot add to cart: restaurant not found.');
+            return;
+        }
+
+        const unitPrice = _popupItem.price ? parseFloat(_popupItem.price) : 0;
+        const csrf = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '';
+
+        // ── Single-restaurant cart enforcement ──
+        if (window.gpRestaurantId && window.gpRestaurantId != restaurantId && window.gpCart && window.gpCart.length > 0) {
+            const confirmed = confirm('Your cart has items from another restaurant.\n\nClear it and start a new order from this restaurant?');
+            if (!confirmed) return;
+            try {
+                await fetch('/api/cart/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify({ restaurant_id: window.gpRestaurantId }),
+                });
+            } catch (e) { console.error(e); }
+            window.gpRestaurantId = null;
+            window.gpActiveOffer  = null;
+        }
+
+        // Set Loading State
+        btn.disabled = true;
+        btnText.textContent = 'Adding to cart...';
+        btnLoading.classList.remove('hidden');
+
+        try {
+            const res = await fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    restaurant_id: restaurantId,
+                    item_id:       _popupItem.item_id,
+                    quantity:      _popupQty,
+                    unit_price:    unitPrice,
+                }),
+            });
+            if (!res.ok) throw new Error('Failed');
+        } catch (e) {
+            alert('Could not add to cart. Please try again.');
+            btn.disabled = false;
+            btnText.textContent = 'Add to Cart';
+            btnLoading.classList.add('hidden');
+            return;
+        }
+
+        // Success: reload and show toast
         closeItemPopup();
-        // Show a quick toast
+        
+        // Reload navbar cart
+        window.gpRestaurantId = restaurantId;
+        if (typeof window.gpLoadCart === 'function') window.gpLoadCart();
+        if (typeof window.gpOpenCart === 'function') window.gpOpenCart();
+
+        // Quick toast
         const t = document.createElement('div');
         t.textContent = '✓ Added to cart!';
         t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1C1917;color:white;padding:0.6rem 1.1rem;border-radius:8px;font-size:0.875rem;z-index:9999;transition:opacity 0.4s;';
         document.body.appendChild(t);
-        setTimeout(() => t.style.opacity = '0', 2000);
+        setTimeout(() => { t.style.opacity = '0'; }, 2000);
         setTimeout(() => t.remove(), 2500);
     }
 
@@ -113,3 +184,16 @@
         if (e.target === this) closeItemPopup();
     });
 </script>
+
+<style>
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .hidden {
+        display: none;
+    }
+</style>

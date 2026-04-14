@@ -150,4 +150,40 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Get the customer's active cart across all restaurants (for the global navbar cart).
+     * Returns items along with the restaurant_id so the navbar knows where to checkout.
+     */
+    public function getActiveCart()
+    {
+        $customerId = Session::get('user_id');
+        if (!$customerId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $cartItems = DB::select(
+                file_get_contents(database_path('sql/queries/customer/get_active_cart.sql')),
+                [$customerId]
+            );
+            $restaurantId = !empty($cartItems) ? $cartItems[0]->restaurant_id : null;
+            return response()->json(['success' => true, 'cart' => $cartItems, 'restaurant_id' => $restaurantId]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get active offers for a given restaurant (for the global navbar cart discount logic).
+     */
+    public function getOffersForRestaurant($restaurantId)
+    {
+        try {
+            $offers = DB::select("EXEC sp_get_active_offers ?", [$restaurantId]);
+            return response()->json(['success' => true, 'offers' => $offers]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }
