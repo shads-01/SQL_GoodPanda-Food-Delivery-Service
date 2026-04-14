@@ -14,11 +14,11 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->leftJoin('restaurant_ratings', 'restaurants.restaurant_id', '=', 'restaurant_ratings.restaurant_id')
-            ->where('restaurants.owner_id', $ownerId)
-            ->select('restaurants.*', 'restaurant_ratings.avg_rating', 'restaurant_ratings.total_reviews')
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_dashboard_info.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
@@ -26,22 +26,17 @@ class RestaurantController extends Controller
 
         $rid = $restaurant->restaurant_id;
 
-        // --- Basic counts ---
-        $itemCount = DB::table('menu_items')->where('restaurant_id', $rid)->count();
-        $availableItems = DB::table('menu_items')->where('restaurant_id', $rid)->where('is_available', 1)->count();
-        $unavailableItems = DB::table('menu_items')->where('restaurant_id', $rid)->where('is_available', 0)->count();
+        // --- Basic counts (Now consolidated in $restaurant object) ---
+        $itemCount = $restaurant->total_items;
+        $availableItems = $restaurant->available_items;
+        $unavailableItems = $restaurant->unavailable_items;
 
         // --- Active offers ---
-        $activeOffers = DB::table('offers')
-            ->leftJoin('menu_items', 'offers.target_item_id', '=', 'menu_items.item_id')
-            ->where('offers.restaurant_id', $rid)
-            ->where('offers.is_active', 1)
-            ->where('offers.start_datetime', '<=', DB::raw('GETDATE()'))
-            ->where('offers.end_datetime', '>=', DB::raw('GETDATE()'))
-            ->select('offers.*', 'menu_items.item_name')
-            ->orderBy('offers.created_at', 'desc')
-            ->get();
-        $itemsWithOffers = $activeOffers->unique('target_item_id')->count();
+        $activeOffers = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_dashboard_active_offers.sql')),
+            [$rid]
+        );
+        $itemsWithOffers = collect($activeOffers)->unique('target_item_id')->count();
 
         // --- 1. Top Selling Items ---
         $topItems = DB::select(
@@ -49,26 +44,26 @@ class RestaurantController extends Controller
             [$rid]
         );
 
-        // --- 2. Revenue & Order Stats (COUNT + SUM + Scalar Subquery) ---
+        // --- 2. Revenue & Order Stats ---
         $revenueStats = DB::select(
             file_get_contents(database_path('sql/queries/restaurant/dashboard_revenue_stats.sql')),
             [$rid, $rid]
         );
         $stats = $revenueStats[0] ?? null;
 
-        // --- 3. Recent Orders (JOIN) ---
+        // --- 3. Recent Orders ---
         $recentOrders = DB::select(
             file_get_contents(database_path('sql/queries/restaurant/dashboard_recent_orders.sql')),
             [$rid]
         );
 
-        // --- 4. Active/Pending Orders (IN clause) ---
+        // --- 4. Active/Pending Orders ---
         $activeOrders = DB::select(
             file_get_contents(database_path('sql/queries/restaurant/dashboard_active_orders.sql')),
             [$rid]
         );
 
-        // --- 5. Recent Reviews (JOIN + Scalar Subquery) ---
+        // --- 5. Recent Reviews ---
         $recentReviews = DB::select(
             file_get_contents(database_path('sql/queries/restaurant/dashboard_recent_reviews.sql')),
             [$rid, $rid]
@@ -94,19 +89,22 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_dashboard_info.sql')), // Reusing dashboard info as it fetch restaurant too
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        $categories = DB::table('menu_categories')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->get();
+        $categories = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_categories.sql')),
+            [$restaurant->restaurant_id]
+        );
 
-        $cuisines = DB::table('cuisine_types')->get();
+        $cuisines = DB::select("SELECT * FROM cuisine_types ORDER BY cuisine_name ASC");
 
         return view('restaurant.add_item', compact('categories', 'cuisines', 'restaurant'));
     }
@@ -124,7 +122,11 @@ class RestaurantController extends Controller
         ]);
 
         $ownerId = session('user_id');
-        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
@@ -206,9 +208,11 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
@@ -264,23 +268,25 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        $items = DB::table('menu_items')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->select('item_id', 'item_name')
-            ->get();
+        $items = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_items_minimal.sql')),
+            [$restaurant->restaurant_id]
+        );
 
-        $categories = DB::table('menu_categories')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->select('category_id', 'category_name')
-            ->get();
+        $categories = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_categories.sql')),
+            [$restaurant->restaurant_id]
+        );
 
         return view('restaurant.add_offer', compact('items', 'categories', 'restaurant'));
     }
@@ -329,9 +335,11 @@ class RestaurantController extends Controller
  
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
@@ -341,7 +349,7 @@ class RestaurantController extends Controller
         $startDate = $startDateTime->format('Y-m-d H:i:s');
         $endDate = $endDateTime->format('Y-m-d H:i:s');
 
-        $sqlPath = base_path('database/sql/queries/insert_offer.sql');
+        $sqlPath = base_path('database/sql/queries/restaurant/insert_offer.sql');
         
         if (!file_exists($sqlPath)) {
             return redirect()->back()->with('error', 'SQL script for inserting offers not found.');
@@ -376,9 +384,11 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
@@ -405,26 +415,27 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
         }
 
-        $offer = DB::table('offers')
-            ->where('offer_id', $id)
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->first();
+        $offerCheck = DB::select("SELECT * FROM offers WHERE offer_id = ? AND restaurant_id = ?", [$id, $restaurant->restaurant_id]);
+        $offer = !empty($offerCheck) ? $offerCheck[0] : null;
 
         if (!$offer) {
             return redirect()->route('restaurant.offers')->with('error', 'Offer not found.');
         }
 
-        DB::table('offers')
-            ->where('offer_id', $id)
-            ->delete();
+        DB::delete(
+            file_get_contents(database_path('sql/queries/restaurant/delete_offer.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
 
         return redirect()->route('restaurant.offers')->with('success', 'Offer deleted successfully!');
     }
@@ -434,9 +445,11 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
@@ -450,9 +463,10 @@ class RestaurantController extends Controller
             return redirect()->route('restaurant.items')->with('error', 'Item not found.');
         }
 
-        $categories = DB::table('menu_categories')
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->get();
+        $categories = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_categories.sql')),
+            [$restaurant->restaurant_id]
+        );
 
         return view('restaurant.item_details', compact('item', 'categories', 'restaurant'));
     }
@@ -469,32 +483,38 @@ class RestaurantController extends Controller
 
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Check if item belongs to this restaurant
-        $item = DB::table('menu_items')
-            ->where('item_id', $id)
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->first();
+        $itemCheck = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_menu_item_by_id.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
+        $item = !empty($itemCheck) ? $itemCheck[0] : null;
 
         if (!$item) {
             return redirect()->route('restaurant.items')->with('error', 'Item not found.');
         }
 
-        DB::table('menu_items')
-            ->where('item_id', $id)
-            ->update([
-                'item_name' => $request->name,
-                'description' => $request->description,
-                'price' => $request->price,
-                'category_id' => $request->category_id,
-            ]);
+        DB::update(
+            file_get_contents(database_path('sql/queries/restaurant/update_menu_item.sql')),
+            [
+                $request->name,
+                $request->description,
+                $request->price,
+                $request->category_id,
+                $id,
+                $restaurant->restaurant_id
+            ]
+        );
 
         return redirect()->route('restaurant.items')
             ->with('success', 'Item updated successfully!');
@@ -505,9 +525,11 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
@@ -545,32 +567,34 @@ class RestaurantController extends Controller
 
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return back()->with('error', 'No restaurant found for your account.');
         }
 
-        $order = DB::table('orders')
-            ->where('order_id', $id)
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->first();
+        $orderCheck = DB::select("SELECT * FROM orders WHERE order_id = ? AND restaurant_id = ?", [$id, $restaurant->restaurant_id]);
+        $order = !empty($orderCheck) ? $orderCheck[0] : null;
 
         if (!$order) {
             return back()->with('error', 'Order not found or unauthorized.');
         }
 
-        DB::transaction(function () use ($id, $request) {
-            DB::table('orders')
-                ->where('order_id', $id)
-                ->update(['order_status' => $request->status]);
+        DB::transaction(function () use ($id, $request, $restaurant) {
+            DB::update(
+                file_get_contents(database_path('sql/queries/restaurant/update_order_status.sql')),
+                [$request->status, $id, $restaurant->restaurant_id]
+            );
 
             if ($request->status === 'cancelled') {
-                DB::table('deliveries')
-                    ->where('order_id', $id)
-                    ->update(['delivery_status' => 'cancelled']);
+                DB::update(
+                    file_get_contents(database_path('sql/queries/restaurant/update_delivery_status_by_order.sql')),
+                    ['cancelled', $id]
+                );
             }
         });
 
@@ -582,27 +606,31 @@ class RestaurantController extends Controller
     {
         $ownerId = session('user_id');
 
-        $restaurant = DB::table('restaurants')
-            ->where('owner_id', $ownerId)
-            ->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
 
         if (!$restaurant) {
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
         // Check if item belongs to this restaurant
-        $item = DB::table('menu_items')
-            ->where('item_id', $id)
-            ->where('restaurant_id', $restaurant->restaurant_id)
-            ->first();
+        $itemCheck = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_menu_item_by_id.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
+        $item = !empty($itemCheck) ? $itemCheck[0] : null;
 
         if (!$item) {
             return redirect()->route('restaurant.items')->with('error', 'Item not found.');
         }
 
-        DB::table('menu_items')
-            ->where('item_id', $id)
-            ->delete();
+        DB::delete(
+            file_get_contents(database_path('sql/queries/restaurant/delete_menu_item.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
 
         return redirect()->route('restaurant.items')
             ->with('success', 'Item deleted successfully!');
@@ -612,7 +640,12 @@ class RestaurantController extends Controller
     public function analytics()
     {
         $ownerId = session('user_id');
-        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
+
         if (!$restaurant) return redirect()->route('home');
 
         $rid = $restaurant->restaurant_id;
@@ -637,7 +670,12 @@ class RestaurantController extends Controller
     public function reviews()
     {
         $ownerId = session('user_id');
-        $restaurant = DB::table('restaurants')->where('owner_id', $ownerId)->first();
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
+
         if (!$restaurant) return redirect()->route('home');
 
         $rid = $restaurant->restaurant_id;
