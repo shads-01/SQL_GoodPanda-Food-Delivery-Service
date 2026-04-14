@@ -138,6 +138,11 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/restaurant/reviews', [RestaurantController::class, 'reviews'])
         ->name('restaurant.reviews');
 
+    Route::get('/restaurant/offers', [RestaurantController::class, 'offers'])
+        ->name('restaurant.offers');
+        
+    Route::delete('/restaurant/offer/{id}', [RestaurantController::class, 'deleteOffer'])
+        ->name('restaurant.deleteOffer');
     Route::get('/restaurant/add-item', [RestaurantController::class, 'addItem'])
         ->name('restaurant.add_item');
 

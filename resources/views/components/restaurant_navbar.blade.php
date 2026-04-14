@@ -209,8 +209,8 @@
             class="{{ request()->routeIs('restaurant.items') ? 'active' : '' }}">Menu</a>
         <a href="{{ route('restaurant.orders') }}"
             class="{{ request()->routeIs('restaurant.orders') ? 'active' : '' }}">Orders</a>
-        <a href="{{ route('restaurant.reviews') }}"
-            class="{{ request()->routeIs('restaurant.reviews') ? 'active' : '' }}">Reviews</a>
+        <a href="{{ route('restaurant.offers') }}"
+            class="{{ request()->routeIs('restaurant.offers') ? 'active' : '' }}">Offers</a>
         <a href="{{ route('restaurant.analytics') }}"
             class="{{ request()->routeIs('restaurant.analytics') ? 'active' : '' }}">Analytics</a>
     </div>

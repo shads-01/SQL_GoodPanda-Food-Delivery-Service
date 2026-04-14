@@ -181,16 +181,15 @@ class RestaurantController extends Controller
 
         // 2. Insert into database
         try {
-            DB::table('menu_items')->insert([
-                'restaurant_id' => $restaurant->restaurant_id,
-                'category_id' => $request->category_id,
-                'cuisine_id' => $request->cuisine_id,
-                'item_name' => $request->name,
-                'description' => $request->description,
-                'item_image' => $itemImageUrl,
-                'price' => $request->price,
-                'is_available' => 1,
-                'created_at' => now(),
+            $sql = file_get_contents(base_path('database/sql/queries/restaurant/insert_menu_item.sql'));
+            DB::insert($sql, [
+                $restaurant->restaurant_id,
+                $request->category_id,
+                $request->cuisine_id,
+                $request->name,
+                $request->description,
+                $itemImageUrl,
+                $request->price
             ]);
             
             return redirect()->route('restaurant.items')
@@ -215,24 +214,25 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        // Get items with category name using Query Builder to support pagination
-        $items = DB::table('menu_items')
-            ->join('menu_categories', 'menu_items.category_id', '=', 'menu_categories.category_id')
-            ->where('menu_items.restaurant_id', $restaurant->restaurant_id)
-            ->select('menu_items.*', 'menu_categories.category_name')
-            ->paginate(8);
+        // Get items with category name using raw sql to support manual pagination
+        $sql = file_get_contents(base_path('database/sql/queries/restaurant/get_restaurant_menu_items.sql'));
+        $rawRecords = DB::select($sql, [$restaurant->restaurant_id]);
+        
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 8;
+        $currentItems = array_slice($rawRecords, ($currentPage - 1) * $perPage, $perPage);
+        $items = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems, 
+            count($rawRecords), 
+            $perPage, 
+            $currentPage, 
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
 
         // Get active offers for these items
-        $itemIds = collect($items->items())->pluck('item_id');
-        $offers = DB::table('offers')
-            ->whereIn('target_item_id', $itemIds)
-            ->where('target_type', 'item')
-            ->where('is_active', 1)
-            ->where('start_datetime', '<=', DB::raw('GETDATE()'))
-            ->where('end_datetime', '>=', DB::raw('GETDATE()'))
-            ->select('target_item_id', 'discount_type', 'discount_value', 'offer_title')
-            ->get()
-            ->keyBy('target_item_id');
+        $sqlOffers = file_get_contents(base_path('database/sql/queries/restaurant/get_active_item_offers.sql'));
+        $rawOffers = DB::select($sqlOffers, [$restaurant->restaurant_id]);
+        $offers = collect($rawOffers)->keyBy('target_item_id');
 
         // Attach offer data to items
         foreach ($items as $item) {
@@ -363,13 +363,70 @@ class RestaurantController extends Controller
                 $endDate
             ]);
 
-            return redirect()->route('restaurant.items')
+            return redirect()->route('restaurant.offers')
                 ->with('success', 'Offer created successfully!');
                 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Offer insertion failed: " . $e->getMessage());
             return redirect()->back()->with('error', 'Database Error: Could not save the offer.');
         }
+    }
+
+    public function offers(Request $request)
+    {
+        $ownerId = session('user_id');
+
+        $restaurant = DB::table('restaurants')
+            ->where('owner_id', $ownerId)
+            ->first();
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        $sql = file_get_contents(base_path('database/sql/queries/restaurant/get_restaurant_offers.sql'));
+        $rawRecords = DB::select($sql, [$restaurant->restaurant_id]);
+        
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 8;
+        $currentItems = array_slice($rawRecords, ($currentPage - 1) * $perPage, $perPage);
+        $offers = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems, 
+            count($rawRecords), 
+            $perPage, 
+            $currentPage, 
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+
+        return view('restaurant.offers', compact('restaurant', 'offers'));
+    }
+
+    public function deleteOffer($id)
+    {
+        $ownerId = session('user_id');
+
+        $restaurant = DB::table('restaurants')
+            ->where('owner_id', $ownerId)
+            ->first();
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        $offer = DB::table('offers')
+            ->where('offer_id', $id)
+            ->where('restaurant_id', $restaurant->restaurant_id)
+            ->first();
+
+        if (!$offer) {
+            return redirect()->route('restaurant.offers')->with('error', 'Offer not found.');
+        }
+
+        DB::table('offers')
+            ->where('offer_id', $id)
+            ->delete();
+
+        return redirect()->route('restaurant.offers')->with('success', 'Offer deleted successfully!');
     }
 
     // Edit Item Page
@@ -385,12 +442,9 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account. Please contact support.');
         }
 
-        $item = DB::table('menu_items')
-            ->leftJoin('menu_categories', 'menu_items.category_id', '=', 'menu_categories.category_id')
-            ->where('menu_items.item_id', $id)
-            ->where('menu_items.restaurant_id', $restaurant->restaurant_id)
-            ->select('menu_items.*', 'menu_categories.category_name')
-            ->first();
+        $sql = file_get_contents(base_path('database/sql/queries/restaurant/get_menu_item_by_id.sql'));
+        $itemArray = DB::select($sql, [$id, $restaurant->restaurant_id]);
+        $item = !empty($itemArray) ? $itemArray[0] : null;
 
         if (!$item) {
             return redirect()->route('restaurant.items')->with('error', 'Item not found.');
@@ -461,28 +515,25 @@ class RestaurantController extends Controller
 
         $filter = $request->query('filter', 'all');
 
-        $query = DB::table('orders as o')
-            ->join('users as u', 'o.customer_id', '=', 'u.id')
-            ->leftJoin('customer_addresses as ca', 'o.delivery_address_id', '=', 'ca.address_id')
-            ->where('o.restaurant_id', $restaurant->restaurant_id)
-            ->select(
-                'o.order_id',
-                'u.name as customer_name',
-                'o.total_amount',
-                'o.order_status',
-                'o.order_datetime',
-                'ca.address_line as delivery_address'
-            );
-
-        if ($filter === 'pending') {
-            $query->whereIn('o.order_status', ['pending', 'confirmed', 'preparing', 'ready', 'on_the_way']);
-        } elseif ($filter === 'completed') {
-            $query->where('o.order_status', 'delivered');
-        } elseif ($filter === 'cancelled') {
-            $query->where('o.order_status', 'cancelled');
-        }
-
-        $orders = $query->orderBy('o.order_datetime', 'desc')->paginate(10)->appends(['filter' => $filter]);
+        $sql = file_get_contents(base_path('database/sql/queries/restaurant/get_restaurant_orders.sql'));
+        $rawRecords = DB::select($sql, [
+            $restaurant->restaurant_id, 
+            $filter, 
+            $filter, 
+            $filter,
+            $filter
+        ]);
+        
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 10;
+        $currentItems = array_slice($rawRecords, ($currentPage - 1) * $perPage, $perPage);
+        $orders = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems, 
+            count($rawRecords), 
+            $perPage, 
+            $currentPage, 
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'query' => ['filter' => $filter]]
+        );
 
         return view('restaurant.orders', compact('orders', 'restaurant', 'filter'));
     }
@@ -591,13 +642,19 @@ class RestaurantController extends Controller
 
         $rid = $restaurant->restaurant_id;
 
-        // Fetch all reviews with names
-        $reviews = DB::table('reviews as rev')
-            ->join('users as u', 'rev.customer_id', '=', 'u.id')
-            ->where('rev.restaurant_id', $rid)
-            ->select('rev.*', 'u.name as reviewer_name')
-            ->orderBy('rev.review_datetime', 'desc')
-            ->paginate(15);
+        $sql = file_get_contents(base_path('database/sql/queries/restaurant/get_restaurant_reviews.sql'));
+        $rawRecords = DB::select($sql, [$rid]);
+        
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 15;
+        $currentItems = array_slice($rawRecords, ($currentPage - 1) * $perPage, $perPage);
+        $reviews = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems, 
+            count($rawRecords), 
+            $perPage, 
+            $currentPage, 
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
 
         return view('restaurant.reviews', compact('restaurant', 'reviews'));
     }

@@ -404,7 +404,7 @@
             <a href="{{ route('restaurant.items') }}" class="back-link mb-6">
                 <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Menu
             </a>
-            <div class="mt-6 flex items-end justify-between">
+            <div class="mt-2 flex items-end justify-between">
                 <div>
                     <p class="section-eyebrow">Menu Management</p>
                     <h1 class="text-7xl md:text-8xl font-black text-[#1a1612] leading-none">
