@@ -4,7 +4,7 @@ SELECT
     ca.address_line AS delivery_address,
     ca.address_line AS delivery_address_line,
     ca.city AS delivery_address_city,
-    o.total_amount,
+    (o.total_amount - o.delivery_fee) AS total_amount,
     o.order_status,
     o.order_datetime,
     o.delivery_address_id

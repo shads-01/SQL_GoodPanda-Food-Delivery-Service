@@ -1,7 +1,7 @@
 SELECT
     o.order_id,
     u.name as customer_name,
-    o.total_amount,
+    (o.total_amount - o.delivery_fee) as total_amount,
     o.order_status,
     o.order_datetime,
     ca.address_line as delivery_address

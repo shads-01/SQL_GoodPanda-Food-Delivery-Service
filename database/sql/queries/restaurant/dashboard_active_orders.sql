@@ -4,7 +4,7 @@ SELECT TOP 5
     o.order_id,
     u.name AS customer_name,
     o.order_datetime,
-    o.subtotal,
+    (o.total_amount - o.delivery_fee) AS subtotal,
     o.order_status
 FROM orders o
 INNER JOIN users u ON o.customer_id = u.id
