@@ -152,6 +152,15 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::post('/restaurant/store-offer', [RestaurantController::class, 'storeOffer'])
         ->name('restaurant.store_offer');
 
+    Route::get('/restaurant/offer/{id}/edit', [RestaurantController::class, 'editOffer'])
+        ->name('restaurant.editOffer');
+
+    Route::put('/restaurant/offer/{id}', [RestaurantController::class, 'updateOffer'])
+        ->name('restaurant.updateOffer');
+
+    Route::post('/restaurant/offer/{id}/toggle-status', [RestaurantController::class, 'toggleOfferStatus'])
+        ->name('restaurant.toggleOfferStatus');
+
     Route::get('/restaurant/item/{id}', [RestaurantController::class, 'editItem'])
         ->name('restaurant.item.details');
 

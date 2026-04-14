@@ -674,7 +674,7 @@
             if (!newOffer) { console.error('Offer not found!'); return; }
 
             if (window.activeOffer && window.activeOffer.offer_id !== newOffer.offer_id) {
-                if (!confirm(`You currently have "${window.activeOffer.offer_title}" applied. Replace with "${newOffer.offer_title}"? Offers cannot be stacked.`)) return;
+                if (!confirm(`You currently have "${window.activeOffer.offer_title}" applied. Replace with "${newOffer.offer_title}"?`)) return;
             }
 
             window.activeOffer = newOffer;
@@ -972,11 +972,9 @@
                 }
             }
 
-            subtotal         = Math.max(0, subtotal - orderDiscountValue);
-            const finalTotal = subtotal + deliveryFee;
-            const savings    = undiscountedSubtotal - subtotal;
+            const finalTotal = Math.max(0, subtotal - orderDiscountValue) + deliveryFee;
 
-            subtotalEl.innerText = `৳${undiscountedSubtotal.toFixed(2)}`;
+            subtotalEl.innerText = `৳${subtotal.toFixed(2)}`;
 
             if (deliveryDiscounted) {
                 deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">৳70.00</span> <span class="text-green-500 font-black">FREE</span>`;
@@ -984,9 +982,9 @@
                 deliveryEl.innerText = `৳${deliveryFee.toFixed(2)}`;
             }
 
-            if (savings > 0) {
+            if (orderDiscountValue > 0) {
                 discountRow.classList.remove('hidden');
-                discountEl.innerText = `-৳${savings.toFixed(2)}`;
+                discountEl.innerText = `-৳${orderDiscountValue.toFixed(2)}`;
             } else {
                 discountRow.classList.add('hidden');
             }

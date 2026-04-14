@@ -386,11 +386,9 @@
 
                     {{-- Actions --}}
                     <div class="offer-actions">
-                        @if (!($end < $now))
-                            <a href="#" onclick="alert('Offer editing coming soon.'); return false;" class="action-btn" title="Edit">
+                            <a href="{{ route('restaurant.editOffer', $offer->offer_id) }}" class="action-btn" title="Edit">
                                 <i data-feather="edit-2" class="w-4 h-4"></i>
                             </a>
-                        @endif
                         <form action="{{ route('restaurant.deleteOffer', $offer->offer_id) }}" method="POST"
                             onsubmit="return confirm('Delete this offer permanently?');" class="m-0">
                             @csrf

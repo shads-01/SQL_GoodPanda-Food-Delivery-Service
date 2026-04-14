@@ -380,6 +380,158 @@ class RestaurantController extends Controller
         }
     }
 
+    public function editOffer($id)
+    {
+        $ownerId = session('user_id');
+
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        $offerCheck = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_offer_by_id.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
+        $offer = !empty($offerCheck) ? $offerCheck[0] : null;
+
+        if (!$offer) {
+            return redirect()->route('restaurant.offers')->with('error', 'Offer not found.');
+        }
+
+        $items = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_items_minimal.sql')),
+            [$restaurant->restaurant_id]
+        );
+
+        $categories = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_categories.sql')),
+            [$restaurant->restaurant_id]
+        );
+
+        return view('restaurant.edit_offer', compact('offer', 'items', 'categories', 'restaurant'));
+    }
+
+    public function updateOffer(Request $request, $id)
+    {
+        $request->validate([
+            'offer_title' => 'required|string|min:3|max:150',
+            'discount_type' => 'required|in:percentage,flat,free_delivery',
+            'discount_value' => 'nullable|numeric|min:0.01',
+            'target_type' => 'required|in:item,category,restaurant',
+            'target_item_id' => 'nullable|integer',
+            'target_category_id' => 'nullable|integer',
+            'min_order_amount' => 'nullable|numeric|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+        ]);
+
+        if ($request->discount_type !== 'free_delivery' && empty($request->discount_value)) {
+            return redirect()->back()->withErrors(['discount_value' => 'Discount value is required for this type.']);
+        }
+        
+        if ($request->target_type === 'item' && empty($request->target_item_id)) {
+            return redirect()->back()->withErrors(['target_item_id' => 'An item must be selected.']);
+        }
+        if ($request->target_type === 'category' && empty($request->target_category_id)) {
+            return redirect()->back()->withErrors(['target_category_id' => 'A category must be selected.']);
+        }
+
+        $targetItemId = $request->target_type === 'item' ? $request->target_item_id : null;
+        $targetCategoryId = $request->target_type === 'category' ? $request->target_category_id : null;
+        $discountValue = $request->discount_type === 'free_delivery' ? null : $request->discount_value;
+
+        $startDateTime = new \DateTime($request->start_date);
+        $endDateTime = new \DateTime($request->end_date);
+
+        if ($endDateTime <= $startDateTime) {
+            return redirect()->back()->withErrors(['end_date' => 'End date must be after start date.']);
+        }
+ 
+        $ownerId = session('user_id');
+
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        $offerCheck = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_offer_by_id.sql')),
+            [$id, $restaurant->restaurant_id]
+        );
+        $offer = !empty($offerCheck) ? $offerCheck[0] : null;
+
+        if (!$offer) {
+            return redirect()->route('restaurant.offers')->with('error', 'Offer not found.');
+        }
+
+        $startDate = $startDateTime->format('Y-m-d H:i:s');
+        $endDate = $endDateTime->format('Y-m-d H:i:s');
+
+        try {
+            DB::update(
+                file_get_contents(database_path('sql/queries/restaurant/update_offer.sql')),
+                [
+                    $request->offer_title,
+                    $request->discount_type,
+                    $discountValue,
+                    $request->target_type,
+                    $targetItemId,
+                    $targetCategoryId,
+                    $request->min_order_amount,
+                    $startDate,
+                    $endDate,
+                    $id,
+                    $restaurant->restaurant_id
+                ]
+            );
+
+            return redirect()->route('restaurant.offers')
+                ->with('success', 'Offer updated successfully!');
+                
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Offer update failed: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Database Error: Could not update the offer.');
+        }
+    }
+
+    public function toggleOfferStatus($id)
+    {
+        $ownerId = session('user_id');
+
+        $restaurantResults = DB::select(
+            file_get_contents(database_path('sql/queries/restaurant/get_restaurant_by_owner.sql')),
+            [$ownerId]
+        );
+        $restaurant = !empty($restaurantResults) ? $restaurantResults[0] : null;
+
+        if (!$restaurant) {
+            return redirect()->route('home')->with('error', 'No restaurant found for your account.');
+        }
+
+        try {
+            DB::update(
+                file_get_contents(database_path('sql/queries/restaurant/toggle_offer_status.sql')),
+                [$id, $restaurant->restaurant_id]
+            );
+
+            return redirect()->back()->with('success', 'Offer status toggled successfully!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Offer toggle failed: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Database Error: Could not toggle the offer status.');
+        }
+    }
+
     public function offers(Request $request)
     {
         $ownerId = session('user_id');
