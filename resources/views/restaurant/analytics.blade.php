@@ -39,13 +39,6 @@
                     </div>
                     <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Total Revenue</p>
                     <h3 class="text-3xl font-black text-gray-900 font-sora">৳{{ number_format($stats->total_revenue ?? 0, 0) }}</h3>
-                    <div class="mt-6 p-4 rounded-2xl bg-green-50/50 border border-green-50">
-                        <div class="flex items-center gap-2 text-green-600 font-bold text-xs mb-1">
-                            <i data-feather="arrow-up" class="w-3 h-3"></i>
-                            <span>Growth Spike</span>
-                        </div>
-                        <p class="text-[10px] text-green-700/70 font-medium">Your revenue is up by 15% compared to the previous period.</p>
-                    </div>
                 </div>
 
                 <!-- Order Stats -->

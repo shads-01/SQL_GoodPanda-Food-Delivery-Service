@@ -149,19 +149,19 @@
             </div>
             <div class="flex gap-2 bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
                 <a href="{{ route('restaurant.orders', ['filter' => 'all']) }}" 
-                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'all' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'all' ? 'bg-gray-900 !text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
                    All Orders
                 </a>
                 <a href="{{ route('restaurant.orders', ['filter' => 'pending']) }}" 
-                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'pending' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'pending' ? 'bg-gray-900 !text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
                    Active
                 </a>
                 <a href="{{ route('restaurant.orders', ['filter' => 'completed']) }}" 
-                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'completed' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'completed' ? 'bg-gray-900 !text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
                    Completed
                 </a>
                 <a href="{{ route('restaurant.orders', ['filter' => 'cancelled']) }}" 
-                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'cancelled' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'cancelled' ? 'bg-gray-900 !text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
                    Cancelled
                 </a>
             </div>
