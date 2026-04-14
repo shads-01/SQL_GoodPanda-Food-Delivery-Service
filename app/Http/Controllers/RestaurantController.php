@@ -745,7 +745,7 @@ class RestaurantController extends Controller
             if ($request->status === 'cancelled') {
                 DB::update(
                     file_get_contents(database_path('sql/queries/restaurant/update_delivery_status_by_order.sql')),
-                    ['cancelled', $id]
+                    ['failed', $id]
                 );
             }
         });

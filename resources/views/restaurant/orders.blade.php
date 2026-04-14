@@ -139,15 +139,16 @@
     <x-restaurant_navbar :restaurant="$restaurant" />
 
     <div class="p-8 max-w-7xl mx-auto">
-        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-                <p class="text-orange-500 font-bold uppercase tracking-widest text-xs mb-2">Live Fulfillment</p>
-                <h2 class="text-4xl font-black text-gray-900 tracking-tight font-sora">
-                    Order History
-                </h2>
-                <p class="text-gray-400 mt-2 font-medium">Keep track of every meal delivered to your customers.</p>
-            </div>
-            <div class="flex gap-2 bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
+        <div class="mb-8">
+            <p class="text-orange-500 font-bold uppercase tracking-widest text-xs mb-2">Live Fulfillment</p>
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight font-sora">
+                Order History
+            </h2>
+            <p class="text-gray-400 mt-2 font-medium">Keep track of every meal delivered to your customers.</p>
+        </div>
+
+        <div class="flex justify-center mb-8">
+            <div class="flex flex-wrap justify-center gap-2 bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
                 <a href="{{ route('restaurant.orders', ['filter' => 'all']) }}" 
                    class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'all' ? 'bg-gray-900 !text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
                    All Orders
