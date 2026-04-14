@@ -7,142 +7,410 @@
     <title>Offers Management | {{ $restaurant->name ?? 'Restaurant' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        :root {
+            --ink: #1a1612;
+            --cream: #faf7f2;
+            --mist: #ede8df;
+            --ember: #e85d2f;
+            --ember-deep: #c44a20;
+            --ink-faint: #3d3730;
+            --ink-mid: #7a7268;
         }
 
-        .font-sora {
-            font-family: 'Sora', sans-serif;
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(232,93,47,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-wrap { position: relative; z-index: 1; }
+
+        /* ── Header ── */
+        .eyebrow {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--ember);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .eyebrow::before {
+            content: '';
+            display: block;
+            width: 18px;
+            height: 2px;
+            background: var(--ember);
+            border-radius: 2px;
+        }
+
+        /* ── Create button ── */
+        .btn-create {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--ink);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 11px 20px;
+            border-radius: 12px;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 14px rgba(26,22,18,0.15);
+        }
+        .btn-create:hover {
+            background: var(--ember);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(232,93,47,0.3);
+        }
+
+        /* ── Alert banners ── */
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .alert-error  { background: #fff5f3; border: 1px solid #fad5cc; color: #c44a20; }
+        .alert-success { background: #f0faf4; border: 1px solid #bbdfc8; color: #2d6a4a; }
+
+        /* ── Offer card ── */
+        .offer-card {
+            background: #fff;
+            border: 1px solid var(--mist);
+            border-radius: 20px;
+            padding: 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .offer-card:hover {
+            box-shadow: 0 6px 28px rgba(26,22,18,0.08);
+            border-color: #ddd7ce;
+        }
+
+        /* Icon block */
+        .offer-icon {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: #fff8f5;
+            border: 1px solid #fde8df;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ember);
+        }
+
+        /* Body */
+        .offer-body { flex: 1; min-width: 0; }
+
+        .offer-title {
+            font-family: 'DM Sans';
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+        }
+
+        .offer-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        /* Pills */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+        .pill-target   { background: var(--mist);   color: var(--ink-faint); }
+        .pill-active   { background: #e8f5ed; color: #2d6a4a; }
+        .pill-expired  { background: #fff0ee; color: #b94030; }
+        .pill-upcoming { background: #eef4ff; color: #2b52a0; }
+        .pill-min      { background: #f0f0ff; color: #4a44a0; border: 1px solid #dcdaff; }
+
+        .offer-date {
+            font-size: 12px;
+            color: var(--ink-mid);
+            font-weight: 500;
+        }
+
+        /* Discount badge */
+        .discount-badge {
+            flex-shrink: 0;
+            text-align: right;
+            padding: 0 8px;
+        }
+        .discount-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-mid);
+            margin-bottom: 2px;
+        }
+        .discount-value {
+            font-family:  serif;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--ember);
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* Actions */
+        .offer-actions {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--mist);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink-mid);
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            text-decoration: none;
+        }
+        .action-btn:hover         { background: #fff8f5; color: var(--ember); border-color: #fde8df; }
+        .action-btn.danger:hover  { background: #fff5f3; color: #c44a20; border-color: #fad5cc; }
+        .action-btn button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 64px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1px solid var(--mist);
+            border-radius: 20px;
+            color: var(--ink-mid);
+            text-align: center;
+        }
+        .empty-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #fff8f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ember);
+            margin-bottom: 16px;
+            opacity: 0.6;
         }
 
         /* Pagination */
         .pagination {
             display: flex;
-            gap: 0.5rem;
+            gap: 6px;
             justify-content: center;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+            margin-top: 28px;
         }
-
         .pagination a,
         .pagination span {
-            padding: 0.4rem 0.8rem;
-            border: 1px solid #E7E5E4;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            color: #1C1917;
+            padding: 6px 12px;
+            border: 1px solid var(--mist);
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 600;
+            text-decoration: none;
+            color: var(--ink-faint);
+            background: #fff;
+            transition: border-color 0.15s, color 0.15s;
         }
-
-        .pagination a:hover {
-            border-color: #F97316;
-            color: #F97316;
-        }
-
+        .pagination a:hover { border-color: var(--ember); color: var(--ember); }
         .pagination span[aria-current="page"] span,
         .pagination .active {
-            background: #F97316;
-            color: white;
-            border-color: #F97316;
+            background: var(--ink);
+            color: #fff;
+            border-color: var(--ink);
         }
+
+        /* Animate in */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeUp 0.4s ease both; }
+        .delay-1 { animation-delay: 0.06s; }
+        .delay-2 { animation-delay: 0.12s; }
     </style>
 </head>
 
-<body class="bg-[#FAFAF9] text-gray-800">
-
+<body>
     <x-restaurant_navbar :restaurant="$restaurant" />
 
-    <div class="p-8 max-w-5xl mx-auto pb-20">
-        <div class="mb-10 flex items-end justify-between gap-6">
+    <div class="page-wrap max-w-4xl mx-auto px-4 md:px-8 py-10 pb-20">
+
+        {{-- Header --}}
+        <div class="mb-8 flex items-end justify-between gap-6 animate-in">
             <div>
-                <p class="text-orange-500 font-bold uppercase tracking-widest text-xs mb-2">Promotions</p>
-                <h2 class="text-4xl font-black text-gray-900 tracking-tight font-sora">Active Offers</h2>
+                <p class="eyebrow">Promotions</p>
+                <h1 style="font-family:'DM Sans'; font-size:clamp(2rem,5vw,2.8rem); font-weight:900; line-height:1.05; color:var(--ink);">
+                    Active Offers
+                </h1>
             </div>
-            <a href="{{ route('restaurant.add_offer') }}"
-                class="bg-orange-500 px-6 py-3 rounded-xl text-sm font-bold text-white shadow-md hover:bg-orange-600 transition flex items-center gap-2">
-                <i data-feather="zap" class="w-4 h-4"></i> Create New Offer
+            <a href="{{ route('restaurant.add_offer') }}" class="btn-create">
+                <i data-feather="zap" class="w-4 h-4"></i> New Offer
             </a>
         </div>
 
-        {{-- Alerts & Errors --}}
+        {{-- Alerts --}}
         @if(session('error'))
-            <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 text-red-600 font-medium text-sm flex items-center gap-2">
-                <i data-feather="alert-octagon" class="w-4 h-4"></i> {{ session('error') }}
+            <div class="alert alert-error animate-in delay-1">
+                <i data-feather="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+                {{ session('error') }}
             </div>
         @endif
         @if(session('success'))
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-8 text-emerald-700 font-medium text-sm flex items-center gap-2">
-                <i data-feather="check-circle" class="w-4 h-4"></i> {{ session('success') }}
+            <div class="alert alert-success animate-in delay-1">
+                <i data-feather="check-circle" class="w-4 h-4 flex-shrink-0"></i>
+                {{ session('success') }}
             </div>
         @endif
 
-        <div class="flex flex-col gap-4">
+        {{-- Offer list --}}
+        <div class="flex flex-col gap-3 animate-in delay-2">
             @forelse($offers as $offer)
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 flex flex-row items-center gap-6 hover:shadow-md transition-shadow duration-300">
+                @php
+                    $now   = \Carbon\Carbon::now();
+                    $start = \Carbon\Carbon::parse($offer->start_datetime);
+                    $end   = \Carbon\Carbon::parse($offer->end_datetime);
+                @endphp
+                <div class="offer-card">
 
-                    <div class="flex-none w-24 h-24 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-orange-400 border border-orange-100">
-                        <i data-feather="gift" class="w-10 h-10"></i>
+                    {{-- Icon --}}
+                    <div class="offer-icon">
+                        <i data-feather="gift" class="w-5 h-5"></i>
                     </div>
 
-                    <div class="flex-grow min-w-0 py-2">
-                        <div class="flex items-center gap-3 mb-1">
-                            <h4 class="font-bold text-gray-900 text-xl font-sora truncate">{{ $offer->offer_title }}</h4>
-                            <span class="bg-gray-100 text-gray-600 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md">
-                                {{ strtoupper($offer->target_type) }} 
-                                {{ $offer->target_type === 'item' && $offer->item_name ? ' - ' . $offer->item_name : '' }}
-                                {{ $offer->target_type === 'category' && $offer->category_name ? ' - ' . $offer->category_name : '' }}
-                            </span>
-                        </div>
-
-                        <p class="text-sm text-gray-500 mb-2 font-medium">Valid from {{ \Carbon\Carbon::parse($offer->start_datetime)->format('M d, Y h:ia') }} to {{ \Carbon\Carbon::parse($offer->end_datetime)->format('M d, Y h:ia') }}</p>
-
-                        @if($offer->min_order_amount)
-                            <span class="text-indigo-600 bg-indigo-50 border border-indigo-100 text-xs font-bold px-2 py-1 rounded-lg shadow-sm">Min. Order: ৳{{ number_format($offer->min_order_amount, 0) }}</span>
-                        @endif
-                    </div>
-
-                    <div class="flex-none ml-auto flex items-center gap-6 pl-4">
-
-                        <div class="text-right">
-                            <p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">{{ str_replace('_', ' ', $offer->discount_type) }}</p>
-                            <p class="text-2xl font-black text-orange-600 font-sora leading-none">
-                                @if($offer->discount_type === 'percentage')
-                                    {{ rtrim(rtrim($offer->discount_value, '0'), '.') }}% OFF
-                                @elseif($offer->discount_type === 'flat')
-                                    ৳{{ rtrim(rtrim($offer->discount_value, '0'), '.') }} OFF
-                                @else
-                                    FREE
+                    {{-- Body --}}
+                    <div class="offer-body">
+                        <div class="offer-title">{{ $offer->offer_title }}</div>
+                        <div class="offer-meta">
+                            {{-- Target --}}
+                            <span class="pill pill-target">
+                                {{ strtoupper($offer->target_type) }}
+                                @if($offer->target_type === 'item' && $offer->item_name)
+                                    · {{ $offer->item_name }}
+                                @elseif($offer->target_type === 'category' && $offer->category_name)
+                                    · {{ $offer->category_name }}
                                 @endif
-                            </p>
+                            </span>
+                            {{-- Status --}}
+                            @if($end < $now)
+                                <span class="pill pill-expired"><i data-feather="clock" class="w-3 h-3"></i> Expired</span>
+                            @elseif($start > $now)
+                                <span class="pill pill-upcoming"><i data-feather="calendar" class="w-3 h-3"></i> Upcoming</span>
+                            @else
+                                <span class="pill pill-active"><i data-feather="activity" class="w-3 h-3"></i> Active</span>
+                            @endif
+                            {{-- Min order --}}
+                            @if($offer->min_order_amount)
+                                <span class="pill pill-min">Min ৳{{ number_format($offer->min_order_amount, 0) }}</span>
+                            @endif
                         </div>
+                        <p class="offer-date">
+                            {{ $start->format('M d, Y') }} → {{ $end->format('M d, Y') }}
+                        </p>
+                    </div>
 
-                        <div class="flex items-center gap-2">
-                            <a href="#" onclick="alert('Offer editing requires custom modal design.')" title="Edit Offer"
-                                class="p-2.5 bg-white text-gray-500 rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-colors border border-gray-200 shadow-sm">
+                    {{-- Discount value --}}
+                    <div class="discount-badge">
+                        <p class="discount-label">{{ str_replace('_', ' ', $offer->discount_type) }}</p>
+                        <p class="discount-value">
+                            @if($offer->discount_type === 'percentage')
+                                {{ rtrim(rtrim($offer->discount_value, '0'), '.') }}%
+                            @elseif($offer->discount_type === 'flat')
+                                ৳{{ rtrim(rtrim($offer->discount_value, '0'), '.') }}
+                            @else
+                                Free<br><span style="font-size:13px; color:var(--ink-mid); font-family:'DM Sans',sans-serif; font-weight:600;">Delivery</span>
+                            @endif
+                        </p>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="offer-actions">
+                        @if (!($end < $now))
+                            <a href="#" onclick="alert('Offer editing coming soon.'); return false;" class="action-btn" title="Edit">
                                 <i data-feather="edit-2" class="w-4 h-4"></i>
                             </a>
-                            <form action="{{ route('restaurant.deleteOffer', $offer->offer_id) }}" method="POST"
-                                onsubmit="return confirm('Delete this offer permanently?');" class="m-0">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" title="Delete Offer"
-                                    class="p-2.5 bg-white text-gray-500 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200 shadow-sm">
+                        @endif
+                        <form action="{{ route('restaurant.deleteOffer', $offer->offer_id) }}" method="POST"
+                            onsubmit="return confirm('Delete this offer permanently?');" class="m-0">
+                            @csrf
+                            @method('DELETE')
+                            <div class="action-btn danger">
+                                <button type="submit" title="Delete">
                                     <i data-feather="trash-2" class="w-4 h-4"></i>
                                 </button>
-                            </form>
-                        </div>
-
+                            </div>
+                        </form>
                     </div>
 
                 </div>
             @empty
-                <div class="py-16 flex flex-col items-center justify-center text-gray-400 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                    <i data-feather="sun" class="w-12 h-12 mb-4 text-orange-200"></i>
-                    <p class="font-bold text-lg text-gray-500">No active offers right now.</p>
-                    <p class="text-sm font-medium mt-1">Create one to boost your sales!</p>
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i data-feather="sun" class="w-6 h-6"></i>
+                    </div>
+                    <p style="font-size:18px; font-weight:700; color:var(--ink-faint); margin-bottom:4px;">No offers yet</p>
+                    <p style="font-size:13px; color:var(--ink-mid);">Create one to start boosting your sales.</p>
                 </div>
             @endforelse
         </div>
@@ -152,13 +420,13 @@
                 {{ $offers->appends(request()->query())->links('vendor.pagination.custom') }}
             </div>
         @endif
+
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            feather.replace({ 'stroke-width': 2.5 });
+            feather.replace({ 'stroke-width': 2 });
         });
     </script>
 </body>
-
 </html>

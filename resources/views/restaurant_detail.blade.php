@@ -440,8 +440,8 @@
                     <span class="opacity-75">Valid until: {{ date('M d, Y h:i A', strtotime($offer->end_datetime)) }}</span>
                 </p>
                 
-                <button onclick="availOffer({{ $offer->offer_id }})"
-                    class="bg-white text-orange-500 font-black px-8 py-3 rounded-xl text-sm hover:scale-105 transition-transform shadow-md uppercase tracking-wider relative z-10 w-full active:scale-95">
+                <button id="offerBtn_{{ $offer->offer_id }}" onclick="availOffer({{ $offer->offer_id }})"
+                    class="offer-avail-btn bg-white text-orange-500 font-black px-8 py-3 rounded-xl text-sm hover:scale-105 transition-transform shadow-md uppercase tracking-wider relative z-10 w-full active:scale-95">
                     Avail Offer
                 </button>
             </div>
@@ -618,7 +618,10 @@
             document.getElementById('openOffersBtn').addEventListener('click', openOffersModal);
 
             // Restore offer visual state
-            if (window.activeOffer) updateGridPrices();
+            if (window.activeOffer) {
+                updateGridPrices();
+                updateOfferModalButtons();
+            }
 
             // Load cart from DB on page ready
             loadCart();
@@ -655,13 +658,8 @@
             if (!window.activeOffer) return basePrice;
             const offer = window.activeOffer;
 
-            if (offer.discount_type === 'free_delivery') return basePrice;
-            if (offer.target_type === 'restaurant' && offer.discount_type === 'flat') return basePrice;
-            if (offer.target_type === 'restaurant' && offer.discount_type === 'percentage' && parseFloat(offer.min_order_amount) > 0) return basePrice;
-
             let isApplicable = false;
-            if (offer.target_type === 'restaurant') isApplicable = true;
-            else if (offer.target_type === 'category' && offer.target_category_id == testCategory) isApplicable = true;
+            if (offer.target_type === 'category' && offer.target_category_id == testCategory) isApplicable = true;
             else if (offer.target_type === 'item'     && offer.target_item_id     == testItem)     isApplicable = true;
 
             if (isApplicable) {
@@ -684,8 +682,25 @@
             updateGridPrices();
             saveOfferState();
             renderCart();
+            updateOfferModalButtons();
             alert(`Offer "${window.activeOffer.offer_title}" successfully applied!`);
         };
+
+        function updateOfferModalButtons() {
+            document.querySelectorAll('.offer-avail-btn').forEach(btn => {
+                const offerId = btn.id.split('_')[1];
+                if (window.activeOffer && parseInt(window.activeOffer.offer_id) === parseInt(offerId)) {
+                    btn.innerHTML = '<i data-feather="check-circle" class="w-4 h-4 inline-block mr-1"></i> APPLIED';
+                    btn.classList.add('bg-green-500', 'text-white');
+                    btn.classList.remove('bg-white', 'text-orange-500');
+                } else {
+                    btn.innerHTML = 'Avail Offer';
+                    btn.classList.add('bg-white', 'text-orange-500');
+                    btn.classList.remove('bg-green-500', 'text-white');
+                }
+            });
+            if (typeof feather !== 'undefined') feather.replace();
+        }
 
         function updateGridPrices() {
             document.querySelectorAll('.item-card').forEach(card => {
@@ -795,7 +810,7 @@
                         restaurant_id: RESTAURANT_ID,
                         item_id:       item.id,
                         quantity:      item.qty,
-                        unit_price:    item.calculatedPrice ?? item.price,
+                        unit_price:    item.price, // Always save original base price
                     }),
                 });
             } catch (e) {
@@ -942,7 +957,7 @@
 
             if (window.activeOffer && isOfferMathValid) {
                 const minOrder = parseFloat(window.activeOffer.min_order_amount) || 0;
-                if (subtotal >= minOrder || minOrder === 0) {
+                if (undiscountedSubtotal >= minOrder || minOrder === 0) {
                     if (window.activeOffer.discount_type === 'free_delivery') {
                         deliveryFee        = 0.00;
                         deliveryDiscounted = true;
@@ -950,8 +965,8 @@
                     if (window.activeOffer.target_type === 'restaurant') {
                         if (window.activeOffer.discount_type === 'flat') {
                             orderDiscountValue = parseFloat(window.activeOffer.discount_value);
-                        } else if (window.activeOffer.discount_type === 'percentage' && minOrder > 0) {
-                            orderDiscountValue = subtotal * (parseFloat(window.activeOffer.discount_value) / 100);
+                        } else if (window.activeOffer.discount_type === 'percentage') {
+                            orderDiscountValue = undiscountedSubtotal * (parseFloat(window.activeOffer.discount_value) / 100);
                         }
                     }
                 }
@@ -961,7 +976,7 @@
             const finalTotal = subtotal + deliveryFee;
             const savings    = undiscountedSubtotal - subtotal;
 
-            subtotalEl.innerText = `৳${subtotal.toFixed(2)}`;
+            subtotalEl.innerText = `৳${undiscountedSubtotal.toFixed(2)}`;
 
             if (deliveryDiscounted) {
                 deliveryEl.innerHTML = `<span class="line-through text-gray-400 mr-2 text-xs">৳70.00</span> <span class="text-green-500 font-black">FREE</span>`;

@@ -32,35 +32,65 @@ class CheckoutController extends Controller
         // Get Restaurant
         $restaurant = DB::selectOne("EXEC sp_get_restaurant_by_id ?", [$restaurantId]);
 
-        // Calculate Subtotal
-        $subtotal = 0;
+        // Calculate Subtotal (undiscounted base total)
+        $undiscountedSubtotal = 0;
         foreach ($cartItems as $item) {
-            $subtotal += ($item->unit_price * $item->quantity);
+            $undiscountedSubtotal += ($item->unit_price * $item->quantity);
         }
 
         $delivery = 70.00;
         $discount = 0.00;
         $offerId = $request->query('offer_id');
+        $offer = null;
 
-        // Apply Order-level or Delivery-level Offers
+        // Apply Offers
         if ($offerId) {
             $offers = DB::select("EXEC sp_get_active_offers ?", [$restaurantId]);
-            // Search for the chosen offer
             $offer = collect($offers)->firstWhere('offer_id', $offerId);
             
             if ($offer) {
-                if ($offer->discount_type === 'free_delivery') {
-                    $delivery = 0.00;
-                } elseif ($offer->target_type === 'restaurant') {
-                    if ($offer->discount_type === 'flat') {
-                        $discount = (float) $offer->discount_value;
-                    } elseif ($offer->discount_type === 'percentage') {
-                        $discount = $subtotal * ((float) $offer->discount_value / 100);
+                // Check minimum order amount requirement
+                $minOrder = isset($offer->min_order_amount) ? (float) $offer->min_order_amount : 0;
+                
+                if ($undiscountedSubtotal >= $minOrder || $minOrder == 0) {
+                    if ($offer->discount_type === 'free_delivery') {
+                        $delivery = 0.00;
+                    } 
+                    elseif ($offer->target_type === 'restaurant') {
+                        if ($offer->discount_type === 'flat') {
+                            $discount = (float) $offer->discount_value;
+                        } elseif ($offer->discount_type === 'percentage') {
+                            $discount = $undiscountedSubtotal * ((float) $offer->discount_value / 100);
+                        }
+                    } 
+                    else {
+                        // Item or Category level discount
+                        foreach ($cartItems as $item) {
+                            $isApplicable = false;
+                            // Check if this specific item or its category is the target
+                            if ($offer->target_type === 'item' && $offer->target_item_id == $item->item_id) {
+                                $isApplicable = true;
+                            } elseif ($offer->target_type === 'category' && $offer->target_category_id == $item->category_id) {
+                                $isApplicable = true;
+                            }
+
+                            if ($isApplicable) {
+                                $itemBasePrice = (float) $item->unit_price;
+                                $itemTotal = $itemBasePrice * $item->quantity;
+                                
+                                if ($offer->discount_type === 'flat') {
+                                    $discount += min($itemTotal, ((float) $offer->discount_value) * $item->quantity);
+                                } elseif ($offer->discount_type === 'percentage') {
+                                    $discount += $itemTotal * ((float) $offer->discount_value / 100);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
         
+        $subtotal = $undiscountedSubtotal;
         $total = max(0, $subtotal - $discount) + $delivery;
 
         return view('checkout', compact(
