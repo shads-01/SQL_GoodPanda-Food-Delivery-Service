@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History | GoodPanda</title>
     @vite('resources/css/app.css')
@@ -39,11 +40,23 @@
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
         .order-info h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
         .order-info p { font-size: 0.85rem; color: var(--text-secondary); }
-        .order-status-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .order-status-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-block;
+        }
         
-        .status-delivered { background: #D1FAE5; color: #065F46; }
-        .status-pending { background: #FEF3C7; color: #92400E; }
-        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+        .status-pending    { background: #FEF3C7; color: #92400E; }
+        .status-confirmed  { background: #E0E7FF; color: #3730A3; }
+        .status-preparing  { background: #DBEAFE; color: #1E40AF; }
+        .status-ready      { background: #F3E8FF; color: #6B21A8; }
+        .status-on_the_way { background: #FFF7ED; color: #9A3412; border: 1px solid #FED7AA; }
+        .status-delivered  { background: #D1FAE5; color: #065F46; }
+        .status-cancelled  { background: #FEE2E2; color: #991B1B; }
 
         .order-footer { display: flex; justify-content: space-between; align-items: center; }
         .order-total { font-size: 1.1rem; font-weight: 700; color: var(--orange-main); }
@@ -95,9 +108,16 @@
                         <div class="order-info">
                             <h3>{{ $order->restaurant_name ?? 'Unknown Restaurant' }}</h3>
                             <p>Order #{{ $order->order_id }} • {{ \Carbon\Carbon::parse($order->order_datetime)->format('M d, Y h:i A') }}</p>
+                            @if($order->partner_name)
+                                <p style="margin-top: 4px; color: var(--orange-main); font-weight: 600;">🚴 Rider: {{ $order->partner_name }}</p>
+                            @endif
                         </div>
                         <span class="order-status-badge status-{{ strtolower($order->order_status) }}">
-                            {{ ucfirst($order->order_status) }}
+                            @if($order->order_status === 'on_the_way')
+                                ON THE WAY
+                            @else
+                                {{ ucfirst($order->order_status) }}
+                            @endif
                         </span>
                     </div>
                     
@@ -109,7 +129,7 @@
                             @if($order->order_status == 'delivered')
                                 @if(!$order->review_id)
                                     <button class="btn btn-outline-orange" 
-                                            onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}')">
+                                            onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}', '{{ addslashes($order->partner_name) }}')">
                                         ⭐ Write a Review
                                     </button>
                                 @else

@@ -5,6 +5,9 @@
 
         <h3>Rate Your Experience</h3>
         <p>How was your food from <strong id="modalRestaurantName"></strong>?</p>
+        <p id="modalPartnerNameContainer" style="display:none; font-size: 0.85rem; margin-top: -0.5rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Delivered by <strong id="modalPartnerName"></strong>
+        </p>
         
         <form action="{{ route('customer.review.store') }}" method="POST" id="reviewForm">
             @csrf
@@ -23,17 +26,9 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label>Select Delivery Partner (Optional)</label>
-                <select name="partner_id" id="modalPartnerIdSelect">
-                    <option value="" selected>No partner assigned...</option>
-                    @foreach($partners as $partner)
-                        <option value="{{ $partner->id }}">{{ $partner->name }} (Rider)</option>
-                    @endforeach
-                </select>
-            </div>
+            <input type="hidden" name="partner_id" id="modalPartnerId">
 
-            <div class="form-group">
+            <div class="form-group" id="deliveryRatingSection">
                 <label>Delivery Rating (Optional)</label>
                 <select name="delivery_rating">
                     <option value="" selected>Select a rating...</option>
@@ -146,15 +141,22 @@
 </style>
 
 <script>
-    function openReviewModal(orderId, restaurantId, partnerId, restaurantName) {
+    function openReviewModal(orderId, restaurantId, partnerId, restaurantName, partnerName = null) {
         document.getElementById('modalOrderId').value = orderId;
         document.getElementById('modalRestaurantId').value = restaurantId;
         
-        const partnerSelect = document.getElementById('modalPartnerIdSelect');
-        if (partnerId && partnerId !== 'null') {
-            partnerSelect.value = partnerId;
+        const validPartner = (partnerId && partnerId !== 'null' && partnerId !== '');
+        document.getElementById('modalPartnerId').value = validPartner ? partnerId : '';
+        document.getElementById('deliveryRatingSection').style.display = validPartner ? 'block' : 'none';
+
+        // Update Partner Name Display
+        const partnerContainer = document.getElementById('modalPartnerNameContainer');
+        const partnerNameEl = document.getElementById('modalPartnerName');
+        if (validPartner && partnerName && partnerName !== 'null') {
+            partnerNameEl.innerText = partnerName;
+            partnerContainer.style.display = 'block';
         } else {
-            partnerSelect.value = "";
+            partnerContainer.style.display = 'none';
         }
 
         document.getElementById('modalRestaurantName').innerText = restaurantName;

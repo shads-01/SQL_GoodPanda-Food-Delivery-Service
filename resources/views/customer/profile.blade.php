@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Account | GoodPanda</title>
     @vite('resources/css/app.css')
@@ -475,26 +476,22 @@
         }
 
         .order-status {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            display: inline-block;
         }
 
-        .status-delivered {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .status-cancelled {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
+        .status-pending    { background: #FEF3C7; color: #92400E; }
+        .status-confirmed  { background: #E0E7FF; color: #3730A3; }
+        .status-preparing  { background: #DBEAFE; color: #1E40AF; }
+        .status-ready      { background: #F3E8FF; color: #6B21A8; }
+        .status-on_the_way { background: #FFF7ED; color: #9A3412; border: 1px solid #FED7AA; }
+        .status-delivered  { background: #D1FAE5; color: #065F46; }
+        .status-cancelled  { background: #FEE2E2; color: #991B1B; }
 
         .order-amount {
             font-weight: 700;
@@ -832,15 +829,24 @@
                             <div class="order-id">Order #{{ $order->order_id }}</div>
                             <div class="order-rest">{{ $order->restaurant_name }}</div>
                             <div class="order-date">{{ \Carbon\Carbon::parse($order->order_datetime)->format('d M Y') }}</div>
+                            @if($order->partner_name)
+                                <div style="font-size: 0.75rem; color: var(--orange-main); font-weight: 600; margin-top: 4px;">🚴 Rider: {{ $order->partner_name }}</div>
+                            @endif
                         </div>
                         <div style="text-align:right;">
-                            <span class="order-status status-{{ $order->order_status }}">{{ ucfirst($order->order_status) }}</span>
+                            <span class="order-status status-{{ $order->order_status }}">
+                                @if($order->order_status === 'on_the_way')
+                                    ON THE WAY
+                                @else
+                                    {{ ucfirst($order->order_status) }}
+                                @endif
+                            </span>
                             <div class="order-amount">৳{{ number_format($order->total_amount,0) }}</div>
                             @if($order->order_status == 'delivered')
                                 <div style="margin-top: 0.5rem;">
                                     @if(!$order->review_id)
                                         <button class="btn-text-orange" style="white-space: nowrap;" 
-                                                onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}')">
+                                                onclick="openReviewModal({{ $order->order_id }}, {{ $order->restaurant_id }}, {{ $order->partner_id ?? 'null' }}, '{{ addslashes($order->restaurant_name) }}', '{{ addslashes($order->partner_name) }}')">
                                             ⭐ Review
                                         </button>
                                     @else

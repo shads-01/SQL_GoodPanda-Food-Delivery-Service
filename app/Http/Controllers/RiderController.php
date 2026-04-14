@@ -74,7 +74,7 @@ class RiderController extends Controller
         }
 
         $acceptSql = $this->getQuery('accept_delivery.sql');
-        DB::statement($acceptSql, [$userId, $request->order_id]);
+        DB::statement($acceptSql, [$userId, $request->order_id, $request->order_id]);
 
         return back()->with('success', 'Delivery accepted successfully. Head to the restaurant!');
     }
@@ -93,6 +93,12 @@ class RiderController extends Controller
 
         if ($request->status === 'picked_up') {
             if ($del->delivery_status !== 'assigned') return back()->with('error', 'Invalid state transition.');
+            
+            $order = DB::selectOne("SELECT order_status FROM orders WHERE order_id = ?", [$del->order_id]);
+            if ($order && $order->order_status !== 'ready') {
+                return back()->with('error', 'You can only pick up an order when it is marked as Ready by the restaurant.');
+            }
+
             $sql = $this->getQuery('mark_delivery_picked_up.sql');
             DB::statement($sql, [$id, $userId, $del->order_id]);
             return back()->with('success', 'Marked as Picked Up. Now deliver to the customer!');

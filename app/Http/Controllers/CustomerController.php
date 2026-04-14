@@ -24,12 +24,15 @@ class CustomerController extends Controller
      */
     private function manualPaginate(array $results, int $perPage, string $pageName = 'page'): LengthAwarePaginator
     {
-        $page  = Paginator::resolveCurrentPage($pageName);
+        $page = Paginator::resolveCurrentPage($pageName);
         $total = count($results);
         $items = array_slice($results, ($page - 1) * $perPage, $perPage);
 
         return new LengthAwarePaginator(
-            $items, $total, $perPage, $page,
+            $items,
+            $total,
+            $perPage,
+            $page,
             ['path' => request()->url(), 'pageName' => $pageName, 'query' => request()->query()]
         );
     }
@@ -40,10 +43,10 @@ class CustomerController extends Controller
     public function home()
     {
         $topRestaurantsSql = $this->getQuery('aggregate_top_restaurants.sql');
-        $topRestaurants    = DB::select($topRestaurantsSql);
+        $topRestaurants = DB::select($topRestaurantsSql);
 
         $topOffersSql = $this->getQuery('get_top_offers.sql');
-        $topOffers    = DB::select($topOffersSql);
+        $topOffers = DB::select($topOffersSql);
 
         return view('home', compact('topRestaurants', 'topOffers'));
     }
@@ -87,11 +90,11 @@ class CustomerController extends Controller
     // -------------------------------------------------------
     public function search(Request $request)
     {
-        $q              = $request->input('q', '');
-        $cuisines       = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
+        $q = $request->input('q', '');
+        $cuisines = DB::select("SELECT cuisine_id, cuisine_name FROM cuisine_types ORDER BY cuisine_name");
         $filterCuisines = $request->input('cuisine', []);
-        $offersOnly     = $request->input('offers_only', 0);
-        $sort           = $request->input('sort', 'popular');
+        $offersOnly = $request->input('offers_only', 0);
+        $sort = $request->input('sort', 'popular');
 
         if (empty($q)) {
             return view('customer.search', [
@@ -99,37 +102,37 @@ class CustomerController extends Controller
                 'items' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12)),
                 'restaurants' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)),
                 'cuisines' => $cuisines,
-                'query'       => '',
-                'items'       => new LengthAwarePaginator([], 0, 12),
+                'query' => '',
+                'items' => new LengthAwarePaginator([], 0, 12),
                 'restaurants' => new LengthAwarePaginator([], 0, 10),
-                'cuisines'    => $cuisines,
+                'cuisines' => $cuisines,
             ]);
         }
 
         // --- Items: load SQL file and append dynamic conditions ---
-        $itemSql    = $this->getQuery('search_items_restaurants.sql');
+        $itemSql = $this->getQuery('search_items_restaurants.sql');
         $itemParams = ["%{$q}%", $offersOnly];
 
         if (!empty($filterCuisines)) {
             $placeholders = implode(',', array_fill(0, count($filterCuisines), '?'));
-            $itemSql     .= " AND mi.cuisine_id IN ({$placeholders})";
-            $itemParams   = array_merge($itemParams, $filterCuisines);
+            $itemSql .= " AND mi.cuisine_id IN ({$placeholders})";
+            $itemParams = array_merge($itemParams, $filterCuisines);
         }
 
         // Dynamic sort appended to the raw SQL
         $itemSql .= match ($sort) {
-            'price_asc'  => ' ORDER BY mi.price ASC',
+            'price_asc' => ' ORDER BY mi.price ASC',
             'price_desc' => ' ORDER BY mi.price DESC',
-            default      => ' ORDER BY order_count DESC',
+            default => ' ORDER BY order_count DESC',
         };
 
         $allItems = DB::select($itemSql, $itemParams);
-        $items    = $this->manualPaginate($allItems, 12, 'item_page');
+        $items = $this->manualPaginate($allItems, 12, 'item_page');
 
         // --- Restaurants: load SQL file ---
-        $restSql        = $this->getQuery('search_restaurants.sql');
+        $restSql = $this->getQuery('search_restaurants.sql');
         $allRestaurants = DB::select($restSql, ["%{$q}%"]);
-        $restaurants    = $this->manualPaginate($allRestaurants, 10, 'rest_page');
+        $restaurants = $this->manualPaginate($allRestaurants, 10, 'rest_page');
 
         return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
         return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
@@ -144,13 +147,13 @@ class CustomerController extends Controller
         $filterCuisines = $request->input('cuisine', []);
 
         // Load base SQL and append dynamic cuisine filter
-        $sql    = $this->getQuery('get_offers_page.sql');
+        $sql = $this->getQuery('get_offers_page.sql');
         $params = [];
 
         if (!empty($filterCuisines)) {
             $placeholders = implode(',', array_fill(0, count($filterCuisines), '?'));
-            $sql         .= " AND mi.cuisine_id IN ({$placeholders})";
-            $params       = $filterCuisines;
+            $sql .= " AND mi.cuisine_id IN ({$placeholders})";
+            $params = $filterCuisines;
         }
 
         $sql .= ' ORDER BY r.restaurant_id, mi.item_name';
@@ -184,9 +187,9 @@ class CustomerController extends Controller
     // -------------------------------------------------------
     public function profile()
     {
-        $userId      = session('user_id');
-        $user        = DB::selectOne($this->getQuery('get_user_by_id.sql'), [$userId]);
-        $addresses   = collect(DB::select($this->getQuery('get_customer_addresses.sql'), [$userId]));
+        $userId = session('user_id');
+        $user = DB::selectOne($this->getQuery('get_user_by_id.sql'), [$userId]);
+        $addresses = collect(DB::select($this->getQuery('get_customer_addresses.sql'), [$userId]));
         $recentOrders = collect(DB::select($this->getQuery('get_recent_orders.sql'), [$userId]));
 
         return view('customer.profile', compact('user', 'addresses', 'recentOrders'));
@@ -249,7 +252,7 @@ class CustomerController extends Controller
 
     public function setDefaultAddress($id)
     {
-        $userId  = session('user_id');
+        $userId = session('user_id');
         $sqlFile = $this->getQuery('set_default_address.sql');
 
         // Strip comment-only lines to avoid PDO parameter confusion, then split on ;
@@ -283,12 +286,12 @@ class CustomerController extends Controller
     // -------------------------------------------------------
     public function orderHistory()
     {
-        $userId    = session('user_id');
-        $sql       = $this->getQuery('get_customer_orders.sql');
+        $userId = session('user_id');
+        $sql = $this->getQuery('get_customer_orders.sql');
         $allOrders = DB::select($sql, [$userId]);
-        $orders    = $this->manualPaginate($allOrders, 10);
+        $orders = $this->manualPaginate($allOrders, 10);
 
-        return view('customer.order_history', compact('orders', 'partners'));
+        return view('customer.order_history', compact('orders'));
     }
 
     // -------------------------------------------------------
@@ -297,7 +300,7 @@ class CustomerController extends Controller
     public function deleteAccount(Request $request)
     {
         $userId = session('user_id');
-        $sql    = $this->getQuery('soft_delete_account.sql');
+        $sql = $this->getQuery('soft_delete_account.sql');
         DB::statement($sql, [$userId]);
         Session::flush();
         return redirect()->route('login')->with('success', 'Your account has been deleted. You may register again anytime.');

@@ -3,7 +3,7 @@
 SELECT TOP 10
     o.order_id,
     u.name AS customer_name,
-    o.total_amount,
+    (o.total_amount - o.delivery_fee) AS total_amount,
     o.order_status,
     o.order_datetime
 FROM orders o

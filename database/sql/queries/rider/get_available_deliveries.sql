@@ -11,6 +11,6 @@ SELECT
 FROM orders o
 INNER JOIN restaurants r ON o.restaurant_id = r.restaurant_id
 LEFT JOIN customer_addresses ca ON o.delivery_address_id = ca.address_id
-WHERE o.order_status IN ('accepted', 'preparing', 'ready')
+WHERE o.order_status IN ('pending', 'confirmed', 'preparing', 'ready')
   AND o.order_id NOT IN (SELECT order_id FROM deliveries)
 ORDER BY o.order_datetime ASC

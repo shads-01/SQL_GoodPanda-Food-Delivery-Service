@@ -83,18 +83,30 @@ Route::middleware(['custom.auth'])->group(function () {
         $cuisineId = $request->query('cuisine_id');
         
         // Filtered items
-        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
+        $itemsRaw = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
             $id, 
             $categoryId,
             $search,
             $cuisineId
         ]);
         
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 8;
+        $itemsCollection = collect($itemsRaw);
+        $items = new \Illuminate\Pagination\LengthAwarePaginator(
+            $itemsCollection->forPage($page, $perPage),
+            $itemsCollection->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+        
         $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
         $cuisines = DB::select("EXEC sp_get_cuisines_by_restaurant ?", [$id]);
         $offers = DB::select("EXEC sp_get_active_offers ?", [$id]);
+        $reviews = DB::select("EXEC sp_get_recent_reviews ?", [$id]);
 
-        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers'));
+        return view('restaurant_detail', compact('restaurant', 'items', 'categories', 'cuisines', 'search', 'categoryId', 'cuisineId', 'offers', 'reviews'));
     })->name('restaurant.details');
 
     // --- Rider ---
@@ -117,10 +129,20 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/restaurant/orders', [RestaurantController::class, 'orders'])
         ->name('restaurant.orders');
 
-    Route::get('/restaurant/analytics', function () {
-        return view('restaurant.analytics');
-    })->name('restaurant.analytics');
+    Route::patch('/restaurant/orders/{id}/status', [RestaurantController::class, 'updateOrderStatus'])
+        ->name('restaurant.updateOrderStatus');
 
+    Route::get('/restaurant/analytics', [RestaurantController::class, 'analytics'])
+        ->name('restaurant.analytics');
+
+    Route::get('/restaurant/reviews', [RestaurantController::class, 'reviews'])
+        ->name('restaurant.reviews');
+
+    Route::get('/restaurant/offers', [RestaurantController::class, 'offers'])
+        ->name('restaurant.offers');
+        
+    Route::delete('/restaurant/offer/{id}', [RestaurantController::class, 'deleteOffer'])
+        ->name('restaurant.deleteOffer');
     Route::get('/restaurant/add-item', [RestaurantController::class, 'addItem'])
         ->name('restaurant.add_item');
 
@@ -129,6 +151,15 @@ Route::middleware(['custom.auth'])->group(function () {
 
     Route::post('/restaurant/store-offer', [RestaurantController::class, 'storeOffer'])
         ->name('restaurant.store_offer');
+
+    Route::get('/restaurant/offer/{id}/edit', [RestaurantController::class, 'editOffer'])
+        ->name('restaurant.editOffer');
+
+    Route::put('/restaurant/offer/{id}', [RestaurantController::class, 'updateOffer'])
+        ->name('restaurant.updateOffer');
+
+    Route::post('/restaurant/offer/{id}/toggle-status', [RestaurantController::class, 'toggleOfferStatus'])
+        ->name('restaurant.toggleOfferStatus');
 
     Route::get('/restaurant/item/{id}', [RestaurantController::class, 'editItem'])
         ->name('restaurant.item.details');
@@ -147,6 +178,8 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::post('/api/cart/update', [App\Http\Controllers\CartController::class, 'updateQuantity'])->name('cart.update');
     Route::delete('/api/cart/remove', [App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::post('/api/cart/clear', [App\Http\Controllers\CartController::class, 'clearCart'])->name('cart.clear');
+    Route::get('/api/cart/active/summary', [App\Http\Controllers\CartController::class, 'getActiveCart'])->name('cart.getActive');
+    Route::get('/api/cart/offers/{restaurantId}', [App\Http\Controllers\CartController::class, 'getOffersForRestaurant'])->name('cart.getOffers');
 
     // --- Checkout Routes ---
     Route::get('/checkout/{restaurantId}', [CheckoutController::class, 'showCheckout'])->name('checkout.show');

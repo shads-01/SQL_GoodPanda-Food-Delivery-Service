@@ -11,4 +11,4 @@ SELECT
 FROM restaurants r
 LEFT JOIN restaurant_ratings rr ON r.restaurant_id = rr.restaurant_id
 WHERE r.name LIKE ?
-ORDER BY order_count DESC, avg_rating DESC
+ORDER BY avg_rating DESC, order_count DESC

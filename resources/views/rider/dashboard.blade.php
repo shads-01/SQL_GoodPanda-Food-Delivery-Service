@@ -83,7 +83,11 @@
                     <form action="{{ route('rider.deliveries.status', $activeDelivery->delivery_id) }}" method="POST">
                         @csrf @method('PATCH')
                         <input type="hidden" name="status" value="picked_up">
-                        <button type="submit" class="btn btn-orange w-full">✅ Mark Picked Up</button>
+                        @if($activeDelivery->order_status !== 'ready')
+                            <button type="button" class="btn btn-orange w-full" disabled title="Wait for restaurant to mark as Ready">⏳ Waiting for Restaurant (Ready)</button>
+                        @else
+                            <button type="submit" class="btn btn-orange w-full">✅ Order is ready. Mark Picked Up</button>
+                        @endif
                     </form>
                 @else
                     <form action="{{ route('rider.deliveries.status', $activeDelivery->delivery_id) }}" method="POST">

@@ -5,260 +5,823 @@
     <meta charset="UTF-8">
     <title>Dashboard | {{ $restaurant->name ?? 'Restaurant' }}</title>
     @vite('resources/css/app.css')
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-sora {
+            font-family: 'Sora', sans-serif;
+        }
+
+        .dash {
+            padding: 2rem 1.5rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Top bar */
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .welcome-h {
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 800;
+            color: #111;
+            line-height: 1.1;
+        }
+
+        .welcome-h .name {
+            color: #F97316;
+        }
+
+        .welcome-sub {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 4px;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 100px;
+            border: 1px solid #E5E7EB;
+            background: #fff;
+            color: #6B7280;
+        }
+
+        .pill.accent {
+            background: #FFF7ED;
+            color: #C2410C;
+            border-color: #FED7AA;
+        }
+
+        .pill svg {
+            width: 13px;
+            height: 13px;
+            flex-shrink: 0;
+        }
+
+        /* Stat grid */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 1.75rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #F3F4F6;
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: border-color .2s;
+        }
+
+        .stat-card:hover {
+            border-color: #D1D5DB;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #9CA3AF;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: clamp(22px, 3vw, 28px);
+            font-weight: 700;
+            color: #111;
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: #9CA3AF;
+            margin-top: 8px;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 100px;
+        }
+
+        .badge-up {
+            background: #EAF3DE;
+            color: #3B6D11;
+        }
+
+        .stat-card.active-card {
+            background: #F97316;
+            border-color: #F97316;
+        }
+
+        .active-card .stat-label,
+        .active-card .stat-sub {
+            color: rgba(255, 255, 255, .65);
+        }
+
+        .active-card .stat-value {
+            color: #fff;
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .3;
+            }
+        }
+
+        /* Section cards */
+        .section-card {
+            background: #fff;
+            border: 1px solid #F3F4F6;
+            border-radius: 20px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .section-meta {
+            font-size: 12px;
+            color: #9CA3AF;
+            font-weight: 300;
+            font-style: italic;
+            margin-top: 2px;
+        }
+
+        .sec-link {
+            font-size: 12px;
+            font-weight: 600;
+            color: #F97316;
+            text-decoration: none;
+            flex-shrink: 0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #FED7AA;
+            background: #FFF7ED;
+            transition: background .15s;
+        }
+
+        .sec-link:hover {
+            background: #FED7AA;
+        }
+
+        /* Order cards */
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 10px;
+        }
+
+        .order-card {
+            border: 1px solid #F3F4F6;
+            border-radius: 14px;
+            padding: 1.1rem 1.25rem;
+            background: #FAFAF9;
+            transition: border-color .2s, transform .15s;
+        }
+
+        .order-card:hover {
+            border-color: #FED7AA;
+            transform: translateY(-1px);
+        }
+
+        .order-id {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9CA3AF;
+        }
+
+        .order-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111;
+            margin-top: 2px;
+        }
+
+        .order-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #F3F4F6;
+        }
+
+        .order-time {
+            font-size: 11px;
+            color: #9CA3AF;
+            font-style: italic;
+        }
+
+        .status-pill {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 100px;
+        }
+
+        .s-pending {
+            background: #FAEEDA;
+            color: #854F0B;
+        }
+
+        .s-confirmed {
+            background: #E6F1FB;
+            color: #185FA5;
+        }
+
+        .s-preparing {
+            background: #FFF7ED;
+            color: #C2410C;
+        }
+
+        .s-ready {
+            background: #EAF3DE;
+            color: #3B6D11;
+        }
+
+        .status-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 100px;
+            padding: 4px 8px 4px 10px;
+            gap: 4px;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+
+        .status-select-wrap:hover {
+            filter: brightness(0.95);
+        }
+
+        .status-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .status-chevron {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
+            color: inherit;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Bottom two-col */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 640px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Reviews */
+        .review-item {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #F3F4F6;
+            margin-bottom: 8px;
+            background: #FAFAF9;
+        }
+
+        .review-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .reviewer-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .review-text {
+            font-size: 12px;
+            color: #6B7280;
+            font-style: italic;
+            margin-top: 3px;
+            line-height: 1.5;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star svg {
+            width: 11px;
+            height: 11px;
+        }
+
+        .star-on {
+            color: #BA7517;
+        }
+
+        .star-off {
+            color: #D1D5DB;
+        }
+
+        /* Bestseller */
+        .bestseller-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 14px;
+            background: #FFF7ED;
+            border: 1px solid #FED7AA;
+        }
+
+        .bs-icon {
+            width: 52px;
+            height: 52px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #FED7AA;
+            flex-shrink: 0;
+            font-size: 22px;
+        }
+
+        .bs-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #C2410C;
+            margin-bottom: 3px;
+        }
+
+        .bs-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #7C2D12;
+            line-height: 1.2;
+        }
+
+        .bs-sub {
+            font-size: 11px;
+            color: #C2410C;
+            margin-top: 4px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #F3F4F6;
+            margin: 1rem 0;
+        }
+
+        .runner-up-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .runner-up {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #FAFAF9;
+            border: 1px solid #F3F4F6;
+        }
+
+        .runner-up-rank {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #9CA3AF;
+            margin-bottom: 3px;
+        }
+
+        .runner-up-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .runner-up-qty {
+            font-size: 11px;
+            color: #9CA3AF;
+            margin-top: 2px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 56px;
+            height: 56px;
+            background: #FFF7ED;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .empty-icon svg {
+            width: 24px;
+            height: 24px;
+            color: #F97316;
+        }
+
+        .empty-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-top: 4px;
+            max-width: 240px;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
-    <!-- Navbar -->
-    <nav class="w-full p-4 flex justify-between items-center"
-        style="background: linear-gradient(135deg, #f3a34e, #FB923C);">
-        <h1 class="text-2xl font-bold text-white">GoodPanda</h1>
-        <div class="flex gap-6 text-white">
-            <a href="{{ route('restaurant.dashboard') }}">Dashboard</a>
-            <a href="{{ route('restaurant.items') }}">Menu</a>
-            <a href="{{ route('restaurant.orders') }}">Orders</a>
-            <a href="{{ route('restaurant.analytics') }}">Analytics</a>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="flex gap-1">
-                <a href="{{ route('restaurant.add_item') }}" class="bg-white text-orange-500 px-4 py-2 rounded">+ Add Item</a>
-                <a href="{{ route('restaurant.add_offer') }}" class="bg-orange-500 text-white px-4 py-2 rounded">+ Offer</a>
+    <x-restaurant_navbar :restaurant="$restaurant" />
+
+    <div class="dash">
+
+        {{-- Top bar --}}
+        <div class="topbar">
+            <div>
+                <h1 class="welcome-h font-sora">
+                    Welcome back, <span class="name">{{ $restaurant->name }}</span>
+                </h1>
+                <p class="welcome-sub">Here's your restaurant at a glance today.</p>
             </div>
-            @if(Session::has('user_id'))
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-white text-red-600 px-4 py-2 rounded font-semibold shadow hover:bg-red-50 transition flex items-center gap-2">
-                        <i data-feather="log-out" class="w-4 h-4 text-red-600"></i> Logout
-                    </button>
-                </form>
+            <div class="topbar-right">
+                <div class="pill accent">
+                    <svg class="w-3 h-3 text-orange-500" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                    {{ number_format($restaurant->avg_rating ?? 0, 1) }} Rating
+                </div>
+                <div class="pill">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    {{ date('M d, Y') }}
+                </div>
+            </div>
+        </div>
+
+        {{-- Stat cards --}}
+        <div class="stat-grid">
+
+            {{-- Revenue --}}
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#FFF7ED">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+                <p class="stat-label">Total Revenue</p>
+                <h2 class="stat-value">৳{{ number_format($stats->total_revenue ?? 0, 0) }}</h2>
+            </div>
+
+            {{-- Completed Orders --}}
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#E6F1FB">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                </div>
+                <p class="stat-label">Completed Orders</p>
+                <h2 class="stat-value">{{ $stats->total_completed_orders ?? 0 }}</h2>
+                <p class="stat-sub">Avg ৳{{ number_format($stats->average_order_value ?? 0, 0) }} per order</p>
+            </div>
+
+            {{-- Menu Inventory --}}
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#F3F4F6">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <path d="M3 3h18v18H3z" />
+                        <path d="M3 9h18" />
+                        <path d="M9 21V9" />
+                    </svg>
+                </div>
+                <p class="stat-label">Menu Items</p>
+                <h2 class="stat-value">{{ $itemCount }}</h2>
+                <div class="stat-sub" style="display:flex; gap:10px; font-weight:500;">
+                    <span style="color:#059669"><span
+                            style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#059669;margin-right:2px;"></span>{{ $availableItems }}
+                        Live</span>
+                    <span style="color:#DC2626"><span
+                            style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#DC2626;margin-right:2px;"></span>{{ $unavailableItems }}
+                        Hidden</span>
+                </div>
+            </div>
+
+            {{-- Active Now --}}
+            <div class="stat-card active-card">
+                <p class="stat-label">Active Now</p>
+                <h2 class="stat-value">{{ count($activeOrders) }}</h2>
+                <p class="stat-sub" style="display:flex;align-items:center;gap:6px">
+                    <span class="pulse-dot"></span>
+                    Orders needing attention
+                </p>
+            </div>
+
+        </div>
+
+        {{-- Pending Orders --}}
+        <div class="section-card">
+            <div class="section-head">
+                <div>
+                    <h3 class="section-title">Pending Orders</h3>
+                    <p class="section-meta">Waiting for preparation or confirmation</p>
+                </div>
+                <a href="{{ route('restaurant.orders', ['filter' => 'pending']) }}" class="sec-link">Manage all →</a>
+            </div>
+
+            @if(count($activeOrders) > 0)
+                <div class="orders-grid">
+                    @foreach($activeOrders as $order)
+                        @php
+                            $statusClass = match ($order->order_status) {
+                                'pending' => 's-pending',
+                                'confirmed' => 's-confirmed',
+                                'preparing' => 's-preparing',
+                                'ready' => 's-ready',
+                                default => 's-pending',
+                            };
+                        @endphp
+                        <div class="order-card">
+                            <div class="order-id">Order #{{ $order->order_id }}</div>
+                            <div class="order-name">{{ $order->customer_name }}</div>
+                            <div class="order-foot">
+                                @if($order->order_status === 'pending')
+                                    <span class="status-pill s-pending">Pending</span>
+                                @else
+                                    <form action="{{ route('restaurant.updateOrderStatus', $order->order_id) }}" method="POST"
+                                        class="inline-block">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="status-select-wrap {{ $statusClass }}">
+                                            <select name="status" onchange="this.form.submit()" class="status-select">
+                                                <option value="confirmed" {{ $order->order_status === 'confirmed' ? 'selected' : '' }}
+                                                    disabled hidden>Confirmed</option>
+                                                <option value="preparing" {{ $order->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
+                                                <option value="ready" {{ $order->order_status === 'ready' ? 'selected' : '' }}>Ready
+                                                </option>
+                                                <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                            </select>
+                                            <svg class="status-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </form>
+                                @endif
+                                <span class="order-time">
+                                    {{ \Carbon\Carbon::parse($order->order_datetime)->diffForHumans() }} ·
+                                    ৳{{ number_format($order->subtotal, 0) }}
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             @else
-                <a href="{{ route('login') }}" class="bg-white text-orange-500 px-5 py-2 rounded-full font-semibold shadow hover:bg-orange-50 transition">Login</a>
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <h4 class="empty-title">Kitchen is peaceful</h4>
+                    <p class="empty-sub">No pending orders right now. A great time to update your menu or check analytics.
+                    </p>
+                </div>
             @endif
         </div>
-    </nav>
 
-    <div class="p-8 max-w-7xl mx-auto">
-        <!-- Welcome Header -->
-        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-                <h2 class="text-5xl font-black text-gray-900 tracking-tight">Welcome, <span class="text-orange-500">{{ $restaurant->name }}</span>!</h2>
-            </div>
-            <div class="flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-                <i data-feather="calendar" class="w-4 h-4"></i>
-                {{ date('M d, Y') }}
-            </div>
-        </div>
+        {{-- Bottom row --}}
+        <div class="two-col">
 
-        <!-- ===== STAT CARDS ===== -->
-        <div class="flex flex-wrap gap-6 mb-10">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex-1 min-w-[280px]">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-green-50 rounded-lg">
-                        <i data-feather="dollar-sign" class="w-5 h-5 text-green-600"></i>
-                    </div>
-                </div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
-                <h2 class="text-3xl font-black text-gray-900 mt-1">
-                    ৳{{ number_format($stats->total_revenue ?? 0, 0) }}
-                </h2>
-                <p class="text-xs text-gray-400 mt-2 font-medium">Gross income from completed orders</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex-1 min-w-[280px]">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-blue-50 rounded-lg">
-                        <i data-feather="shopping-bag" class="w-5 h-5 text-blue-600"></i>
-                    </div>
-                </div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Completed Orders</p>
-                <h2 class="text-3xl font-black text-gray-900 mt-1">{{ $stats->total_completed_orders ?? 0 }}</h2>
-                <p class="text-xs text-blue-500 mt-2 font-bold italic">Avg: ৳{{ number_format($stats->average_order_value ?? 0, 0) }} / order</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex-1 min-w-[280px]">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-purple-50 rounded-lg">
-                        <i data-feather="layers" class="w-5 h-5 text-purple-600"></i>
-                    </div>
-                </div>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Menu Inventory</p>
-                <h2 class="text-3xl font-black text-gray-900 mt-1">{{ $itemCount }}</h2>
-                <p class="text-xs text-gray-400 mt-2 font-medium"><span class="text-green-600 font-bold">{{ $availableItems }} Live</span> · {{ $unavailableItems }} Hidden</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 bg-gradient-to-br from-white to-orange-50 hover:shadow-md transition-shadow border-l-4 border-l-orange-500 flex-1 min-w-[280px]">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-orange-100 rounded-lg">
-                        <i data-feather="zap" class="w-5 h-5 text-orange-600"></i>
-                    </div>
-                </div>
-                <p class="text-gray-600 text-xs font-bold uppercase tracking-wider">Active Orders</p>
-                <h2 class="text-3xl font-black text-orange-600 mt-1">{{ count($activeOrders) }}</h2>
-                <p class="text-xs text-orange-400 mt-2 font-bold animate-pulse">Orders waiting for preparation</p>
-            </div>
-
-        </div>
-
-        <!-- ===== ACTIVE PENDING ORDERS + RECENT REVIEWS ===== -->
-        <div class="grid lg:grid-cols-7 gap-8 mb-10">
-
-            <!-- Active Pending Orders -->
-            <div class="lg:col-span-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-black text-gray-800 flex items-center gap-2">
-                        Pending Orders
-                    </h3>
-                    <a href="{{ route('restaurant.orders') }}" class="text-orange-500 text-sm font-bold border-b-2 border-orange-100 hover:border-orange-500 transition-all pb-0.5">Manage All Orders</a>
-                </div>
-                @if(count($activeOrders) > 0)
-                    <div class="space-y-4">
-                        @foreach($activeOrders as $order)
-                            <div class="flex justify-between items-center p-4 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-orange-50/30 transition-colors">
-                                <div>
-                                    <p class="text-xs text-gray-500 font-medium">
-                                        Customer: <span class="text-gray-700 font-bold">{{ $order->customer_name }}</span> · {{ \Carbon\Carbon::parse($order->order_datetime)->diffForHumans() }}
-                                    </p>
-                                </div>
-                                <div class="text-right flex flex-col items-end gap-1.5">
-                                    <p class="font-black text-gray-900">৳{{ number_format($order->subtotal, 0) }}</p>
-                                    @php
-                                        $statusColors = [
-                                            'pending'   => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                                            'confirmed' => 'bg-blue-100 text-blue-800 border-blue-200',
-                                            'preparing' => 'bg-orange-100 text-orange-800 border-orange-200',
-                                            'ready'     => 'bg-green-100 text-green-800 border-green-200',
-                                        ];
-                                        $color = $statusColors[$order->order_status] ?? 'bg-gray-100 text-gray-800 border-gray-200';
-                                    @endphp
-                                    <span class="{{ $color }} px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border">
-                                        {{ ucfirst($order->order_status) }}
-                                    </span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="flex flex-col items-center justify-center py-12 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
-                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-                            <i data-feather="check-circle" class="w-8 h-8 text-green-400"></i>
-                        </div>
-                        <h4 class="font-bold text-gray-800 text-lg">Kitchen clear!</h4>
-                        <p class="text-gray-400 px-10 max-w-xs mt-1">There are no active orders waiting. Sit back or update your menu!</p>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Recent Reviews -->
-            <div class="lg:col-span-3 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-black text-gray-800">Reviews Feedback</h3>
-                    @if(count($recentReviews) > 0)
-                        <div class="flex items-center gap-1 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
-                            <span class="text-orange-600 font-black text-sm">{{ number_format($recentReviews[0]->avg_restaurant_rating ?? 0, 1) }}</span>
-                            <i data-feather="star" class="w-3 h-3 text-orange-500 fill-orange-500"></i>
-                        </div>
-                    @endif
+            {{-- Recent Feedback --}}
+            <div class="section-card" style="margin-bottom:0">
+                <div class="section-head">
+                    <h3 class="section-title">Recent Feedback</h3>
                 </div>
                 @if(count($recentReviews) > 0)
-                    <div class="space-y-6">
-                        @foreach($recentReviews as $review)
-                            <div class="relative pl-4 border-l-2 border-gray-100 hover:border-orange-500 transition-colors">
-                                <div class="flex justify-between items-start mb-1.5">
-                                    <p class="font-bold text-gray-900 leading-tight">{{ $review->reviewer_name }}</p>
-                                    <div class="flex text-orange-400 scale-90 origin-right">
-                                        @for($i=0; $i<5; $i++)
-                                            <i data-feather="star" class="w-3 h-3 {{ $i < $review->customer_rating ? 'fill-orange-400' : '' }}"></i>
+                    @foreach(array_slice($recentReviews, 0, 5) as $review)
+                        <div class="review-item">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <span class="reviewer-name">{{ $review->reviewer_name }}</span>
+                                <div class="stars">
+                                    <div class="flex items-center gap-0.5">
+                                        @for($i = 0; $i < 5; $i++)
+                                            @if($i < $review->customer_rating)
+                                                <svg class="w-3 h-3 text-orange-500" viewBox="0 0 24 24" fill="currentColor"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <polygon
+                                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                                    </polygon>
+                                                </svg>
+                                            @else
+                                                <svg class="w-3 h-3 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polygon
+                                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                                    </polygon>
+                                                </svg>
+                                            @endif
                                         @endfor
                                     </div>
                                 </div>
-                                @if($review->comment)
-                                    <p class="text-sm text-gray-600 italic leading-relaxed line-clamp-2">"{{ $review->comment }}"</p>
-                                @endif
-                                <p class="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-wider">{{ \Carbon\Carbon::parse($review->review_datetime)->diffForHumans() }}</p>
                             </div>
-                        @endforeach
-                    </div>
+                            <p class="review-text">"{{ $review->comment ?? 'No comment left.' }}"</p>
+                        </div>
+                    @endforeach
                 @else
-                    <p class="text-gray-400 text-center py-12 font-medium italic">No customer feedback yet.</p>
+                    <p style="text-align:center;font-size:13px;color:#9CA3AF;font-style:italic;padding:2rem 0">No recent
+                        feedback yet.</p>
                 @endif
             </div>
 
-        </div>
-
-        <!-- ===== RECENT ORDERS + TOP ITEMS + MENU STATUS ===== -->
-        <div class="grid lg:grid-cols-3 gap-8">
-
-            <!-- Recent Orders Feed -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-black text-gray-800">Order History</h3>
+            {{-- Bestseller --}}
+            <div class="section-card" style="margin-bottom:0">
+                <div class="section-head">
+                    <h3 class="section-title">Bestseller</h3>
+                    <a href="{{ route('restaurant.analytics') }}" class="sec-link">Analytics →</a>
                 </div>
-                @if(count($recentOrders) > 0)
-                    <div class="space-y-4">
-                        @foreach($recentOrders as $order)
-                            <div class="flex justify-between items-center py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors px-1 rounded-lg">
-                                <div>
-                                    <p class="font-black text-gray-900 text-sm">Order #{{ $order->order_id }}</p>
-                                    <p class="text-[11px] text-gray-400 font-bold uppercase">{{ $order->customer_name }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-black text-gray-900 text-sm">৳{{ number_format($order->total_amount, 0) }}</p>
-                                    @php
-                                        $colors = [
-                                            'delivered' => 'text-green-600',
-                                            'pending'   => 'text-yellow-600',
-                                            'confirmed' => 'text-blue-600',
-                                            'preparing' => 'text-orange-600',
-                                            'cancelled' => 'text-red-600',
-                                            'ready'     => 'text-teal-600',
-                                        ];
-                                        $c = $colors[$order->order_status] ?? 'text-gray-400';
-                                    @endphp
-                                    <span class="{{ $c }} text-[10px] font-black uppercase tracking-widest italic">{{ $order->order_status }}</span>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-gray-400 text-center py-10">Historical orders empty.</p>
-                @endif
-            </div>
-
-            <!-- Top Sold Items -->
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 bg-gradient-to-b from-white to-gray-50/30 mb-10">
-                <h3 class="text-xl font-black text-gray-800 mb-6 flex items-center gap-2">
-                    <i data-feather="award" class="text-orange-500 w-5 h-5"></i>
-                    Top Sold Items
-                </h3>
                 @if(count($topItems) > 0)
-                    <div class="space-y-5">
-                        @foreach($topItems as $i => $item)
-                            <div class="flex justify-between items-center group">
-                                <div class="flex items-center gap-3">
-                                    <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 text-[10px] font-black text-gray-500 group-hover:bg-orange-500 group-hover:text-white transition-colors">0{{ $i + 1 }}</span>
-                                    <span class="text-sm font-bold text-gray-700">{{ $item->item_name }}</span>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-black text-sm text-gray-900">{{ $item->total_quantity_sold }} <span class="text-[10px] text-gray-400 font-medium">Sold</span></p>
-                                    <p class="text-[10px] text-green-500 font-black tracking-tighter italic">+৳{{ number_format($item->total_revenue_from_item, 0) }}</p>
-                                </div>
-                            </div>
-                        @endforeach
+                    <div class="bestseller-card">
+                        <div class="flex-none w-32 h-32 rounded-xl overflow-hidden bg-gray-100 relative"
+                            style="min-width: 8rem;">
+                            <img src="{{ $topItems[0]->item_image }}" alt="{{ $topItems[0]->item_name }}"
+                                class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <div class="bs-label">Most ordered</div>
+                            <div class="bs-name">{{ $topItems[0]->item_name }}</div>
+                            <div class="bs-sub">{{ $topItems[0]->total_quantity_sold }} portions sold this month</div>
+                        </div>
                     </div>
+                    @if(count($topItems) > 1)
+                        <div class="divider"></div>
+                        <div class="runner-up-grid">
+                            @foreach(array_slice((array) $topItems, 1, 4) as $i => $item)
+                                @php
+                                    $rank = match ($i) {
+                                        0 => '2nd place',
+                                        1 => '3rd place',
+                                        2 => '4th place',
+                                        3 => '5th place',
+                                        default => ($i + 2) . 'th place'
+                                    };
+                                @endphp
+                                <div class="runner-up">
+                                    <div class="runner-up-rank">{{ $rank }}</div>
+                                    <div class="runner-up-name">{{ $item->item_name }}</div>
+                                    <div class="runner-up-qty">{{ $item->total_quantity_sold }} portions</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @else
-                    <p class="text-gray-400 text-center py-10">Ranking items...</p>
+                    <p style="text-align:center;font-size:13px;color:#9CA3AF;font-style:italic;padding:2rem 0">No sales data
+                        yet.</p>
                 @endif
             </div>
+
         </div>
-
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            feather.replace();
-        });
-    </script>
 
 </body>
 

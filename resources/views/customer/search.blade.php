@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search – GoodPanda</title>
     @vite('resources/css/app.css')
@@ -433,6 +434,7 @@
                         <div class="rloc text-sm text-gray-500 mb-2">📍 {{ $r->location }}</div>
                         <div class="rrating text-orange-500 font-bold text-sm flex items-center gap-1">
                             ★ {{ number_format($r->avg_rating ?? 0, 1) }}
+                            <span class="text-gray-400 font-normal ml-1">({{ $r->total_reviews ?? 0 }} reviews)</span>
                         </div>
                     </div>
                     <div class="pl-8 border-l border-gray-100/80 ml-4 py-2">

@@ -139,9 +139,17 @@ SELECT id, 'Bangla Spice', 'Puran Dhaka', '01611000019', 'spice_logo.png', 'http
 INSERT INTO restaurants (owner_id, name, location, phone_number, profile_image, cover_image, open_status, created_at)
 SELECT id, 'Mexican Fiesta', 'Mohakhali, Dhaka', '01611000020', 'taco_logo.png', 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=800', 1, GETDATE() FROM users WHERE email = 'maria@owner.com';
 
--- 5.1 Initialize Restaurant Ratings
-INSERT INTO restaurant_ratings (restaurant_id, avg_rating, total_reviews)
-SELECT restaurant_id, 4.5, 120 FROM restaurants;
+-- Give each restaurant a different rating and review count
+INSERT INTO restaurant_ratings (restaurant_id, avg_rating, total_reviews) VALUES
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Panda Express'), 4.9, 150),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Burger King'), 4.4, 95),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Luigis Pizza'), 4.0, 210),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Sushi Master'), 4.1, 180),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Hells Kitchen'), 4.2, 75),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Naked Chef Deli'), 4.3, 60),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Bangla Spice'), 4.6, 130),
+	((SELECT restaurant_id FROM restaurants WHERE name = 'Mexican Fiesta'), 3.9, 110);
+
 
 -- ============================================================
 -- 6. RESTAURANT-CUISINE LINKS
@@ -270,65 +278,91 @@ VALUES
 (@r_panda, 'Winter Special', 'percentage', 30.00, 'item', NULL, DATEADD(day, -30, GETDATE()), DATEADD(day, -5, GETDATE()), 0, GETDATE());
 
 -- ============================================================
--- 10. ORDERS
+-- 10. ORDERS & REVIEWS (DYNAMIC GENERATION)
 -- ============================================================
--- Seeding random past orders for the primary testing user (user id 1 or whatever shahadat gets)
-DECLARE @c_shahadat BIGINT;
-SELECT @c_shahadat = id FROM users WHERE email = 'shahadat@example.com';
+PRINT 'Generating dynamic orders and reviews...';
 
-DECLARE @a_shahadat BIGINT;
-SELECT TOP 1 @a_shahadat = address_id FROM customer_addresses WHERE customer_id = @c_shahadat AND label = 'Home';
+DECLARE @cust_id BIGINT, @rest_id INT, @addr_id BIGINT, @order_id INT;
+DECLARE @counter INT = 0;
 
-INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
-VALUES
-(@c_shahadat, @r_panda, @a_shahadat, DATEADD(day, -15, GETDATE()), 'delivered', 850.00, 0, 50.00, 900.00),
-(@c_shahadat, @r_bk, @a_shahadat, DATEADD(day, -10, GETDATE()), 'delivered', 1550.00, 100.00, 50.00, 1500.00),
-(@c_shahadat, @r_spice, @a_shahadat, DATEADD(day, -5, GETDATE()), 'delivered', 1250.00, 50.00, 60.00, 1260.00),
-(@c_shahadat, @r_luigi, @a_shahadat, DATEADD(day, -1, GETDATE()), 'on_the_way', 1050.00, 0, 60.00, 1110.00),
-(@c_shahadat, @r_mex, @a_shahadat, DATEADD(hour, -2, GETDATE()), 'ready', 750.00, 25.00, 50.00, 775.00),
-(@c_shahadat, @r_sushi, @a_shahadat, DATEADD(month, -1, GETDATE()), 'cancelled', 2300.00, 0, 80.00, 2380.00);
+-- Cursor to iterate through all customers
+DECLARE cust_cur CURSOR FOR SELECT customer_id FROM customer_profiles;
+OPEN cust_cur;
+FETCH NEXT FROM cust_cur INTO @cust_id;
 
-DECLARE @o1 INT, @o2 INT, @o3 INT, @o4 INT, @o5 INT;
-SET @o1 = SCOPE_IDENTITY() - 5; -- First order inserted
-SET @o2 = @o1 + 1;
-SET @o3 = @o1 + 2;
-SET @o4 = @o1 + 3;
-SET @o5 = @o1 + 4; -- Ready order
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- For each customer, place orders at 4 random restaurants
+    DECLARE rest_cur CURSOR FOR SELECT TOP 4 restaurant_id FROM restaurants ORDER BY NEWID();
+    OPEN rest_cur;
+    FETCH NEXT FROM rest_cur INTO @rest_id;
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SELECT TOP 1 @addr_id = address_id FROM customer_addresses WHERE customer_id = @cust_id;
+        
+        -- Create Order
+        INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
+        VALUES (@cust_id, @rest_id, @addr_id, DATEADD(DAY, -1 * (ABS(CHECKSUM(NEWID())) % 30), GETDATE()), 'delivered', 450.00, 0, 50.00, 500.00);
+        
+        SET @order_id = SCOPE_IDENTITY();
+        
+        -- Create Review
+        INSERT INTO reviews (order_id, customer_id, restaurant_id, restaurant_rating, comment, review_datetime)
+        VALUES (
+            @order_id, 
+            @cust_id, 
+            @rest_id, 
+            3 + (ABS(CHECKSUM(NEWID())) % 3), -- Random rating 3, 4, or 5
+            CASE (ABS(CHECKSUM(NEWID())) % 5)
+                WHEN 0 THEN 'Amazing food! Highly recommended.'
+                WHEN 1 THEN 'Really enjoyed the meal, will order again.'
+                WHEN 2 THEN 'Good service and fresh ingredients.'
+                WHEN 3 THEN 'Tasted great, but delivery was a bit slow.'
+                ELSE 'Standard quality, overall satisfied.'
+            END,
+            DATEADD(MINUTE, 60 + (ABS(CHECKSUM(NEWID())) % 120), (SELECT order_datetime FROM orders WHERE order_id = @order_id))
+        );
+        
+        FETCH NEXT FROM rest_cur INTO @rest_id;
+    END
+    CLOSE rest_cur;
+    DEALLOCATE rest_cur;
 
-DECLARE @c_john BIGINT, @a_john BIGINT;
-SELECT @c_john = id FROM users WHERE email = 'john@customer.com';
-SELECT TOP 1 @a_john = address_id FROM customer_addresses WHERE customer_id = @c_john;
-
-INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
-VALUES
-(@c_john, @r_gordon, @a_john, DATEADD(day, -3, GETDATE()), 'delivered', 4300.00, 0, 100.00, 4400.00),
-(@c_john, @r_jamie, @a_john, DATEADD(minute, -30, GETDATE()), 'preparing', 1200.00, 0, 60.00, 1260.00);
-
+    FETCH NEXT FROM cust_cur INTO @cust_id;
+END
+CLOSE cust_cur;
+DEALLOCATE cust_cur;
 
 -- ============================================================
--- 11. DELIVERIES
+-- 11. RECALCULATE RATINGS
 -- ============================================================
-DECLARE @u_rahim BIGINT;
-SELECT @u_rahim = id FROM users WHERE email = 'rahim@rider.com';
+PRINT 'Recalculating restaurant ratings based on generated reviews...';
 
--- Completed Deliveries for Rahim
+UPDATE rr
+SET 
+    avg_rating = (SELECT AVG(CAST(restaurant_rating AS DECIMAL(3,2))) FROM reviews WHERE restaurant_id = rr.restaurant_id),
+    total_reviews = (SELECT COUNT(*) FROM reviews WHERE restaurant_id = rr.restaurant_id)
+FROM restaurant_ratings rr;
+
+-- ============================================================
+-- 12. DELIVERIES (MOCK FOR RECENT ORDERS)
+-- ============================================================
+PRINT 'Assigning mock deliveries...';
+
 INSERT INTO deliveries (order_id, partner_id, delivery_address_id, delivery_status, pickup_time, delivered_time)
-VALUES
-(@o1, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 20, DATEADD(day, -15, GETDATE())), DATEADD(minute, 45, DATEADD(day, -15, GETDATE()))),
-(@o2, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 15, DATEADD(day, -10, GETDATE())), DATEADD(minute, 35, DATEADD(day, -10, GETDATE()))),
-(@o3, @u_rahim, @a_shahadat, 'delivered', DATEADD(minute, 30, DATEADD(day, -5, GETDATE())), DATEADD(minute, 60, DATEADD(day, -5, GETDATE())));
-
--- Active Delivery for Rahim (On the Way)
-INSERT INTO deliveries (order_id, partner_id, delivery_address_id, delivery_status, pickup_time)
-VALUES
-(@o4, @u_rahim, @a_shahadat, 'on_the_way', DATEADD(minute, -15, GETDATE()));
-
--- Note: The orders for @o5 ('ready') and John Doe's second order ('preparing') 
--- do not have delivery records yet, they will populate the "Available Deliveries" market!
-
+SELECT TOP 20 
+    o.order_id, 
+    (SELECT TOP 1 id FROM users WHERE role = 'delivery_partner' ORDER BY NEWID()), 
+    o.delivery_address_id, 
+    'delivered',
+    DATEADD(MINUTE, 10, o.order_datetime),
+    DATEADD(MINUTE, 40, o.order_datetime)
+FROM orders o
+WHERE o.order_status = 'delivered';
 
 -- ============================================================
 -- DONE
 -- ============================================================
-PRINT 'Seed generation complete: Massively populated tables with rider integrations.';
+PRINT 'Seed generation complete: Massively populated tables with realistic reviews and histories.';
 GO
