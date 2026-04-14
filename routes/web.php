@@ -83,12 +83,23 @@ Route::middleware(['custom.auth'])->group(function () {
         $cuisineId = $request->query('cuisine_id');
         
         // Filtered items
-        $items = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
+        $itemsRaw = DB::select("EXEC sp_search_menu_items ?, ?, ?, ?", [
             $id, 
             $categoryId,
             $search,
             $cuisineId
         ]);
+        
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 8;
+        $itemsCollection = collect($itemsRaw);
+        $items = new \Illuminate\Pagination\LengthAwarePaginator(
+            $itemsCollection->forPage($page, $perPage),
+            $itemsCollection->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
         
         $categories = DB::select("EXEC sp_get_categories_by_restaurant ?", [$id]);
         $cuisines = DB::select("EXEC sp_get_cuisines_by_restaurant ?", [$id]);

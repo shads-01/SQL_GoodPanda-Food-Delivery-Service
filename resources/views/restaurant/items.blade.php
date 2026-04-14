@@ -19,41 +19,38 @@
             font-family: 'Sora', sans-serif;
         }
 
-        /* Custom Pagination Styling */
-        .pagination-container nav div:first-child {
-            display: none;
-        }
-
-        .pagination-container nav div:last-child {
+        /* Pagination */
+        .pagination {
             display: flex;
             gap: 0.5rem;
             justify-content: center;
-            align-items: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .pagination-container nav span[aria-current="page"] span {
-            background-color: #F97316 !important;
-            color: white !important;
-            border-color: #F97316 !important;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+        .pagination a,
+        .pagination span {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #E7E5E4;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            color: #1C1917;
+            font-weight: 600;
         }
 
-        .pagination-container nav a,
-        .pagination-container nav span {
-            border-radius: 0.75rem !important;
-            padding: 0.5rem 1rem !important;
-            font-weight: 700 !important;
-            font-size: 0.875rem !important;
-            transition: all 0.2s !important;
-            border: 1.5px solid #F3F4F6 !important;
-            color: #6B7280 !important;
+        .pagination a:hover {
+            border-color: #F97316;
+            color: #F97316;
         }
 
-        .pagination-container nav a:hover {
-            border-color: #F97316 !important;
-            color: #F97316 !important;
-            background-color: #FFF7ED !important;
+        .pagination span[aria-current="page"] span,
+        .pagination .active {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
         }
+
     </style>
 </head>
 
@@ -149,8 +146,8 @@
         </div>
 
         @if($items->hasPages())
-            <div class="mt-12 pagination-container">
-                {{ $items->links() }}
+            <div class="pagination">
+                {{ $items->appends(request()->query())->links('vendor.pagination.custom') }}
             </div>
         @endif
     </div>

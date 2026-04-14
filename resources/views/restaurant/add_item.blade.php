@@ -377,6 +377,15 @@
             animation-delay: 0.19s;
         }
 
+        /* ─── Error block ─── */
+        .error-block {
+            background: #fff5f3;
+            border: 1px solid #fad5cc;
+            border-radius: 16px;
+            padding: 16px 20px;
+            color: #c44a20;
+        }
+
         select {
             appearance: none;
             -webkit-appearance: none;
@@ -407,6 +416,29 @@
                 </div>
             </div>
         </div>
+
+        {{-- Errors & Alerts --}}
+        @if(session('error'))
+            <div class="error-block mb-8 animate-in delay-1">
+                <div class="flex items-center gap-2 font-semibold text-sm mb-1">
+                    <i data-feather="alert-octagon" class="w-4 h-4"></i> Error
+                </div>
+                <p class="text-xs font-medium">{{ session('error') }}</p>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="error-block mb-8 animate-in delay-1">
+                <div class="flex items-center gap-2 font-semibold text-sm mb-2">
+                    <i data-feather="alert-circle" class="w-4 h-4"></i> Please fix the following
+                </div>
+                <ul class="space-y-1 text-xs font-medium list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('restaurant.storeItem') }}" method="POST" enctype="multipart/form-data">
             @csrf

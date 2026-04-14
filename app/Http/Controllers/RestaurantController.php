@@ -180,20 +180,26 @@ class RestaurantController extends Controller
         }
 
         // 2. Insert into database
-        DB::table('menu_items')->insert([
-            'restaurant_id' => $restaurant->restaurant_id,
-            'category_id' => $request->category_id,
-            'cuisine_id' => $request->cuisine_id,
-            'item_name' => $request->name,
-            'description' => $request->description,
-            'item_image' => $itemImageUrl,
-            'price' => $request->price,
-            'is_available' => 1,
-            'created_at' => now(),
-        ]);
-
-        return redirect()->route('restaurant.items')
-            ->with('success', 'Item added successfully!');
+        try {
+            DB::table('menu_items')->insert([
+                'restaurant_id' => $restaurant->restaurant_id,
+                'category_id' => $request->category_id,
+                'cuisine_id' => $request->cuisine_id,
+                'item_name' => $request->name,
+                'description' => $request->description,
+                'item_image' => $itemImageUrl,
+                'price' => $request->price,
+                'is_available' => 1,
+                'created_at' => now(),
+            ]);
+            
+            return redirect()->route('restaurant.items')
+                ->with('success', 'Item added successfully!');
+                
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Menu Item insert failed: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Could not add item. Please check if an item with this name already exists.');
+        }
     }
 
     // Items List
@@ -214,7 +220,7 @@ class RestaurantController extends Controller
             ->join('menu_categories', 'menu_items.category_id', '=', 'menu_categories.category_id')
             ->where('menu_items.restaurant_id', $restaurant->restaurant_id)
             ->select('menu_items.*', 'menu_categories.category_name')
-            ->paginate(12);
+            ->paginate(8);
 
         // Get active offers for these items
         $itemIds = collect($items->items())->pluck('item_id');

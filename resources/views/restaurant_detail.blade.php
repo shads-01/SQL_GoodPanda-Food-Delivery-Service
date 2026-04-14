@@ -25,6 +25,42 @@
         .animate-spin-slow {
             animation: spin 1s linear infinite;
         }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #E7E5E4;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            color: #1C1917;
+            font-weight: 600;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .pagination a:hover {
+            border-color: #F97316;
+            color: #F97316;
+            background: #FFF7ED;
+        }
+
+        .pagination span[aria-current="page"] span,
+        .pagination .active {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+        }
     </style>
 </head>
 
@@ -278,6 +314,12 @@
             @endforelse
 
         </div>
+
+        @if($items->hasPages())
+            <div class="pagination">
+                {{ $items->appends(request()->query())->links('vendor.pagination.custom') }}
+            </div>
+        @endif
 
     </main>
 

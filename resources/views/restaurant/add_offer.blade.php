@@ -278,7 +278,16 @@
             </div>
         </div>
 
-        {{-- Errors --}}
+        {{-- Alerts & Errors --}}
+        @if(session('error'))
+        <div class="error-block mb-8 animate-in delay-1">
+            <div class="flex items-center gap-2 text-[#c44a20] font-semibold text-sm mb-1">
+                <i data-feather="alert-octagon" class="w-4 h-4"></i> Error
+            </div>
+            <p class="text-xs text-[#c44a20]/80 font-medium">{{ session('error') }}</p>
+        </div>
+        @endif
+
         @if($errors->any())
         <div class="error-block mb-8 animate-in delay-1">
             <div class="flex items-center gap-2 text-[#c44a20] font-semibold text-sm mb-2">
