@@ -290,7 +290,7 @@ class RestaurantController extends Controller
             'target_item_id' => 'nullable|integer',
             'target_category_id' => 'nullable|integer',
             'min_order_amount' => 'nullable|numeric|min:1',
-            'start_date' => 'required|date|before:-1 day',
+            'start_date' => 'required|date|after:yesterday',
             'end_date' => 'required|date',
         ]);
 
@@ -441,7 +441,7 @@ class RestaurantController extends Controller
     }
 
     // Orders List
-    public function orders()
+    public function orders(Request $request)
     {
         $ownerId = session('user_id');
 
@@ -453,7 +453,9 @@ class RestaurantController extends Controller
             return redirect()->route('home')->with('error', 'No restaurant found for your account.');
         }
 
-        $orders = DB::table('orders as o')
+        $filter = $request->query('filter', 'all');
+
+        $query = DB::table('orders as o')
             ->join('users as u', 'o.customer_id', '=', 'u.id')
             ->leftJoin('customer_addresses as ca', 'o.delivery_address_id', '=', 'ca.address_id')
             ->where('o.restaurant_id', $restaurant->restaurant_id)
@@ -464,11 +466,58 @@ class RestaurantController extends Controller
                 'o.order_status',
                 'o.order_datetime',
                 'ca.address_line as delivery_address'
-            )
-            ->orderBy('o.order_datetime', 'desc')
-            ->paginate(10);
+            );
 
-        return view('restaurant.orders', compact('orders', 'restaurant'));
+        if ($filter === 'pending') {
+            $query->whereIn('o.order_status', ['pending', 'confirmed', 'preparing', 'ready', 'on_the_way']);
+        } elseif ($filter === 'completed') {
+            $query->where('o.order_status', 'delivered');
+        } elseif ($filter === 'cancelled') {
+            $query->where('o.order_status', 'cancelled');
+        }
+
+        $orders = $query->orderBy('o.order_datetime', 'desc')->paginate(10)->appends(['filter' => $filter]);
+
+        return view('restaurant.orders', compact('orders', 'restaurant', 'filter'));
+    }
+
+    // Update Order Status
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $request->validate(['status' => 'required|in:pending,preparing,ready,on_the_way,delivered,cancelled']);
+
+        $ownerId = session('user_id');
+
+        $restaurant = DB::table('restaurants')
+            ->where('owner_id', $ownerId)
+            ->first();
+
+        if (!$restaurant) {
+            return back()->with('error', 'No restaurant found for your account.');
+        }
+
+        $order = DB::table('orders')
+            ->where('order_id', $id)
+            ->where('restaurant_id', $restaurant->restaurant_id)
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found or unauthorized.');
+        }
+
+        DB::transaction(function () use ($id, $request) {
+            DB::table('orders')
+                ->where('order_id', $id)
+                ->update(['order_status' => $request->status]);
+
+            if ($request->status === 'cancelled') {
+                DB::table('deliveries')
+                    ->where('order_id', $id)
+                    ->update(['delivery_status' => 'cancelled']);
+            }
+        });
+
+        return back()->with('success', 'Order status updated successfully.');
     }
 
     // Delete Item

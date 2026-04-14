@@ -17,50 +17,87 @@
         }
 
         .order-status-badge {
-            font-size: 0.7rem;
+            font-size: 10px;
             font-weight: 700;
             padding: 4px 10px;
-            border-radius: 6px;
+            border-radius: 100px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             display: inline-block;
         }
 
-
         .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
+            background: #FAEEDA;
+            color: #854F0B;
         }
 
         .status-confirmed {
-            background: #E0E7FF;
-            color: #3730A3;
+            background: #E6F1FB;
+            color: #185FA5;
         }
 
         .status-preparing {
-            background: #DBEAFE;
-            color: #1E40AF;
+            background: #FFF7ED;
+            color: #C2410C;
         }
 
         .status-ready {
-            background: #F3E8FF;
-            color: #6B21A8;
+            background: #EAF3DE;
+            color: #3B6D11;
         }
 
         .status-on_the_way {
             background: #FFF7ED;
             color: #9A3412;
-            border: 1px solid #FED7AA;
         }
 
         .status-delivered {
-            background: #D1FAE5;
-            color: #065F46;
+            background: #EAF3DE;
+            color: #3B6D11;
         }
 
         .status-cancelled {
             background: #FEE2E2;
             color: #991B1B;
+        }
+                .status-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 100px;
+            padding: 4px 8px 4px 10px;
+            gap: 4px;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+
+        .status-select-wrap:hover {
+            filter: brightness(0.95);
+        }
+
+        .status-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .status-chevron {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
+            color: inherit;
+            opacity: 0.7;
+            pointer-events: none;
         }
 
         /* Custom Pagination Styling */
@@ -115,9 +152,22 @@
                 <p class="text-gray-400 mt-2 font-medium">Keep track of every meal delivered to your customers.</p>
             </div>
             <div class="flex gap-2 bg-white p-1 rounded-2xl shadow-sm border border-gray-100">
-                <button class="px-5 py-2 rounded-xl text-xs font-bold bg-gray-900 text-black shadow-lg">All Orders</button>
-                <button class="px-5 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">Pending</button>
-                <button class="px-5 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">Completed</button>
+                <a href="{{ route('restaurant.orders', ['filter' => 'all']) }}" 
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'all' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   All Orders
+                </a>
+                <a href="{{ route('restaurant.orders', ['filter' => 'pending']) }}" 
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'pending' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   Active
+                </a>
+                <a href="{{ route('restaurant.orders', ['filter' => 'completed']) }}" 
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'completed' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   Completed
+                </a>
+                <a href="{{ route('restaurant.orders', ['filter' => 'cancelled']) }}" 
+                   class="px-5 py-2 rounded-xl text-xs font-bold transition-colors inline-block {{ $filter === 'cancelled' ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-400 hover:text-gray-600' }}">
+                   Cancelled
+                </a>
             </div>
         </div>
 
@@ -156,13 +206,35 @@
                                 <p class="text-[10px] text-gray-300 font-bold uppercase tracking-tighter">{{ \Carbon\Carbon::parse($order->order_datetime)->diffForHumans() }}</p>
                             </td>
                             <td class="px-8 py-6">
-                                <span class="order-status-badge status-{{ strtolower($order->order_status) }}">
-                                    @if($order->order_status === 'on_the_way')
-                                        ON THE WAY
-                                    @else
-                                        {{ ucfirst($order->order_status) }}
-                                    @endif
-                                </span>
+                                @if(in_array($order->order_status, ['pending', 'on_the_way', 'delivered', 'cancelled']))
+                                    <span class="order-status-badge status-{{ strtolower($order->order_status) }}">
+                                        @if($order->order_status === 'on_the_way')
+                                            ON THE WAY
+                                        @else
+                                            {{ ucfirst($order->order_status) }}
+                                        @endif
+                                    </span>
+                                @else
+                                    <form action="{{ route('restaurant.updateOrderStatus', $order->order_id) }}" method="POST"
+                                        class="inline-block">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="status-select-wrap status-{{ strtolower($order->order_status) }}">
+                                            <select name="status" onchange="this.form.submit()" class="status-select">
+                                                <option value="confirmed" {{ $order->order_status === 'confirmed' ? 'selected' : '' }}
+                                                    disabled hidden>Confirmed</option>
+                                                <option value="preparing" {{ $order->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
+                                                <option value="ready" {{ $order->order_status === 'ready' ? 'selected' : '' }}>Ready
+                                                </option>
+                                                <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                            </select>
+                                            <svg class="status-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </form>
+                                @endif
                             </td>
                             <td class="px-8 py-6 text-right">
                                 <p class="text-lg font-black text-gray-900">৳{{ number_format($order->total_amount, 0) }}</p>

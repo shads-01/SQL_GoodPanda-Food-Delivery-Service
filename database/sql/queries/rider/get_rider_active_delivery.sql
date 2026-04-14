@@ -3,6 +3,7 @@ SELECT TOP 1
     d.delivery_id,
     d.delivery_status,
     d.order_id,
+    o.order_status,
     o.total_amount,
     r.name AS restaurant_name,
     r.location AS restaurant_address,

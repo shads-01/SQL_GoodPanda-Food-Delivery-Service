@@ -26,10 +26,6 @@
                 </h2>
                 <p class="text-gray-400 mt-2 font-medium">Deep dive into your sales, revenue, and product performance.</p>
             </div>
-            <div class="flex gap-2">
-                <button class="bg-white border border-gray-100 px-4 py-2 rounded-xl text-xs font-bold text-gray-500 shadow-sm hover:bg-gray-50 transition-colors">Export CSV</button>
-                <button class="bg-orange-500 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-orange-100 hover:bg-orange-600 transition-colors">Weekly Report</button>
-            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -112,18 +108,6 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Future placeholder for charts -->
-        <div class="mt-8 p-12 rounded-[3rem] bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 shadow-2xl relative overflow-hidden group">
-            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,rgba(249,115,22,0.4),transparent)] group-hover:opacity-20 transition-opacity"></div>
-            <div class="relative z-10 flex flex-col items-center text-center">
-                <div class="p-4 bg-white/5 rounded-2xl backdrop-blur-md border border-white/10 mb-6">
-                    <i data-feather="bar-chart-2" class="w-8 h-8 text-orange-500"></i>
-                </div>
-                <h4 class="text-2xl font-black text-white font-sora mb-2">Advanced Visualizations Coming Soon</h4>
-                <p class="text-gray-400 max-w-md text-sm leading-relaxed">We're building interactive revenue charts and customer heatmaps to help you optimize your delivery zones.</p>
             </div>
         </div>
     </div>

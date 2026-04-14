@@ -118,6 +118,9 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/restaurant/orders', [RestaurantController::class, 'orders'])
         ->name('restaurant.orders');
 
+    Route::patch('/restaurant/orders/{id}/status', [RestaurantController::class, 'updateOrderStatus'])
+        ->name('restaurant.updateOrderStatus');
+
     Route::get('/restaurant/analytics', [RestaurantController::class, 'analytics'])
         ->name('restaurant.analytics');
 
