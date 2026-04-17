@@ -1,5 +1,7 @@
 -- Set an address as default (clears others first) — two statements
 -- Executed within a DB transaction in PHP
+BEGIN TRANSACTION;
+
 UPDATE customer_addresses
 SET is_default = 0
 WHERE customer_id = ?;
@@ -7,4 +9,6 @@ WHERE customer_id = ?;
 UPDATE customer_addresses
 SET is_default = 1
 WHERE address_id  = ?
-  AND customer_id = ?
+  AND customer_id = ?;
+
+COMMIT TRANSACTION;

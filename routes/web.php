@@ -185,6 +185,9 @@ Route::middleware(['custom.auth'])->group(function () {
     Route::get('/checkout/{restaurantId}', [CheckoutController::class, 'showCheckout'])->name('checkout.show');
     Route::post('/checkout/{restaurantId}/place', [CheckoutController::class, 'placeOrder'])->name('checkout.placeOrder');
 
+    Route::post('/restaurant/store-item', [RestaurantController::class, 'storeItem'])
+        ->name('restaurant.storeItem');
+
 });
 
 // Route::post('/restaurant/store-item', function () {
@@ -198,7 +201,5 @@ Route::middleware(['custom.auth'])->group(function () {
 //     return $name . " added successfully!";
     
 // })->name('restaurant.storeItem');
-Route::post('/restaurant/store-item', [RestaurantController::class, 'storeItem'])
-    ->name('restaurant.storeItem');
 
 require __DIR__ . '/settings.php';

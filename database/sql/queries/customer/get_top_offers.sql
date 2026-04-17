@@ -8,7 +8,11 @@ SELECT TOP 6
     o.offer_id,
     o.discount_value,
     o.discount_type,
-    ROUND(mi.price - (mi.price * o.discount_value / 100), 2) AS offer_price,
+    CASE 
+        WHEN o.discount_type = 'percentage' THEN ROUND(mi.price - (mi.price * o.discount_value / 100), 2)
+        WHEN o.discount_type = 'flat' THEN ROUND(mi.price - o.discount_value, 2)
+        ELSE mi.price
+    END AS offer_price,
     r.restaurant_id,
     r.name AS restaurant_name
 FROM offers o
