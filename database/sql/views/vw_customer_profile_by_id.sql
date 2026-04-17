@@ -1,4 +1,3 @@
 CREATE OR ALTER VIEW vw_customer_profile_by_id AS
 SELECT * FROM users u
-JOIN customer_addresses ca ON u.id = ca.customer_id
-WHERE u.id = ca.customer_id;
+JOIN customer_addresses ca ON u.id = ca.customer_id;

@@ -1,12 +1,12 @@
-# GoodPanda — Food Delivery Management System
+# 🐼 GoodPanda — Food Delivery Management System
 
-A database-driven food delivery platform built as a relational database design project. Models the complete order flow of a service like FoodPanda — from customer registration and menu browsing through to payment, delivery, and reviews.
+A full-stack food delivery platform built as a database design project. We modeled the complete lifecycle of a service like FoodPanda — customer registration, restaurant browsing, menu management, cart, checkout, payment, delivery tracking, and reviews — all powered by raw SQL on Microsoft SQL Server.
 
-> CSE 3104 Database Lab · Spring 2025 · Ahsanullah University of Science and Technology
+> **CSE 3104: Database Lab** · Spring 2025 · Ahsanullah University of Science and Technology
 
 ---
 
-## Team
+## 👨‍💻 Team
 
 | Name                    | Student ID  |
 | ----------------------- | ----------- |
@@ -16,89 +16,107 @@ A database-driven food delivery platform built as a relational database design p
 
 ---
 
-## Stack
+## ✨ Features
 
-|          |                                  |
-| -------- | -------------------------------- |
-| Backend  | Laravel 12 · PHP 8.3             |
-| Frontend | Livewire 3 · Tailwind CSS · Vite |
-| Database | Microsoft SQL Server 2022        |
-| Server   | Nginx · Docker                   |
-| Testing  | Pest PHP                         |
+### Customer Side
+- Browse restaurants by cuisine, rating, and search
+- View restaurant menus with category & cuisine filters, pagination
+- Add-to-cart with live quantity management (AJAX)
+- Full checkout flow with address selection and offer application
+- Order history with review & rating submission
+- Profile management with multiple saved addresses
+- Soft account deletion (keeps data integrity, frees up credentials)
 
----
+### Restaurant Owner Side
+- Dashboard with real-time stats — revenue, orders, top items
+- Menu management — add, edit, delete items with categories and images
+- Order management — view and update order status live
+- Offer system — create/edit percentage & flat discounts on items
+- Review monitoring
 
-## Database Design
-
-The schema follows the real flow of a food delivery platform across **17 tables**:
-
-```
-Register → Browse Restaurants → View Menu → Add to Cart → Place Order → Pay → Delivery → Review
-```
-
-**Core tables:** `users` · `customer_addresses` · `restaurants` · `cuisine_types` · `restaurant_cuisines` · `restaurant_ratings` · `menu_categories` · `menu_items` · `cart` · `cart_items` · `orders` · `order_details` · `payments` · `delivery_partners` · `deliveries` · `reviews` · `item_reviews`
-
-<!-- ERD -->
-<!-- To add the ERD: export your diagram as a PNG, place it in docs/erd.png, then uncomment the line below -->
-<!-- ![Entity Relationship Diagram](docs/erd.png) -->
-
-All migrations are in `/database/migrations/` and run automatically on container start.
+### Delivery Rider Side
+- Available deliveries feed with restaurant and customer info
+- Accept, pick up, and deliver flow with status tracking
+- Delivery history with earnings overview
+- Profile and vehicle management
 
 ---
 
-## Prerequisites
+## 🛠️ Tech Stack
 
+| Layer    | Technology                        |
+| -------- | --------------------------------- |
+| Backend  | Laravel 12 · PHP 8.3              |
+| Frontend | Livewire 3 · Blade · Tailwind CSS |
+| Database | Microsoft SQL Server 2022          |
+| Server   | Nginx · Docker                     |
+| Build    | Vite · Node.js 20                  |
+
+---
+
+## 🗄️ Database Overview
+
+**18 core tables** modeling the full food delivery pipeline:
+
+```
+Register → Browse Restaurants → View Menu → Add to Cart → Place Order → Pay → Deliver → Review
+```
+
+| Area        | Tables |
+|-------------|--------|
+| Users & Auth | `users`, `customer_profiles`, `customer_addresses`, `restaurant_owner_profiles`, `delivery_partner_profiles` |
+| Restaurants | `restaurants`, `cuisine_types`, `restaurant_cuisines`, `restaurant_ratings`, `menu_categories`, `menu_items` |
+| Orders      | `cart`, `cart_items`, `orders`, `payments`, `offers` |
+| Delivery    | `deliveries` |
+| Feedback    | `reviews` |
+
+### SQL Features Used
+- **Stored Procedures** — cart management, order placement, restaurant details, menu search
+- **Views** — customer profiles, restaurant/cuisine listings
+- **Triggers** — audit logging on account deactivation
+- **Transactions** — atomic order placement with rollback on failure
+- **Subqueries** — top offers, aggregated restaurant rankings
+- **Aggregate Functions** — AVG ratings, COUNT reviews, SUM revenue
+- **JOINs** — LEFT, INNER, multi-table across all query files
+- **CHECK Constraints** — email format, phone pattern, rating bounds, enum validation
+
+---
+
+## 🚀 Setup & Run
+
+### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/)
-- [SSMS](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms) — to view and query the database
+- [SQL Server Management Studio (SSMS)](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
 
----
-
-## First-Time Setup
-
-### 1. Clone the repository
+### 1. Clone and configure
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/goodpanda.git
 cd goodpanda
-```
-
-### 2. Copy the environment file
-
-```bash
 cp .env.example .env
 ```
 
-> The `.env` file is **never committed to Git**. `.env.example` is the template.
-
-### 3. Build and start Docker containers
+### 2. Start Docker containers
 
 ```bash
 docker compose build
 docker compose up -d
 ```
 
-This starts:
+This starts three containers:
+- `goodpanda_app` — PHP 8.3 FPM (Laravel)
+- `goodpanda_nginx` — Web server at **http://localhost:8080**
+- `goodpanda_sqlserver` — SQL Server 2022 at **localhost:1433**
 
-- `goodpanda_app` — PHP 8.3 FPM (your Laravel app)
-- `goodpanda_nginx` — Web server on **http://localhost:8080**
-- `goodpanda_sqlserver` — SQL Server 2022 on **localhost:1433**
-
-### 4. Install PHP dependencies
+### 3. Install dependencies & generate key
 
 ```bash
 docker compose exec app composer install
-```
-
-### 5. Generate the application key
-
-```bash
 docker compose exec app php artisan key:generate
 ```
 
-### 6. Connect the database
-
-Open SSMS and use these connection details:
+### 4. Connect to the database via SSMS
 
 | Field                    | Value                     |
 | ------------------------ | ------------------------- |
@@ -110,76 +128,51 @@ Open SSMS and use these connection details:
 | Encrypt                  | Optional                  |
 | Trust server certificate | ✅ Check this box         |
 
-### 7. Run migrations
+### 5. Run SQL scripts in SSMS
 
-Use SSMS to run SQL files from `database/sql` in this order:
+Open and execute the following files **in order**:
 
-```text
-database/sql/schema/*.sql
-database/sql/views/*.sql
-database/sql/seed/*.sql
+```
+1. database/sql/schema/00_all_tables.sql        → Creates all 18 tables
+2. database/sql/procedures/*.sql                 → Creates stored procedures
+3. database/sql/views/*.sql                      → Creates views
+4. database/sql/queries/customer/trg_soft_delete_account.sql  → Creates trigger
+5. database/sql/seed/00_seed_all_tables.sql      → Populates sample data
 ```
 
-### 8. Open the app
+> **Tip:** Run each file one at a time in a new SSMS query window connected to `goodpanda_db`.
 
-Open in browser:
-[http://localhost:8080](http://localhost:8080)
-
----
-
-## Daily Development Workflow
+### 6. Launch the app
 
 ```bash
-# Start containers
-docker compose up -d
+npm install
+npm run dev          # Start Vite (separate terminal)
+```
 
-# Start Vite for hot-reloading CSS/JS (separate terminal)
-npm run dev
+Open **http://localhost:8080** in your browser. Default login password for all seeded accounts is `password`.
 
-# Stop everything
-docker compose down
+---
+
+## 🔁 Daily Workflow
+
+```bash
+docker compose up -d       # Start containers
+npm run dev                # Hot-reload CSS/JS (separate terminal)
+docker compose down        # Stop everything
 ```
 
 ---
 
-## Project Structure
+## 🔐 Environment Variables
 
-```
-goodpanda/
-├── app/
-│   ├── Livewire/               # Livewire components
-│   ├── Models/                 # Eloquent models
-│   └── Http/Controllers/
-├── database/
-│   ├── migrations/             # Schema — runs automatically on startup
-│   ├── seeders/
-│   └── factories/
-├── docker/
-│   ├── nginx/default.conf
-│   └── php/
-│       ├── Dockerfile          # PHP 8.3 + Node.js 20 + MSSQL drivers
-│       ├── entrypoint.sh       # Runs composer, npm build, migrate on start
-│       └── php.ini
-├── resources/views/            # Blade + Livewire templates
-├── routes/
-│   ├── web.php
-│   └── auth.php
-├── .env.example
-├── docker-compose.yml
-└── README.md
-```
+| Variable        | Value (Docker)     | Value (SSMS)       |
+| --------------- | ------------------ | ------------------ |
+| `DB_HOST`       | `sqlserver`        | `localhost,1433`   |
+| `DB_PORT`       | `1433`             | `1433`             |
+| `DB_DATABASE`   | `goodpanda_db`     | `goodpanda_db`     |
+| `DB_USERNAME`   | `sa`               | `sa`               |
+| `DB_PASSWORD`   | `GoodPanda@2025!`  | `GoodPanda@2025!`  |
 
 ---
 
-## Environment Variables
-
-| Variable        | Value                                |
-| --------------- | ------------------------------------ |
-| `DB_CONNECTION` | `sqlsrv`                             |
-| `DB_HOST`       | `sqlserver` ← use this inside Docker |
-| `DB_PORT`       | `1433`                               |
-| `DB_DATABASE`   | `goodpanda_db`                       |
-| `DB_USERNAME`   | `sa`                                 |
-| `DB_PASSWORD`   | `GoodPanda@2025!`                    |
-
-> When connecting from SSMS on your machine use `localhost,1433`. Inside Docker containers use `sqlserver`.
+*Built with ☕ and SQL queries — Spring 2025*

@@ -9,8 +9,12 @@ SELECT
     mi.description,
     mi.price,
     CASE
-        WHEN o.offer_id IS NOT NULL
-        THEN ROUND(mi.price - (mi.price * o.discount_value / 100), 2)
+        WHEN o.offer_id IS NOT NULL THEN 
+            CASE 
+                WHEN o.discount_type = 'percentage' THEN ROUND(mi.price - (mi.price * o.discount_value / 100), 2)
+                WHEN o.discount_type = 'flat' THEN ROUND(mi.price - o.discount_value, 2)
+                ELSE mi.price
+            END
         ELSE NULL
     END AS offer_price,
     ct.cuisine_name AS cuisine_names,

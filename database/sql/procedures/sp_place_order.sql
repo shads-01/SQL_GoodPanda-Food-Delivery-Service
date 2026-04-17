@@ -63,7 +63,7 @@ BEGIN
 
         -- 5. Insert Payment Details
         INSERT INTO payments (order_id, customer_id, payment_method, payment_status, amount_paid)
-        VALUES (@order_id, @customer_id, @payment_method, 'paid', @total_amount);
+        VALUES (@order_id, @customer_id, @payment_method, CASE WHEN @payment_method = 'cash' THEN 'pending' ELSE 'paid' END, @total_amount);
 
         COMMIT TRANSACTION;
 

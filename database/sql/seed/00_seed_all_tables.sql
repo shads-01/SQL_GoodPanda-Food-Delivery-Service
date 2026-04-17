@@ -282,7 +282,7 @@ VALUES
 -- ============================================================
 PRINT 'Generating dynamic orders and reviews...';
 
-DECLARE @cust_id BIGINT, @rest_id INT, @addr_id BIGINT, @order_id INT;
+DECLARE @cust_id BIGINT, @rest_id INT, @addr_id BIGINT, @order_id INT, @cart_id INT;
 DECLARE @counter INT = 0;
 
 -- Cursor to iterate through all customers
@@ -301,9 +301,17 @@ BEGIN
     BEGIN
         SELECT TOP 1 @addr_id = address_id FROM customer_addresses WHERE customer_id = @cust_id;
         
+        -- Create Cart (Mock for Seed)
+        INSERT INTO cart (customer_id, restaurant_id, status) VALUES (@cust_id, @rest_id, 'converted_to_order');
+        SET @cart_id = SCOPE_IDENTITY();
+        
+        -- Add to Cart Items
+        INSERT INTO cart_items (cart_id, item_id, quantity, unit_price)
+        SELECT TOP 2 @cart_id, item_id, 1, price FROM menu_items WHERE restaurant_id = @rest_id ORDER BY NEWID();
+
         -- Create Order
-        INSERT INTO orders (customer_id, restaurant_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
-        VALUES (@cust_id, @rest_id, @addr_id, DATEADD(DAY, -1 * (ABS(CHECKSUM(NEWID())) % 30), GETDATE()), 'delivered', 450.00, 0, 50.00, 500.00);
+        INSERT INTO orders (customer_id, restaurant_id, cart_id, delivery_address_id, order_datetime, order_status, subtotal, discount_amount, delivery_fee, total_amount)
+        VALUES (@cust_id, @rest_id, @cart_id, @addr_id, DATEADD(DAY, -1 * (ABS(CHECKSUM(NEWID())) % 30), GETDATE()), 'delivered', 450.00, 0, 50.00, 500.00);
         
         SET @order_id = SCOPE_IDENTITY();
         

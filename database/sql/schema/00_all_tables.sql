@@ -91,8 +91,7 @@ END
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'customer_profiles') AND type = 'U')
 BEGIN
     CREATE TABLE customer_profiles (
-        customer_id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES users(id),
-        created_at DATETIME NULL
+        customer_id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES users(id)
     );
 END
 
@@ -133,8 +132,7 @@ END
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'restaurant_owner_profiles') AND type = 'U')
 BEGIN
     CREATE TABLE restaurant_owner_profiles (
-        owner_id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES users(id),
-        created_at DATETIME NULL
+        owner_id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES users(id)
     );
 END
 
@@ -254,7 +252,7 @@ BEGIN
         customer_id BIGINT NOT NULL FOREIGN KEY REFERENCES customer_profiles(customer_id),
         restaurant_id INT NOT NULL FOREIGN KEY REFERENCES restaurants(restaurant_id),
         created_at DATETIME NOT NULL DEFAULT GETDATE(),
-        status VARCHAR(25) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'converted_to_order', 'abandoned'))
+        status VARCHAR(25) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'converted_to_order'))
     );
 END
 
@@ -312,13 +310,6 @@ BEGIN
         transaction_ref VARCHAR(100) NULL UNIQUE
     );
 END
-
-ALTER TABLE payments
-DROP CONSTRAINT UQ__payments__89389771C6206887;
-
-
-ALTER TABLE payments
-DROP COLUMN transaction_ref;
 
 -- ============================================================
 -- 16. DELIVERY PARTNER PROFILES
