@@ -321,8 +321,13 @@ BEGIN
         payment_status VARCHAR(50) NOT NULL CHECK (payment_status IN ('pending','paid','failed','refunded')),
         amount_paid DECIMAL(10,2) NOT NULL CHECK (amount_paid >= 0),
         payment_datetime DATETIME NOT NULL DEFAULT GETDATE(),
-        transaction_ref VARCHAR(100) NULL UNIQUE
+        transaction_ref VARCHAR(100) NULL
     );
+    -- Filtered index: enforce uniqueness only on non-NULL transaction refs
+    -- (SQL Server UNIQUE constraint treats NULL as a value, blocking multiple NULLs)
+    CREATE UNIQUE INDEX uq_payments_transaction_ref
+        ON payments(transaction_ref)
+        WHERE transaction_ref IS NOT NULL;
 END
 
 -- ============================================================
