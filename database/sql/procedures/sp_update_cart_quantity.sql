@@ -1,3 +1,6 @@
+USE goodpanda_db;
+GO
+
 CREATE OR ALTER PROCEDURE sp_update_cart_quantity
     @customer_id BIGINT,
     @restaurant_id INT,

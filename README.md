@@ -29,16 +29,18 @@ A full-stack food delivery platform built as a database design project. We model
 
 ### Restaurant Owner Side
 - Dashboard with real-time stats — revenue, orders, top items
-- Menu management — add, edit, delete items with categories and images
+- Menu management — add, edit, delete items with categories and images (Cloudinary)
 - Order management — view and update order status live
-- Offer system — create/edit percentage & flat discounts on items
-- Review monitoring
+- Offer system — create/edit/toggle percentage, flat & free delivery discounts
+- Analytics page — top selling items and revenue breakdown
+- Review monitoring — paginated reviews from customers
 
 ### Delivery Rider Side
 - Available deliveries feed with restaurant and customer info
 - Accept, pick up, and deliver flow with status tracking
 - Delivery history with earnings overview
 - Profile and vehicle management
+- Soft account deletion
 
 ---
 
@@ -49,6 +51,7 @@ A full-stack food delivery platform built as a database design project. We model
 | Backend  | Laravel 12 · PHP 8.3              |
 | Frontend | Livewire 3 · Blade · Tailwind CSS |
 | Database | Microsoft SQL Server 2022          |
+| Media    | Cloudinary (image uploads)         |
 | Server   | Nginx · Docker                     |
 | Build    | Vite · Node.js 20                  |
 
@@ -56,7 +59,7 @@ A full-stack food delivery platform built as a database design project. We model
 
 ## 🗄️ Database Overview
 
-**18 core tables** modeling the full food delivery pipeline:
+**18 core tables** + 1 audit log table (created by trigger) modeling the full food delivery pipeline:
 
 ```
 Register → Browse Restaurants → View Menu → Add to Cart → Place Order → Pay → Deliver → Review
@@ -69,11 +72,12 @@ Register → Browse Restaurants → View Menu → Add to Cart → Place Order �
 | Orders      | `cart`, `cart_items`, `orders`, `payments`, `offers` |
 | Delivery    | `deliveries` |
 | Feedback    | `reviews` |
+| Audit       | `account_deletion_log` (auto-created by trigger) |
 
 ### SQL Features Used
 - **Stored Procedures** — cart management, order placement, restaurant details, menu search
 - **Views** — customer profiles, restaurant/cuisine listings
-- **Triggers** — audit logging on account deactivation
+- **Triggers** — audit logging on account deactivation (`trg_AfterAccountDeactivation`)
 - **Transactions** — atomic order placement with rollback on failure
 - **Subqueries** — top offers, aggregated restaurant rankings
 - **Aggregate Functions** — AVG ratings, COUNT reviews, SUM revenue
@@ -92,8 +96,8 @@ Register → Browse Restaurants → View Menu → Add to Cart → Place Order �
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/goodpanda.git
-cd goodpanda
+git clone https://github.com/shads-01/SQL_GoodPanda-Food-Delivery-Service.git
+cd SQL_GoodPanda-Food-Delivery-Service
 cp .env.example .env
 ```
 
@@ -133,11 +137,22 @@ docker compose exec app php artisan key:generate
 Open and execute the following files **in order**:
 
 ```
-1. database/sql/schema/00_all_tables.sql        → Creates all 18 tables
-2. database/sql/procedures/*.sql                 → Creates stored procedures
-3. database/sql/views/*.sql                      → Creates views
-4. database/sql/queries/customer/trg_soft_delete_account.sql  → Creates trigger
-5. database/sql/seed/00_seed_all_tables.sql      → Populates sample data
+1. database/sql/schema/00_all_tables.sql                       → Creates all 18 tables
+2. database/sql/procedures/sp_get_restaurant_details.sql        → Restaurant detail procedures
+3. database/sql/procedures/sp_add_to_cart.sql                   → Cart: add item
+4. database/sql/procedures/sp_view_cart.sql                     → Cart: view items
+5. database/sql/procedures/sp_update_cart_quantity.sql           → Cart: update quantity
+6. database/sql/procedures/sp_remove_from_cart.sql              → Cart: remove item
+7. database/sql/procedures/sp_place_order.sql                   → Order placement (transaction)
+8. database/sql/procedures/sp_get_active_offers.sql             → Active offers
+9. database/sql/procedures/sp_get_customer_addresses.sql        → Customer addresses
+10. database/sql/procedures/sp_get_items_by_res_id.sql          → Menu items by restaurant
+11. database/sql/procedures/sp_get_recent_reviews.sql           → Recent reviews
+12. database/sql/views/vw_customer_profile_by_id.sql            → Customer profile view
+13. database/sql/views/vw_get_restaurants.sql                   → Restaurants view
+14. database/sql/views/vw_get_cuisines.sql                      → Cuisines view
+15. database/sql/queries/customer/trg_soft_delete_account.sql   → Trigger + audit log table
+16. database/sql/seed/00_seed_all_tables.sql                    → Populates sample data
 ```
 
 > **Tip:** Run each file one at a time in a new SSMS query window connected to `goodpanda_db`.
@@ -172,6 +187,16 @@ docker compose down        # Stop everything
 | `DB_DATABASE`   | `goodpanda_db`     | `goodpanda_db`     |
 | `DB_USERNAME`   | `sa`               | `sa`               |
 | `DB_PASSWORD`   | `GoodPanda@2025!`  | `GoodPanda@2025!`  |
+
+---
+
+## 🧪 Test Accounts
+
+| Role             | Email                    | Password   |
+| ---------------- | ------------------------ | ---------- |
+| Customer         | `shahadat@example.com`   | `password` |
+| Restaurant Owner | `instructor@aust.edu`    | `password` |
+| Delivery Rider   | `rahim@rider.com`        | `password` |
 
 ---
 

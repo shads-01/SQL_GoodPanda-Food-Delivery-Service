@@ -9,8 +9,8 @@ DELETE FROM reviews;
 DELETE FROM deliveries; 
 DELETE FROM payments; 
 DELETE FROM cart_items; 
-DELETE FROM cart; 
 DELETE FROM orders;
+DELETE FROM cart; 
 DELETE FROM offers;
 DELETE FROM menu_items; 
 DELETE FROM menu_categories;
@@ -79,8 +79,8 @@ VALUES
 -- ============================================================
 -- 2. PROFILES
 -- ============================================================
-INSERT INTO customer_profiles (customer_id, created_at) SELECT id, GETDATE() FROM users WHERE role = 'customer';
-INSERT INTO restaurant_owner_profiles (owner_id, created_at) SELECT id, GETDATE() FROM users WHERE role = 'restaurant_owner';
+INSERT INTO customer_profiles (customer_id) SELECT id FROM users WHERE role = 'customer';
+INSERT INTO restaurant_owner_profiles (owner_id) SELECT id FROM users WHERE role = 'restaurant_owner';
 
 -- For Rahim Delivery, we'll assign some mock earnings from deliveries below (50 + 50 + 60 = 160)
 INSERT INTO delivery_partner_profiles (partner_id, vehicle_type, is_available, avg_rating, total_earnings, created_at)
@@ -128,7 +128,7 @@ INSERT INTO restaurants (owner_id, name, location, phone_number, profile_image, 
 SELECT id, 'Sushi Master', 'Dhanmondi, Dhaka', '01611000016', 'sushi_logo.png', 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800', 1, GETDATE() FROM users WHERE email = 'luigi@owner.com';
 
 INSERT INTO restaurants (owner_id, name, location, phone_number, profile_image, cover_image, open_status, created_at)
-SELECT id, 'Hells Kitchen', 'Mirpur, Dhaka', '01611000017', 'steak_logo.png', 'https://images.unsplash.com/photo-1544025162-83b63b28b7e7?w=800', 1, GETDATE() FROM users WHERE email = 'gordon@owner.com';
+SELECT id, 'Hells Kitchen', 'Mirpur, Dhaka', '01611000017', 'steak_logo.png', 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=800', 1, GETDATE() FROM users WHERE email = 'gordon@owner.com';
 
 INSERT INTO restaurants (owner_id, name, location, phone_number, profile_image, cover_image, open_status, created_at)
 SELECT id, 'Naked Chef Deli', 'Baily Road, Dhaka', '01611000018', 'deli_logo.png', 'https://images.unsplash.com/photo-1550950158-d0d960dff51b?w=800', 1, GETDATE() FROM users WHERE email = 'jamie@owner.com';
@@ -314,6 +314,10 @@ BEGIN
         VALUES (@cust_id, @rest_id, @cart_id, @addr_id, DATEADD(DAY, -1 * (ABS(CHECKSUM(NEWID())) % 30), GETDATE()), 'delivered', 450.00, 0, 50.00, 500.00);
         
         SET @order_id = SCOPE_IDENTITY();
+
+        -- Create Payment record
+        INSERT INTO payments (order_id, customer_id, payment_method, payment_status, amount_paid, transaction_ref)
+        VALUES (@order_id, @cust_id, 'cash', 'paid', 500.00, NEWID());
         
         -- Create Review
         INSERT INTO reviews (order_id, customer_id, restaurant_id, restaurant_rating, comment, review_datetime)
@@ -349,7 +353,7 @@ PRINT 'Recalculating restaurant ratings based on generated reviews...';
 
 UPDATE rr
 SET 
-    avg_rating = (SELECT AVG(CAST(restaurant_rating AS DECIMAL(3,2))) FROM reviews WHERE restaurant_id = rr.restaurant_id),
+    avg_rating = ISNULL((SELECT AVG(CAST(restaurant_rating AS DECIMAL(3,2))) FROM reviews WHERE restaurant_id = rr.restaurant_id), 0.00),
     total_reviews = (SELECT COUNT(*) FROM reviews WHERE restaurant_id = rr.restaurant_id)
 FROM restaurant_ratings rr;
 

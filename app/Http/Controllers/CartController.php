@@ -57,6 +57,7 @@ class CartController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Item added to cart']);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Cart Add Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -140,8 +141,13 @@ class CartController extends Controller
         ]);
 
         try {
+            // Delete cart items first (FK constraint), then the cart row
             DB::statement(
-                "UPDATE cart SET status = 'abandoned' WHERE customer_id = ? AND restaurant_id = ? AND status = 'active'",
+                "DELETE ci FROM cart_items ci INNER JOIN cart c ON ci.cart_id = c.cart_id WHERE c.customer_id = ? AND c.restaurant_id = ? AND c.status = 'active'",
+                [$customerId, $validated['restaurant_id']]
+            );
+            DB::statement(
+                "DELETE FROM cart WHERE customer_id = ? AND restaurant_id = ? AND status = 'active'",
                 [$customerId, $validated['restaurant_id']]
             );
 

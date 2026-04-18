@@ -1,3 +1,6 @@
+USE goodpanda_db;
+GO
+
 CREATE OR ALTER PROCEDURE sp_get_recent_reviews(
     @restaurant_id INT
 )
