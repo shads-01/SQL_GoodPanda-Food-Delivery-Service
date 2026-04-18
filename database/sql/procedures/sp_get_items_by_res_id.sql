@@ -1,3 +1,6 @@
+USE goodpanda_db;
+GO
+
 CREATE OR ALTER PROCEDURE sp_get_items_by_res_id
     @restaurant_id INT
 AS

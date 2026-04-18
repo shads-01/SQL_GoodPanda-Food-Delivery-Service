@@ -99,10 +99,6 @@ class CustomerController extends Controller
         if (empty($q)) {
             return view('customer.search', [
                 'query' => '',
-                'items' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12)),
-                'restaurants' => (new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10)),
-                'cuisines' => $cuisines,
-                'query' => '',
                 'items' => new LengthAwarePaginator([], 0, 12),
                 'restaurants' => new LengthAwarePaginator([], 0, 10),
                 'cuisines' => $cuisines,
@@ -134,7 +130,6 @@ class CustomerController extends Controller
         $allRestaurants = DB::select($restSql, ["%{$q}%"]);
         $restaurants = $this->manualPaginate($allRestaurants, 10, 'rest_page');
 
-        return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
         return view('customer.search', compact('q', 'items', 'restaurants', 'cuisines', 'sort'));
     }
 
@@ -178,7 +173,6 @@ class CustomerController extends Controller
             $groupedOffers[$rid]['items'][] = $item;
         }
 
-        return view('customer.offers', compact('groupedOffers', 'paginatedItems', 'cuisines', 'totalItems'));
         return view('customer.offers', compact('groupedOffers', 'paginatedItems', 'cuisines', 'totalItems'));
     }
 
